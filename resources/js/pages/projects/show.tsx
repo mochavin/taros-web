@@ -3,6 +3,21 @@ import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { type BreadcrumbItem } from '@/types';
+import { useState } from 'react';
+
+function ScheduleViewer({ projectId }: { projectId: number }) {
+    const src = `/schedule-viewer.html?project=${projectId}`;
+    return (
+        <div>
+            <div className="flex items-center gap-2 mb-2">
+                <a href={src} target="_blank" rel="noreferrer" className="text-sm text-primary-600 hover:underline">Open schedule viewer in new tab</a>
+            </div>
+            <div style={{ height: 720, marginTop: 12 }}>
+                <iframe title="Schedule Viewer" src={src} style={{ width: '100%', height: '100%', border: '0', borderRadius: 8 }} />
+            </div>
+        </div>
+    );
+}
 
 interface ProjectShowData {
     project: {
@@ -47,10 +62,6 @@ export default function ProjectShow({ project }: ProjectShowData) {
                 <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                     <dl className="grid gap-4 md:grid-cols-2 text-sm">
                         <div>
-                            <dt className="font-medium">Project Name</dt>
-                            <dd>{project.name}</dd>
-                        </div>
-                        <div>
                             <dt className="font-medium">Tanggal Mulai</dt>
                             <dd>{project.start_date}</dd>
                         </div>
@@ -67,6 +78,12 @@ export default function ProjectShow({ project }: ProjectShowData) {
                             <dd>{project.updated_at}</dd>
                         </div>
                     </dl>
+                </div>
+                {/* Schedule viewer component */}
+                <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
+                    <h2 className="text-lg font-medium">Schedule Viewer</h2>
+                    <p className="text-sm text-muted-foreground">Upload task_schedule.csv and resource_tracking.csv or drop them into the viewer.</p>
+                    <ScheduleViewer projectId={project.id} />
                 </div>
             </div>
         </AppLayout>

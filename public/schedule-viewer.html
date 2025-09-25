@@ -1,0 +1,1008 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Schedule Viewer (Upload CSV)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#fff; --text:#222; --muted:#777; --border:#ddd; --accent:#4e79a7; --accent2:#e15759; }
+    body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); margin: 16px; }
+    h1 { font-size: 20px; margin: 8px 0; }
+    .container { max-width: 1300px; margin: 0 auto; }
+    .u-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .card { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #fafafa; }
+    .dropzone { border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; color: var(--muted); }
+    .dropzone.drag { background: #f0f7ff; border-color: var(--accent); color: var(--text); }
+    .muted { color: var(--muted); font-size: 12px; }
+
+    .tabs { display: flex; gap: 8px; margin: 12px 0; }
+    .tab { padding: 8px 12px; background: #eee; border-radius: 4px; cursor: pointer; user-select: none; }
+    .tab.active { background: #ccc; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .table-wrap { overflow: auto; max-height: 65vh; border: 1px solid var(--border); border-radius: 6px; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; background: #fff; }
+    th, td { border: 1px solid var(--border); padding: 6px 8px; }
+    th { position: sticky; top: 0; background: #f5f5f5; z-index: 1; }
+
+    .toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin: 8px 0; }
+    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input[type="text"], input[type="datetime-local"], select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; }
+    button { padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; background: #fff; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: default; }
+
+    .gantt { position: relative; border: 1px solid var(--border); border-radius: 6px; padding: 8px; overflow-x: auto; width: 100%; background: #fff; }
+    .gantt-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 12px; color: var(--muted); }
+    .gantt-scale { position: relative; height: 24px; margin-left: 200px; }
+    .gantt-scale .tick { position: absolute; height: 100%; border-left: 1px solid #eee; color: #777; font-size: 10px; }
+    .gantt-scale .tick .lbl { position: absolute; top: 6px; left: 2px; }
+    .gantt-body { position: relative; margin-left: 200px; min-width: 800px; }
+    .gantt-row { position: relative; height: 28px; border-bottom: 1px dashed #eee; }
+    .gantt-label { position: absolute; width: 190px; left: -200px; top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar { position: absolute; height: 16px; top: 6px; background: var(--accent); border-radius: 3px; }
+    .bar.elapsed { background: var(--accent2); }
+
+    /* Tooltip for gantt bars */
+    .tooltip { position: fixed; z-index: 9999; pointer-events: none; background: #111; color: #fff; border-radius: 6px; font-size: 12px; padding: 8px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.25); opacity: 0; transition: opacity .12s; max-width: 420px; }
+    .tooltip table { border-collapse: collapse; width: 100%; }
+    .tooltip td { border: none; padding: 2px 0; }
+    .tooltip td.key { color: #aaa; padding-right: 8px; white-space: nowrap; }
+  /* Resource Load chart */
+  .chart .axis { stroke: #ccc; stroke-width: 1; }
+  .chart .grid { stroke: #eee; stroke-width: 1; }
+  .legend-item { display:inline-flex; align-items:center; gap:6px; margin-right:10px; }
+  .legend-swatch { width:12px; height:12px; border-radius:2px; display:inline-block; border:1px solid #999; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <h1>Schedule Viewer</h1>
+  <div class="card">
+    <div class="u-row">
+      <div>
+        <div class="muted">Upload or drop these CSVs:</div>
+        <ul class="muted" style="margin:6px 0 0 16px;">
+          <li>task_schedule.csv (TaskID, TaskName, Start, Finish, DurationHours, IsElapsed, Assignments)</li>
+          <li>resource_tracking.csv (ResourceID, ResourceName, TaskID, TaskName, SegmentStart, SegmentEnd, SegmentHours, Units)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="u-row" style="margin-top:8px;">
+      <label>Tasks CSV: <input id="fileTasks" type="file" accept=".csv" /></label>
+      <label>Resources CSV: <input id="fileRes" type="file" accept=".csv" /></label>
+      <button id="btnClear">Clear</button>
+      <span id="status" class="muted"></span>
+    </div>
+    <div id="drop" class="dropzone" style="margin-top:10px;">Drop CSV files here</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-target="#gantt">Gantt</div>
+    <div class="tab" data-target="#tasks">Tasks</div>
+    <div class="tab" data-target="#resources">Resource Tracking</div>
+  <div class="tab" data-target="#resload">Resource Load</div>
+  </div>
+
+  <div id="gantt" class="section active">
+    <div class="toolbar">
+      <div class="filters">
+        <input id="taskFilter" type="text" placeholder="Filter tasks by text..." />
+        <label>From <input id="taskFrom" type="datetime-local" /></label>
+        <label>To <input id="taskTo" type="datetime-local" /></label>
+        <label>Start baseline <input id="customStart" type="datetime-local" /></label>
+        <label>Page size
+          <select id="taskPageSize">
+            <option>25</option><option selected>50</option><option>100</option><option>200</option><option value="all">All</option>
+          </select>
+        </label>
+        <label>Sort
+          <select id="taskSort">
+            <option value="id" selected>Task ID</option>
+            <option value="start">Start time</option>
+            <option value="finish">Finish time</option>
+            <option value="duration">Duration (longest first)</option>
+            <option value="duration_asc">Duration (shortest first)</option>
+          </select>
+        </label>
+      </div>
+      <div class="filters">
+        <button id="taskPrev">Prev</button>
+        <span id="taskPageInfo" class="muted"></span>
+        <button id="taskNext">Next</button>
+      </div>
+    </div>
+    <div class="gantt">
+      <div class="gantt-header">
+        <span id="ganttSpan" class="muted">No data</span>
+      </div>
+      <div id="ganttScale" class="gantt-scale"></div>
+      <div id="ganttBody" class="gantt-body"></div>
+    </div>
+  </div>
+
+  <div id="tasks" class="section">
+    <div class="toolbar">
+      <div class="filters">
+        <input id="taskFilter2" type="text" placeholder="Filter tasks by text..." />
+        <label>From <input id="taskFrom2" type="datetime-local" /></label>
+        <label>To <input id="taskTo2" type="datetime-local" /></label>
+        <label>Page size
+          <select id="taskPageSize2">
+            <option>25</option><option selected>50</option><option>100</option><option>200</option><option value="all">All</option>
+          </select>
+        </label>
+        <label>Sort
+          <select id="taskSort2">
+            <option value="id" selected>Task ID</option>
+            <option value="start">Start time</option>
+          </select>
+        </label>
+      </div>
+      <div class="filters">
+        <button id="taskPrev2">Prev</button>
+        <span id="taskPageInfo2" class="muted"></span>
+        <button id="taskNext2">Next</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="taskTable">
+        <thead>
+          <tr>
+            <th>TaskID</th><th>TaskName</th><th>Start</th><th>Finish</th><th>DurationHours</th><th>IsElapsed</th><th>Assignments</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="resources" class="section">
+    <div class="toolbar">
+      <div class="filters">
+        <input id="resFilter" type="text" placeholder="Filter resources/tasks..." />
+        <label>Page size
+          <select id="resPageSize">
+            <option>25</option><option selected>50</option><option>100</option><option>200</option><option value="all">All</option>
+          </select>
+        </label>
+        <label>From <input id="resFrom" type="datetime-local" /></label>
+        <label>To <input id="resTo" type="datetime-local" /></label>
+      </div>
+      <div class="filters">
+        <button id="resPrev">Prev</button>
+        <span id="resPageInfo" class="muted"></span>
+        <button id="resNext">Next</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="resTable">
+        <thead>
+          <tr>
+            <th>ResourceID</th><th>ResourceName</th><th>TaskID</th><th>TaskName</th><th>SegmentStart</th><th>SegmentEnd</th><th>SegmentHours</th><th>Units</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="resload" class="section">
+    <div class="toolbar">
+      <div class="filters">
+        <label>From <input id="rlFrom" type="date" /></label>
+        <label>To <input id="rlTo" type="date" /></label>
+        <label>Top resources
+          <select id="rlTopN">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="all">All</option>
+          </select>
+        </label>
+        <label>View
+          <select id="rlView">
+            <option value="stacked" selected>Stacked</option>
+            <option value="single">Single Resource</option>
+          </select>
+        </label>
+        <span id="rlSingleControls" style="display:none; align-items:center; gap:6px;">
+          <button id="rlPrevRes">Prev</button>
+          <label>Resource
+            <select id="rlResSelect"></select>
+          </label>
+          <span id="rlCurrentRes" class="muted"></span>
+          <button id="rlNextRes">Next</button>
+        </span>
+        <button id="rlExport">Export CSV</button>
+      </div>
+      <span id="rlInfo" class="muted"></span>
+    </div>
+    <div id="rlLegend" class="muted" style="margin: 6px 0; display:flex; flex-wrap:wrap; gap:8px;"></div>
+    <div id="rlChart" class="chart" style="min-height:320px; border:1px solid var(--border); border-radius:6px; background:#fff; overflow:auto;"></div>
+  </div>
+</div>
+
+<div id="tooltip" class="tooltip" aria-hidden="true"></div>
+
+<script>
+  // State
+  let taskRows = [];
+  let resRows = [];
+
+  // Pagination state
+  let taskPage = 1, taskPageSize = 50;
+  let taskPage2 = 1, taskPageSize2 = 50;
+  let resPage = 1, resPageSize = 50;
+
+  // Utility
+  function parseDate(s) {
+    if (!s) return null;
+    const t = (''+s).trim().replace('T', ' ');
+    const m = t.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (!m) return new Date(t);
+    const [_, Y,M,D,h,mn,sc] = m;
+    return new Date(Number(Y), Number(M)-1, Number(D), Number(h), Number(mn), Number(sc||'0'));
+  }
+  function parseLocalDateTimeInput(val) {
+    if (!val) return null; // expects 'YYYY-MM-DDTHH:MM'
+    const m = val.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+    if (!m) return null;
+    const [_, Y,M,D,h,mn] = m;
+    return new Date(Number(Y), Number(M)-1, Number(D), Number(h), Number(mn), 0);
+  }
+  function esc(s) { return (s ?? '').toString().replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+  function attrEsc(s) { return (s ?? '').toString().replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;"); }
+  function paginate(arr, page, size) {
+    const total = arr.length; const pages = Math.max(1, Math.ceil(total / size));
+    const p = Math.min(Math.max(1, page), pages); const start = (p-1) * size; const end = start + size;
+    return { slice: arr.slice(start, end), page: p, pages, total };
+  }
+  function textFilterPredicate(q) {
+    if (!q) return () => true; const s = q.toLowerCase();
+    return (row) => Object.values(row).join(' ').toLowerCase().includes(s);
+  }
+  function dateRangeFilterPredicate(fromDt, toDt) {
+    return (row) => {
+      const s = parseDate(row.Start); const e = parseDate(row.Finish);
+      if (!s || !e) return false;
+      if (fromDt && e < fromDt) return false; // ends before range
+      if (toDt && s > toDt) return false;   // starts after range
+      return true; // overlaps
+    };
+  }
+  function sortTaskRows(rows, mode) {
+    const arr = rows.slice();
+    function getTaskIdNum(row) {
+      const v = row.TaskID;
+      const n = Number(v);
+      return isNaN(n) ? Number.MAX_SAFE_INTEGER : n;
+    }
+    function getDurationHours(row) {
+      const v = Number(row.DurationHours);
+      if (isFinite(v)) return v;
+      const s = parseDate(row.Start); const e = parseDate(row.Finish);
+      if (!s || !e) return -Infinity;
+      return (e - s) / 36e5;
+    }
+    if (mode === 'start') {
+      arr.sort((a, b) => {
+        const sa = parseDate(a.Start); const sb = parseDate(b.Start);
+        if (!sa && !sb) return 0; if (!sa) return 1; if (!sb) return -1;
+        const d = sa - sb; if (d !== 0) return d;
+        // tie-breaker by TaskID (number)
+        return getTaskIdNum(a) - getTaskIdNum(b);
+      });
+    } else if (mode === 'finish') {
+      // Sort by finish time ascending
+      arr.sort((a, b) => {
+        const fa = parseDate(a.Finish); const fb = parseDate(b.Finish);
+        if (!fa && !fb) return 0; if (!fa) return 1; if (!fb) return -1;
+        const d = fa - fb; if (d !== 0) return d;
+        const sa = parseDate(a.Start); const sb = parseDate(b.Start);
+        if (sa && sb) { const d2 = sa - sb; if (d2 !== 0) return d2; }
+        return getTaskIdNum(a) - getTaskIdNum(b);
+      });
+    } else if (mode === 'duration') {
+      // Sort by duration (hours) descending, tie-breaker start then TaskID
+      arr.sort((a, b) => {
+        const da = getDurationHours(a); const db = getDurationHours(b);
+        const diff = db - da; if (diff !== 0) return diff;
+        const sa = parseDate(a.Start); const sb = parseDate(b.Start);
+        if (sa && sb) { const d2 = sa - sb; if (d2 !== 0) return d2; }
+        return getTaskIdNum(a) - getTaskIdNum(b);
+      });
+    } else if (mode === 'duration_asc') {
+      // Sort by duration (hours) ascending, tie-breaker start then TaskID
+      arr.sort((a, b) => {
+        const da = getDurationHours(a); const db = getDurationHours(b);
+        const diff = da - db; if (diff !== 0) return diff;
+        const sa = parseDate(a.Start); const sb = parseDate(b.Start);
+        if (sa && sb) { const d2 = sa - sb; if (d2 !== 0) return d2; }
+        return getTaskIdNum(a) - getTaskIdNum(b);
+      });
+    } else {
+      arr.sort((a, b) => {
+        const c = getTaskIdNum(a) - getTaskIdNum(b);
+        if (c !== 0) return c;
+        const sa = parseDate(a.Start); const sb = parseDate(b.Start);
+        if (!sa && !sb) return 0; if (!sa) return 1; if (!sb) return -1;
+        return sa - sb;
+      });
+    }
+    return arr;
+  }
+
+  function formatDateLocal(dt) {
+    if (!dt) return '';
+    const pad = (n) => (n<10?'0':'')+n;
+    return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+  }
+  function computeBaselineShiftMs() {
+    const custom = parseLocalDateTimeInput(document.getElementById('customStart').value);
+    if (!custom) return 0;
+    let earliest = null;
+    for (const r of taskRows) {
+      const s = parseDate(r.Start);
+      if (!s) continue;
+      if (!earliest || s < earliest) earliest = s;
+    }
+    if (!earliest) return 0;
+    return custom.getTime() - earliest.getTime();
+  }
+  function getShiftedTaskRows() {
+    const shift = computeBaselineShiftMs();
+    if (!shift) return taskRows;
+    return taskRows.map(r => {
+      const s = parseDate(r.Start), e = parseDate(r.Finish);
+      const rr = { ...r };
+      if (s) rr.Start = formatDateLocal(new Date(s.getTime() + shift));
+      if (e) rr.Finish = formatDateLocal(new Date(e.getTime() + shift));
+      return rr;
+    });
+  }
+  function formatIndoDateTime(dtStr) {
+      if (!dtStr) return '';
+      const dt = new Date(dtStr);
+      if (isNaN(dt)) return dtStr;
+      const datePart = dt.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timePart = dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+      return `${datePart} ${timePart}`;
+  }
+
+  function getShiftedResRows() {
+    const shift = computeBaselineShiftMs();
+    if (!shift) return resRows;
+    return resRows.map(r => {
+      const s = parseDate(r.SegmentStart), e = parseDate(r.SegmentEnd);
+      const rr = { ...r };
+      if (s) rr.SegmentStart = formatDateLocal(new Date(s.getTime() + shift));
+      if (e) rr.SegmentEnd = formatDateLocal(new Date(e.getTime() + shift));
+      return rr;
+    });
+  }
+
+  // Helpers for Resource Load
+  function parseLocalDateInput(val) {
+    if (!val) return null; // expects 'YYYY-MM-DD'
+    const m = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    const [_, Y, M, D] = m;
+    return new Date(Number(Y), Number(M)-1, Number(D), 0, 0, 0, 0);
+  }
+  function ymd(dt) {
+    const pad = (n) => (n<10?'0':'')+n;
+    return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+  }
+  function addDays(dt, n) { const d = new Date(dt.getTime()); d.setDate(d.getDate()+n); return d; }
+  function niceMax(v) {
+    if (!isFinite(v) || v<=0) return 1;
+    const pow = Math.pow(10, Math.floor(Math.log10(v)));
+    const base = v / pow;
+    const nice = base<=1?1:base<=2?2:base<=5?5:10;
+    return nice * pow;
+  }
+  function makeColor(i, total) {
+    const hue = (i * 360 / Math.max(1,total)) % 360;
+    const sat = 60; const light = 55 - ((Math.floor(i/12)%2)*10);
+    return `hsl(${Math.floor(hue)}, ${sat}%, ${light}%)`;
+  }
+
+  function ensureRlDateDefaults() {
+    const rows = getShiftedResRows();
+    if (!rows.length) return;
+    let minDt=null, maxDt=null;
+    for (const r of rows) {
+      const s = parseDate(r.SegmentStart), e = parseDate(r.SegmentEnd);
+      if (!s || !e) continue;
+      if (!minDt || s<minDt) minDt=s;
+      if (!maxDt || e>maxDt) maxDt=e;
+    }
+    if (!minDt || !maxDt) return;
+    const fromEl = document.getElementById('rlFrom');
+    const toEl = document.getElementById('rlTo');
+    if (!fromEl.value) fromEl.value = ymd(minDt);
+    if (!toEl.value) toEl.value = ymd(maxDt);
+  }
+
+  function aggregateDailyResourceHours() {
+    const rows = getShiftedResRows();
+    if (!rows.length) return { days: [], resources: [], matrix: [], totalsByRes: [] };
+    ensureRlDateDefaults();
+    const fromEl = document.getElementById('rlFrom');
+    const toEl = document.getElementById('rlTo');
+    let fromDay = parseLocalDateInput(fromEl.value);
+    let toDay = parseLocalDateInput(toEl.value);
+    if (!fromDay || !toDay || fromDay>toDay) {
+      return { days: [], resources: [], matrix: [], totalsByRes: [] };
+    }
+    const dayStart = new Date(fromDay.getFullYear(), fromDay.getMonth(), fromDay.getDate());
+    const dayEnd = new Date(toDay.getFullYear(), toDay.getMonth(), toDay.getDate(), 23,59,59,999);
+
+    // Build list of days
+    const days = [];
+    for (let d=new Date(dayStart); d<=dayEnd; d=addDays(d,1)) days.push(ymd(d));
+
+    // Map resources to index
+    const resIndex = new Map(); const resources = [];
+    function getResIdx(name) {
+      const key = (name ?? '').toString();
+      if (!resIndex.has(key)) { resIndex.set(key, resources.length); resources.push(key); }
+      return resIndex.get(key);
+    }
+
+    // Matrix day x resource
+    const matrix = days.map(() => []);
+
+    for (const r of rows) {
+      const s0 = parseDate(r.SegmentStart); const e0 = parseDate(r.SegmentEnd);
+      if (!s0 || !e0) continue;
+      // Clip to range
+      const s = s0 < dayStart ? dayStart : s0;
+      const e = e0 > dayEnd ? dayEnd : e0;
+      const durMs = e0 - s0; // use original segment span for proportion
+      if (e <= s || durMs <= 0) continue;
+      let totalH = Number(r.SegmentHours);
+      if (!isFinite(totalH)) totalH = (e0 - s0) / 36e5;
+      const idx = getResIdx(r.ResourceName || r.ResourceID || 'Unknown');
+      let cur = new Date(s.getFullYear(), s.getMonth(), s.getDate());
+      while (cur < e) {
+        const next = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate()+1);
+        const sliceStart = s > cur ? s : cur;
+        const sliceEnd = e < next ? e : next;
+        const sliceMs = sliceEnd - sliceStart;
+        if (sliceMs > 0) {
+          const portion = sliceMs / durMs;
+          const dayStr = ymd(cur);
+          const dayIdx = days.indexOf(dayStr);
+          if (dayIdx >= 0) {
+            matrix[dayIdx][idx] = (matrix[dayIdx][idx] || 0) + (totalH * portion);
+          }
+        }
+        cur = next;
+      }
+    }
+
+    // Totals by resource
+    const totalsByRes = resources.map((_, i) => matrix.reduce((acc,row)=>acc+(row[i]||0),0));
+    return { days, resources, matrix, totalsByRes };
+  }
+
+  // Resource Load view state
+  let rlViewMode = 'stacked';
+  let rlResOrder = []; // array of resource indexes sorted by totals desc
+  let rlResPtr = 0;    // pointer into rlResOrder for single-resource mode
+
+  function getResourceOrder(agg) {
+    return agg.resources.map((_,i)=>i).sort((a,b)=>agg.totalsByRes[b]-agg.totalsByRes[a]);
+  }
+
+  function toggleResLoadUIForMode() {
+    const isSingle = rlViewMode === 'single';
+    const topN = document.getElementById('rlTopN');
+    const legend = document.getElementById('rlLegend');
+    const singleCtrls = document.getElementById('rlSingleControls');
+    if (topN) topN.parentElement.style.display = isSingle ? 'none' : '';
+    if (legend) legend.style.display = isSingle ? 'none' : 'flex';
+    if (singleCtrls) singleCtrls.style.display = isSingle ? 'inline-flex' : 'none';
+  }
+
+  function renderResLoad() {
+    const elChart = document.getElementById('rlChart');
+    const elLegend = document.getElementById('rlLegend');
+    const elInfo = document.getElementById('rlInfo');
+    if (!elChart) return;
+    const agg = aggregateDailyResourceHours();
+    if (!agg.days.length) {
+      elChart.innerHTML = '<div class="muted" style="padding:12px;">No resource data in range</div>';
+      elLegend.innerHTML = '';
+      elInfo.textContent = '';
+      return;
+    }
+    // UI toggle
+    toggleResLoadUIForMode();
+
+    // Compute resource order by totals (for single mode navigation)
+    rlResOrder = getResourceOrder(agg);
+    if (rlResPtr >= rlResOrder.length) rlResPtr = 0;
+
+    if (rlViewMode === 'single') {
+      const resIdx = rlResOrder.length ? rlResOrder[Math.max(0, rlResPtr)] : 0;
+      const resName = agg.resources[resIdx] ?? 'Unknown';
+      // Populate dropdown if present
+      const sel = document.getElementById('rlResSelect');
+      if (sel) {
+        const curVal = sel.value;
+        const options = rlResOrder.map((ri)=>{
+          const name = agg.resources[ri];
+          return `<option value="${ri}" ${ri===resIdx?'selected':''}>${attrEsc(name)}</option>`;
+        }).join('');
+        sel.innerHTML = options;
+        // Keep selection if possible
+        if (curVal && rlResOrder.includes(Number(curVal))) sel.value = curVal;
+        // Ensure pointer matches dropdown
+        if (sel.value !== String(resIdx)) sel.value = String(resIdx);
+      }
+      // Single-series data
+      const days = agg.days;
+      const series = agg.matrix.map(row => Number((row[resIdx] || 0).toFixed(2)));
+      const maxDay = Math.max(...series, 0);
+      const yMax = niceMax(maxDay);
+
+      // Update info and current resource label
+  const curLbl = document.getElementById('rlCurrentRes'); if (curLbl) curLbl.textContent = resName + ` (total ${agg.totalsByRes[resIdx]?.toFixed(1) || '0.0'} h)`;
+
+      // SVG chart for single series
+      const pad = { left: 60, right: 12, top: 10, bottom: 28 };
+      const barW = 20; const step = 26; const w = pad.left + pad.right + Math.max(days.length*step, 300);
+      const h = 340; const ch = h - pad.top - pad.bottom;
+      const scaleY = (v) => ch * (v / yMax);
+      const svgParts = [];
+      svgParts.push(`<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`);
+      const ticks = 5;
+      for (let i=0;i<=ticks;i++) {
+        const val = yMax * (i/ticks);
+        const y = pad.top + ch - scaleY(val);
+        svgParts.push(`<line class="grid" x1="${pad.left}" y1="${y}" x2="${w-pad.right}" y2="${y}" />`);
+        svgParts.push(`<text x="${pad.left-6}" y="${y+4}" font-size="10" text-anchor="end" fill="#777">${val.toFixed(0)}</text>`);
+      }
+      svgParts.push(`<line class="axis" x1="${pad.left}" y1="${pad.top+ch}" x2="${w-pad.right}" y2="${pad.top+ch}" />`);
+      svgParts.push(`<line class="axis" x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${pad.top+ch}" />`);
+      for (let d=0; d<days.length; d++) {
+        const x = pad.left + d*step + Math.max(0,(step-barW)/2);
+        const val = series[d] || 0;
+        if (val > 0) {
+          const y = pad.top + ch - Math.max(1, scaleY(val));
+          const bh = Math.max(1, scaleY(val));
+          svgParts.push(`<rect class="bar-rect" data-date="${days[d]}" data-resource="${attrEsc(resName)}" data-hours="${val.toFixed(2)}" x="${x}" y="${y}" width="${barW}" height="${bh}" fill="${makeColor(0,1)}" />`);
+        }
+        if (d % Math.max(1, Math.ceil(days.length/12)) === 0) {
+          svgParts.push(`<text x="${x+barW/2}" y="${pad.top+ch+14}" font-size="10" text-anchor="middle" fill="#777">${days[d].slice(5)}</text>`);
+        }
+      }
+      svgParts.push('</svg>');
+      elChart.innerHTML = svgParts.join('');
+      elInfo.textContent = `Days: ${days.length} | Resource: ${resName} | Max daily hours: ${maxDay.toFixed(1)}`;
+    } else {
+      // Stacked mode (existing behavior)
+      const topSel = document.getElementById('rlTopN').value || '10';
+      let topN = topSel === 'all' ? agg.resources.length : Math.max(1, parseInt(topSel,10)||10);
+      const idxs = rlResOrder.slice(0, topN);
+      const resources = idxs.map(i=>agg.resources[i]);
+
+      // Build reduced matrix and maxima
+      const days = agg.days;
+      const matrix = agg.matrix.map(row => idxs.map(i => Number((row[i]||0).toFixed(2))));
+      const totalsByDay = matrix.map(row => row.reduce((a,b)=>a+b,0));
+      const maxDay = Math.max(...totalsByDay, 0);
+      const yMax = niceMax(maxDay);
+
+      // Render legend
+      elLegend.innerHTML = resources.map((r,i)=>`<span class="legend-item"><span class="legend-swatch" style="background:${makeColor(i, resources.length)}"></span>${esc(r)}</span>`).join('');
+
+      // SVG chart
+      const pad = { left: 60, right: 12, top: 10, bottom: 28 };
+      const barW = 20; const step = 26; const w = pad.left + pad.right + Math.max(days.length*step, 300);
+      const h = 340; const ch = h - pad.top - pad.bottom;
+      const scaleY = (v) => ch * (v / yMax);
+      const svgParts = [];
+      svgParts.push(`<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`);
+      const ticks = 5;
+      for (let i=0;i<=ticks;i++) {
+        const val = yMax * (i/ticks);
+        const y = pad.top + ch - scaleY(val);
+        svgParts.push(`<line class="grid" x1="${pad.left}" y1="${y}" x2="${w-pad.right}" y2="${y}" />`);
+        svgParts.push(`<text x="${pad.left-6}" y="${y+4}" font-size="10" text-anchor="end" fill="#777">${val.toFixed(0)}</text>`);
+      }
+      svgParts.push(`<line class="axis" x1="${pad.left}" y1="${pad.top+ch}" x2="${w-pad.right}" y2="${pad.top+ch}" />`);
+      svgParts.push(`<line class="axis" x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${pad.top+ch}" />`);
+      for (let d=0; d<days.length; d++) {
+        const x = pad.left + d*step + Math.max(0,(step-barW)/2);
+        let acc = 0;
+        for (let r=0; r<resources.length; r++) {
+          const val = matrix[d][r] || 0;
+          if (val<=0) continue;
+          const y = pad.top + ch - scaleY(acc + val);
+          const bh = Math.max(1, scaleY(val));
+          const resName = resources[r];
+          const totalDay = totalsByDay[d] || 0;
+          svgParts.push(`<rect class="bar-rect" data-date="${days[d]}" data-resource="${attrEsc(resName)}" data-hours="${val.toFixed(2)}" data-total="${totalDay.toFixed(2)}" x="${x}" y="${y}" width="${barW}" height="${bh}" fill="${makeColor(r, resources.length)}" />`);
+          acc += val;
+        }
+        if (d % Math.max(1, Math.ceil(days.length/12)) === 0) {
+          svgParts.push(`<text x="${x+barW/2}" y="${pad.top+ch+14}" font-size="10" text-anchor="middle" fill="#777">${days[d].slice(5)}</text>`);
+        }
+      }
+      svgParts.push('</svg>');
+      elChart.innerHTML = svgParts.join('');
+      const sumResShown = resources.length;
+      elInfo.textContent = `Days: ${days.length} | Resources: ${sumResShown}/${agg.resources.length} | Max daily hours: ${maxDay.toFixed(1)}`;
+    }
+  }
+
+  function exportResLoadCSV() {
+    const agg = aggregateDailyResourceHours();
+    if (!agg.days.length) return;
+    const topSel = document.getElementById('rlTopN').value || '10';
+    let topN = topSel === 'all' ? agg.resources.length : Math.max(1, parseInt(topSel,10)||10);
+    const idxs = getResourceOrder(agg).slice(0, topN);
+    const resources = idxs.map(i=>agg.resources[i]);
+    const matrix = agg.matrix.map(row => idxs.map(i => Number((row[i]||0).toFixed(2))));
+    const header = ['Date', ...resources];
+    const lines = [header.join(',')];
+    for (let d=0; d<agg.days.length; d++) {
+      lines.push([agg.days[d], ...matrix[d].map(v => v.toFixed(2))].join(','));
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'resource_load_daily.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // Tooltips for Resource Load chart
+  function showChartTip(e, el) {
+    const tip = document.getElementById('tooltip');
+    if (!tip) return;
+    const date = el.getAttribute('data-date') || '';
+    const res = el.getAttribute('data-resource') || '';
+    const hrs = el.getAttribute('data-hours') || '';
+    const total = el.getAttribute('data-total');
+    const html = `<table style="background:#111;">
+      <tr><td class="key">Date</td><td>${esc(date)}</td></tr>
+      <tr><td class="key">Resource</td><td>${esc(res)}</td></tr>
+      <tr><td class="key">Hours</td><td>${esc(hrs)}</td></tr>
+      ${total?`<tr><td class="key">Day Total</td><td>${esc(total)}</td></tr>`:''}
+    </table>`;
+    tip.innerHTML = html;
+    tip.style.opacity = '0.9';
+    positionChartTip(e);
+  }
+  function hideChartTip() {
+    const tip = document.getElementById('tooltip');
+    if (tip) tip.style.opacity = '0';
+  }
+  function positionChartTip(e) {
+    const tip = document.getElementById('tooltip');
+    if (!tip) return;
+    const pad = 12; let x = e.clientX + pad; let y = e.clientY + pad; const w = tip.offsetWidth; const h = tip.offsetHeight;
+    const vw = window.innerWidth; const vh = window.innerHeight;
+    if (x + w + 8 > vw) x = e.clientX - w - pad; if (x < 0) x = 4; if (y + h + 8 > vh) y = e.clientY - h - pad; if (y < 0) y = 4;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+
+
+
+  // Rendering
+  function renderTaskTable() {
+    const q = document.getElementById('taskFilter2').value;
+    let fromDt = parseLocalDateTimeInput(document.getElementById('taskFrom2').value);
+    const customStartVal = parseLocalDateTimeInput(document.getElementById('customStart').value);
+    if (!fromDt && customStartVal) fromDt = customStartVal; // baseline applies here too
+    const toDt = parseLocalDateTimeInput(document.getElementById('taskTo2').value);
+
+    const tasks = getShiftedTaskRows();
+    const predText = textFilterPredicate(q);
+    const predDate = dateRangeFilterPredicate(fromDt, toDt);
+    const filtered = tasks.filter(row => predText(row) && (!fromDt && !toDt ? true : predDate(row)));
+
+    const sortMode = (document.getElementById('taskSort2').value || 'id');
+    const ordered = sortTaskRows(filtered, sortMode);
+
+  const sizeVal2 = (document.getElementById('taskPageSize2').value || '').toString().toLowerCase();
+  const pgSize = sizeVal2 === 'all' ? (ordered.length || 1) : (Number(sizeVal2) || taskPageSize2);
+    const { slice, page, pages, total } = paginate(ordered, taskPage2, pgSize);
+    taskPage2 = page; taskPageSize2 = pgSize;
+
+    const tbody = document.querySelector('#taskTable tbody');
+    let html = '';
+    for (const r of slice) {
+      let duration = r.DurationHours;
+      if (duration && !isNaN(duration)) duration = Number(duration).toFixed(1);
+      const startLocale = formatIndoDateTime(r.Start);
+      const finishLocale = formatIndoDateTime(r.Finish);
+      html += `<tr><td>${esc(r.TaskID)}</td><td>${esc(r.TaskName)}</td><td>${esc(startLocale)}</td><td>${esc(finishLocale)}</td><td style="text-align:right">${esc(duration||'')}</td><td>${esc(r.IsElapsed||'')}</td><td>${esc(r.Assignments||'')}</td></tr>`;
+    }
+    tbody.innerHTML = html;
+
+    document.getElementById('taskPageInfo2').textContent = `Rows: ${total} | Page ${page}/${pages}`;
+    document.getElementById('taskPrev2').disabled = page<=1;
+    document.getElementById('taskNext2').disabled = page>=pages;
+  }
+
+  function renderResTable() {
+    const q = document.getElementById('resFilter').value;
+    const pred = textFilterPredicate(q);
+    let fromDt = parseLocalDateTimeInput(document.getElementById('resFrom').value);
+    const customStartVal = parseLocalDateTimeInput(document.getElementById('customStart').value);
+    if (!fromDt && customStartVal) fromDt = customStartVal; // baseline default
+    const toDt = parseLocalDateTimeInput(document.getElementById('resTo').value);
+
+    const rows = getShiftedResRows();
+    const datePred = (row) => {
+      const s = parseDate(row.SegmentStart); const e = parseDate(row.SegmentEnd);
+      if (!s || !e) return false;
+      if (fromDt && e < fromDt) return false;
+      if (toDt && s > toDt) return false;
+      return true;
+    };
+
+    const filtered = rows.filter(row => pred(row) && (!fromDt && !toDt ? true : datePred(row)));
+  const sizeValR = (document.getElementById('resPageSize').value || '').toString().toLowerCase();
+  const pgSize = sizeValR === 'all' ? (filtered.length || 1) : (Number(sizeValR) || resPageSize);
+    const { slice, page, pages, total } = paginate(filtered, resPage, pgSize);
+    resPage = page; resPageSize = pgSize;
+    
+    
+    const tbody = document.querySelector('#resTable tbody');
+    let html = '';
+    for (const r of slice) {
+      let duration = r.SegmentHours;
+      if (duration && !isNaN(duration)) duration = Number(duration).toFixed(1);
+      const startLocale = formatIndoDateTime(r.SegmentStart);
+      const finishLocale = formatIndoDateTime(r.SegmentEnd);
+      html += `<tr><td>${esc(r.ResourceID)}</td><td>${esc(r.ResourceName)}</td><td>${esc(r.TaskID)}</td><td>${esc(r.TaskName)}</td><td>${esc(startLocale)}</td><td>${esc(finishLocale)}</td><td style="text-align:right">${esc(duration||'')}</td><td style="text-align:right">${esc(r.Units||'')}</td></tr>`;
+    }
+    tbody.innerHTML = html;
+
+    document.getElementById('resPageInfo').textContent = `Rows: ${total} | Page ${page}/${pages}`;
+    document.getElementById('resPrev').disabled = page<=1;
+    document.getElementById('resNext').disabled = page>=pages;
+  }
+
+  function renderGantt() {
+    if (!taskRows.length) {
+      document.getElementById('ganttSpan').textContent = 'No data';
+      document.getElementById('ganttScale').innerHTML = '';
+      document.getElementById('ganttBody').innerHTML = '';
+      return;
+    }
+    const q = document.getElementById('taskFilter').value;
+    let fromDt = parseLocalDateTimeInput(document.getElementById('taskFrom').value);
+    const toDt = parseLocalDateTimeInput(document.getElementById('taskTo').value);
+    const customStart = parseLocalDateTimeInput(document.getElementById('customStart').value);
+    if (!fromDt && customStart) fromDt = customStart; // baseline default for gantt filter too
+
+    const tasks = getShiftedTaskRows();
+    const predText = textFilterPredicate(q);
+    const predDate = dateRangeFilterPredicate(fromDt, toDt);
+    const filtered = tasks.filter(row => predText(row) && (!fromDt && !toDt ? true : predDate(row)));
+
+    const sortMode = (document.getElementById('taskSort').value || 'id');
+    const ordered = sortTaskRows(filtered, sortMode);
+
+  const sizeVal = (document.getElementById('taskPageSize').value || '').toString().toLowerCase();
+  const pgSize = sizeVal === 'all' ? (ordered.length || 1) : (Number(sizeVal) || taskPageSize);
+    const { slice, page, pages, total } = paginate(ordered, taskPage, pgSize);
+    taskPage = page; taskPageSize = pgSize;
+
+    // Compute min/max for context (from full filtered set, not just page) on shifted data
+    let minStart = null, maxFinish = null;
+    for (const r of filtered) {
+      const s = parseDate(r.Start), e = parseDate(r.Finish);
+      if (!s || !e) continue;
+      if (!minStart || s < minStart) minStart = s;
+      if (!maxFinish || e > maxFinish) maxFinish = e;
+    }
+    if (!minStart || !maxFinish) {
+      document.getElementById('ganttSpan').textContent = 'No valid dates';
+      document.getElementById('ganttScale').innerHTML = '';
+      document.getElementById('ganttBody').innerHTML = '';
+      return;
+    }
+    let totalH = (maxFinish - minStart) / 36e5; if (!isFinite(totalH) || totalH <= 0) totalH = 1;
+    const maxWidthPx = 1200; const pxPerHour = maxWidthPx / totalH;
+
+    // Scale ticks
+    const scale = document.getElementById('ganttScale');
+    const step = Math.max(1, Math.floor(totalH / 10));
+    let ticks = '';
+    for (let h = 0; h <= totalH; h += step) {
+      const left = Math.round(h * pxPerHour);
+      const dt = new Date(minStart.getTime() + h * 36e5);
+      const lbl = dt.toISOString().replace('T',' ').slice(0,16);
+      ticks += `<div class="tick" style="left:${left}px"><span class="lbl">${lbl}</span></div>`;
+    }
+    scale.innerHTML = ticks;
+
+    // Bars for current page only (shifted data)
+    const body = document.getElementById('ganttBody');
+    let rows = '';
+    for (const r of slice) {
+      const s = parseDate(r.Start), e = parseDate(r.Finish);
+      if (!s || !e) continue;
+      const left = Math.max(0, Math.round(((s - minStart) / 36e5) * pxPerHour));
+      const width = Math.max(2, Math.round(((e - s) / 36e5) * pxPerHour));
+      const isElapsed = (r.IsElapsed||'').toString().toUpperCase().startsWith('Y');
+      const dataAttrs = `data-task-id="${attrEsc(r.TaskID)}" data-task-name="${attrEsc(r.TaskName)}" data-start="${attrEsc(r.Start)}" data-finish="${attrEsc(r.Finish)}" data-duration="${attrEsc(r.DurationHours||'')}" data-elapsed="${attrEsc(r.IsElapsed||'')}" data-assign="${attrEsc(r.Assignments||'')}"`;
+      rows += `<div class="gantt-row"><span class="gantt-label" title="${esc(r.TaskID)}">${esc(r.TaskName)}</span><div class="bar ${isElapsed?'elapsed':''}" ${dataAttrs} style="left:${left}px;width:${width}px"></div></div>`;
+    }
+    body.innerHTML = rows;
+
+    document.getElementById('ganttSpan').textContent = `Tasks: ${total} | Page ${page}/${pages} | Span ${totalH.toFixed(1)} h`;
+    document.getElementById('taskPrev').disabled = page<=1;
+    document.getElementById('taskNext').disabled = page>=pages;
+  }
+
+  // CSV load
+  function parseCsvFile(file, cb) {
+    Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => cb(res.data || []), error: (err) => alert('CSV parse error: ' + err) });
+  }
+  async function autoLoadDefaultCSVs() {
+    try {
+      const params = new URLSearchParams(location.search);
+      const projectId = params.get('project');
+      const fetchText = async (url) => { const resp = await fetch(url, { cache: 'no-store' }); if (!resp.ok) throw new Error('fetch failed'); return await resp.text(); };
+      const taskUrl = projectId ? `/projects/${projectId}/schedule/task_schedule.csv` : 'task_schedule.csv';
+      const resUrl = projectId ? `/projects/${projectId}/schedule/resource_tracking.csv` : 'resource_tracking.csv';
+      const [taskText, resText] = await Promise.all([ fetchText(taskUrl), fetchText(resUrl) ]);
+      const taskParsed = Papa.parse(taskText, { header:true, skipEmptyLines:true });
+      const resParsed = Papa.parse(resText, { header:true, skipEmptyLines:true });
+      if (Array.isArray(taskParsed.data)) taskRows = taskParsed.data;
+      if (Array.isArray(resParsed.data)) resRows = resParsed.data;
+      document.getElementById('status').textContent = `Auto-loaded tasks: ${taskRows.length} | resource rows: ${resRows.length}`;
+    } catch (e) { /* ignore for file:// */ }
+  }
+  function classifyAndLoad(rows) {
+    const keys = rows.length ? Object.keys(rows[0]) : [];
+    const isTask = ['TaskID','TaskName','Start','Finish'].every(k => keys.includes(k));
+    const isRes = ['ResourceID','ResourceName','TaskID','TaskName','SegmentStart','SegmentEnd'].every(k => keys.includes(k));
+    if (isTask) taskRows = rows;
+    if (isRes) resRows = rows;
+    refreshAll();
+  }
+  function refreshAll() {
+  renderGantt(); renderTaskTable(); renderResTable(); renderResLoad();
+    document.getElementById('status').textContent = `Loaded tasks: ${taskRows.length} | resource rows: ${resRows.length}`;
+  }
+
+  // Tooltip behavior (delegated on gantt body)
+  function setupTooltip() {
+    const tip = document.getElementById('tooltip');
+    const body = document.getElementById('ganttBody');
+    function showTip(e, el) {
+      const get = (k) => el.getAttribute(k) || '';
+      // Format Start and Finish as locale date string (id)
+      const start = get('data-start');
+      const finish = get('data-finish');
+      const startLocale = formatIndoDateTime(start);
+      const finishLocale = formatIndoDateTime(finish);
+      // Format duration to 1 decimal
+      let duration = get('data-duration');
+      if (duration && !isNaN(duration)) duration = Number(duration).toFixed(1);
+      const html = `<table style="background:#111;">
+      <tr><td class="key">TaskID</td><td>${esc(get('data-task-id'))}</td></tr>
+      <tr><td class="key">Task Name</td><td>${esc(get('data-task-name'))}</td></tr>
+      <tr><td class="key">Start</td><td>${esc(startLocale)}</td></tr>
+      <tr><td class="key">Finish</td><td>${esc(finishLocale)}</td></tr>
+      <tr><td class="key">Duration Hours</td><td>${esc(duration)}</td></tr>
+      <tr><td class="key">Is Elapsed</td><td>${esc(get('data-elapsed'))}</td></tr>
+      <tr><td class="key">Assignments</td><td>${esc(get('data-assign'))}</td></tr>
+      </table>`;
+      tip.innerHTML = html; tip.style.opacity = '0.8'; positionTip(e);
+    }
+    function hideTip() { tip.style.opacity = '0'; }
+    function positionTip(e) {
+      const pad = 12; let x = e.clientX + pad; let y = e.clientY + pad; const w = tip.offsetWidth; const h = tip.offsetHeight;
+      const vw = window.innerWidth; const vh = window.innerHeight;
+      if (x + w + 8 > vw) x = e.clientX - w - pad; if (x < 0) x = 4; if (y + h + 8 > vh) y = e.clientY - h - pad; if (y < 0) y = 4;
+      tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    }
+    body.addEventListener('mouseover', (e) => { const el = e.target.closest('.bar'); if (!el) return; showTip(e, el); });
+    body.addEventListener('mousemove', (e) => { if (tip.style.opacity === '1') positionTip(e); });
+    body.addEventListener('mouseout', (e) => { const el = e.target.closest('.bar'); if (!el) return; hideTip(); });
+  }
+
+  // Events and init
+  function bindEvents() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        const tgt = document.querySelector(tab.dataset.target); if (tgt) tgt.classList.add('active');
+      });
+    });
+
+    document.getElementById('taskPrev').addEventListener('click', () => { taskPage--; renderGantt(); });
+    document.getElementById('taskNext').addEventListener('click', () => { taskPage++; renderGantt(); });
+    document.getElementById('taskPageSize').addEventListener('change', () => { taskPage=1; renderGantt(); });
+    document.getElementById('taskFilter').addEventListener('input', () => { taskPage=1; renderGantt(); });
+    document.getElementById('taskFrom').addEventListener('change', () => { taskPage=1; renderGantt(); });
+    document.getElementById('taskTo').addEventListener('change', () => { taskPage=1; renderGantt(); });
+  document.getElementById('customStart').addEventListener('change', () => { taskPage=1; renderGantt(); renderTaskTable(); renderResTable(); renderResLoad(); });
+    document.getElementById('taskSort').addEventListener('change', () => { taskPage=1; renderGantt(); });
+
+    document.getElementById('taskPrev2').addEventListener('click', () => { taskPage2--; renderTaskTable(); });
+    document.getElementById('taskNext2').addEventListener('click', () => { taskPage2++; renderTaskTable(); });
+    document.getElementById('taskPageSize2').addEventListener('change', () => { taskPage2=1; renderTaskTable(); });
+    document.getElementById('taskFilter2').addEventListener('input', () => { taskPage2=1; renderTaskTable(); });
+    document.getElementById('taskFrom2').addEventListener('change', () => { taskPage2=1; renderTaskTable(); });
+    document.getElementById('taskTo2').addEventListener('change', () => { taskPage2=1; renderTaskTable(); });
+    document.getElementById('taskSort2').addEventListener('change', () => { taskPage2=1; renderTaskTable(); });
+
+    document.getElementById('resPrev').addEventListener('click', () => { resPage--; renderResTable(); });
+    document.getElementById('resNext').addEventListener('click', () => { resPage++; renderResTable(); });
+    document.getElementById('resPageSize').addEventListener('change', () => { resPage=1; renderResTable(); });
+    document.getElementById('resFilter').addEventListener('input', () => { resPage=1; renderResTable(); });
+    document.getElementById('resFrom').addEventListener('change', () => { resPage=1; renderResTable(); });
+    document.getElementById('resTo').addEventListener('change', () => { resPage=1; renderResTable(); });
+
+    document.getElementById('fileTasks').addEventListener('change', (e) => { const f = e.target.files?.[0]; if (!f) return; parseCsvFile(f, classifyAndLoad); });
+    document.getElementById('fileRes').addEventListener('change', (e) => { const f = e.target.files?.[0]; if (!f) return; parseCsvFile(f, classifyAndLoad); });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      taskRows = []; resRows = []; taskPage=1; taskPage2=1; resPage=1; refreshAll();
+      document.getElementById('fileTasks').value = '';
+      document.getElementById('fileRes').value = '';
+      document.getElementById('taskFilter').value = '';
+      document.getElementById('taskFilter2').value = '';
+      document.getElementById('taskFrom').value = '';
+      document.getElementById('taskTo').value = '';
+      document.getElementById('customStart').value = '';
+      document.getElementById('taskFrom2').value = '';
+      document.getElementById('taskTo2').value = '';
+  const rlFrom = document.getElementById('rlFrom'); if (rlFrom) rlFrom.value = '';
+  const rlTo = document.getElementById('rlTo'); if (rlTo) rlTo.value = '';
+    });
+
+    const dz = document.getElementById('drop');
+    ;['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); dz.classList.add('drag'); }));
+    ;['dragleave','drop'].forEach(ev => dz.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('drag'); }));
+    dz.addEventListener('drop', (e) => {
+      const files = Array.from(e.dataTransfer.files || []).filter(f => f.name.toLowerCase().endsWith('.csv'));
+      if (!files.length) return;
+      let pending = files.length;
+      files.forEach(f => parseCsvFile(f, (rows) => { classifyAndLoad(rows); if (--pending===0) refreshAll(); }));
+    });
+
+    setupTooltip();
+
+    // Resource Load events
+    const rlFromEl = document.getElementById('rlFrom'); if (rlFromEl) rlFromEl.addEventListener('change', renderResLoad);
+    const rlToEl = document.getElementById('rlTo'); if (rlToEl) rlToEl.addEventListener('change', renderResLoad);
+    const rlTopNEl = document.getElementById('rlTopN'); if (rlTopNEl) rlTopNEl.addEventListener('change', renderResLoad);
+    const rlExportBtn = document.getElementById('rlExport'); if (rlExportBtn) rlExportBtn.addEventListener('click', exportResLoadCSV);
+    const rlViewEl = document.getElementById('rlView'); if (rlViewEl) rlViewEl.addEventListener('change', (e)=>{ rlViewMode = e.target.value; renderResLoad(); });
+    const rlPrev = document.getElementById('rlPrevRes'); if (rlPrev) rlPrev.addEventListener('click', ()=>{ if (rlResOrder.length){ rlResPtr = (rlResPtr - 1 + rlResOrder.length) % rlResOrder.length; renderResLoad(); } });
+    const rlNext = document.getElementById('rlNextRes'); if (rlNext) rlNext.addEventListener('click', ()=>{ if (rlResOrder.length){ rlResPtr = (rlResPtr + 1) % rlResOrder.length; renderResLoad(); } });
+    const rlSel = document.getElementById('rlResSelect'); if (rlSel) rlSel.addEventListener('change', (e)=>{
+      const ri = Number(e.target.value);
+      const pos = rlResOrder.indexOf(ri);
+      if (pos >= 0) { rlResPtr = pos; renderResLoad(); }
+    });
+    const rlChart = document.getElementById('rlChart');
+    if (rlChart) {
+      rlChart.addEventListener('mouseover', (e)=>{ const el = e.target.closest('rect.bar-rect'); if (!el) return; showChartTip(e, el); });
+      rlChart.addEventListener('mousemove', (e)=>{ const el = e.target.closest('rect.bar-rect'); if (!el) return; positionChartTip(e); });
+      rlChart.addEventListener('mouseout', (e)=>{ const el = e.target.closest('rect.bar-rect'); if (!el) return; hideChartTip(); });
+    }
+  }
+
+  bindEvents();
+  autoLoadDefaultCSVs().finally(() => { refreshAll(); });
+</script>
+</body>
+</html>
