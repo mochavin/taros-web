@@ -70,6 +70,10 @@
       </div>
     </div>
     <div class="u-row" style="margin-top:8px;">
+      <label>Variant
+        <select id="variantSelect" style="margin-left:6px;">
+        </select>
+      </label>
       <label>Tasks CSV: <input id="fileTasks" type="file" accept=".csv" /></label>
       <label>Resources CSV: <input id="fileRes" type="file" accept=".csv" /></label>
       <button id="btnClear">Clear</button>
@@ -230,6 +234,70 @@
   // State
   let taskRows = [];
   let resRows = [];
+
+  // Variant config (map to secure endpoints added in routes/web.php)
+  const VARIANTS = {
+    'dqn_improve_lag': {
+      // prefer the secure schedule-viewer endpoints, fallback to local filenames
+      tasksCandidates: [
+        '/schedule-viewer/variant/dqn_improve_lag/task_schedule.csv',
+        '/storage/app/private/with_lags/task_schedule_dqn_improve_lag.csv',
+        'task_schedule_dqn_improve_lag.csv',
+        'task_schedule.csv'
+      ],
+      resCandidates: [
+        '/schedule-viewer/variant/dqn_improve_lag/resource_tracking.csv',
+        '/storage/app/private/with_lags/resource_tracking_improve_lag.csv',
+        'resource_tracking_improve_lag.csv',
+        'resource_tracking.csv'
+      ]
+    },
+    'dqn_no_lag': {
+      tasksCandidates: [
+        '/schedule-viewer/variant/dqn_no_lag/task_schedule.csv',
+        '/storage/app/private/no_lags/task_schedule_dqn_500_ignore_lag.csv',
+        'task_schedule_dqn_500_ignore_lag.csv',
+        'task_schedule.csv'
+      ],
+      resCandidates: [
+        '/schedule-viewer/variant/dqn_no_lag/resource_tracking.csv',
+        '/storage/app/private/no_lags/resource_tracking_dqn_500_ignore_lag.csv',
+        'resource_tracking_dqn_500_ignore_lag.csv',
+        'resource_tracking.csv'
+      ]
+    }
+    ,
+    'ppo' : {
+      tasksCandidates: [
+        '/schedule-viewer/variant/ppo/task_schedule.csv',
+        '/storage/app/private/no_lags/task_schedule_ppo.csv',
+        'task_schedule_ppo.csv',
+        'task_schedule.csv'
+      ],
+      resCandidates: [
+        '/schedule-viewer/variant/ppo/resource_tracking.csv',
+        '/storage/app/private/no_lags/resource_tracking_ppo.csv',
+        'resource_tracking_ppo.csv',
+        'resource_tracking.csv'
+      ]
+    },
+    'greedy': {
+      tasksCandidates: [
+        '/schedule-viewer/variant/greedy/task_schedule.csv',
+        '/storage/app/private/no_lags/task_schedule_greedy.csv',
+        'task_schedule_greedy.csv',
+        'task_schedule.csv'
+      ],
+      resCandidates: [
+        '/schedule-viewer/variant/greedy/resource_tracking.csv',
+        '/storage/app/private/no_lags/resource_tracking_greedy.csv',
+        'resource_tracking_greedy.csv',
+        'resource_tracking.csv'
+      ]
+    }
+  };
+  const DEFAULT_VARIANT = 'dqn_improve_lag';
+  let currentVariant = DEFAULT_VARIANT;
 
   // Pagination state
   let taskPage = 1, taskPageSize = 50;
@@ -852,18 +920,65 @@
   }
   async function autoLoadDefaultCSVs() {
     try {
-      const params = new URLSearchParams(location.search);
-      const projectId = params.get('project');
-      const fetchText = async (url) => { const resp = await fetch(url, { cache: 'no-store' }); if (!resp.ok) throw new Error('fetch failed'); return await resp.text(); };
-      const taskUrl = projectId ? `/projects/${projectId}/schedule/task_schedule.csv` : 'task_schedule.csv';
-      const resUrl = projectId ? `/projects/${projectId}/schedule/resource_tracking.csv` : 'resource_tracking.csv';
-      const [taskText, resText] = await Promise.all([ fetchText(taskUrl), fetchText(resUrl) ]);
-      const taskParsed = Papa.parse(taskText, { header:true, skipEmptyLines:true });
-      const resParsed = Papa.parse(resText, { header:true, skipEmptyLines:true });
-      if (Array.isArray(taskParsed.data)) taskRows = taskParsed.data;
-      if (Array.isArray(resParsed.data)) resRows = resParsed.data;
-      document.getElementById('status').textContent = `Auto-loaded tasks: ${taskRows.length} | resource rows: ${resRows.length}`;
+      // Try to load based on selected variant first
+      await populateVariantSelector();
+      await loadVariant(currentVariant);
     } catch (e) { /* ignore for file:// */ }
+  }
+
+  // Populate the variant dropdown from VARIANTS and set default
+  async function populateVariantSelector() {
+    const sel = document.getElementById('variantSelect');
+    if (!sel) return;
+    sel.innerHTML = Object.keys(VARIANTS).map(k => `<option value="${attrEsc(k)}">${attrEsc(k)}</option>`).join('');
+    // default
+    if (Object.keys(VARIANTS).includes(DEFAULT_VARIANT)) sel.value = DEFAULT_VARIANT;
+    currentVariant = sel.value;
+    sel.addEventListener('change', async (e) => {
+      currentVariant = e.target.value;
+      await loadVariant(currentVariant);
+    });
+  }
+
+  async function tryFetchTextCandidates(candidates) {
+    for (const p of candidates) {
+      try {
+        // try relative path first, then absolute if needed
+        const url = p.startsWith('/') ? p : p;
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) continue;
+        const text = await resp.text();
+        if (text && text.trim().length) return text;
+      } catch (err) {
+        // ignore and continue
+      }
+    }
+    return null;
+  }
+
+  // Load a variant by trying candidate filenames for both task and resource CSVs
+  async function loadVariant(variantKey) {
+    const cfg = VARIANTS[variantKey];
+    if (!cfg) return;
+    document.getElementById('status').textContent = `Loading variant ${variantKey}...`;
+    try {
+      const [taskText, resText] = await Promise.all([
+        tryFetchTextCandidates(cfg.tasksCandidates),
+        tryFetchTextCandidates(cfg.resCandidates)
+      ]);
+      if (taskText) {
+        const taskParsed = Papa.parse(taskText, { header:true, skipEmptyLines:true });
+        if (Array.isArray(taskParsed.data)) taskRows = taskParsed.data;
+      }
+      if (resText) {
+        const resParsed = Papa.parse(resText, { header:true, skipEmptyLines:true });
+        if (Array.isArray(resParsed.data)) resRows = resParsed.data;
+      }
+      document.getElementById('status').textContent = `Variant ${variantKey} loaded. tasks: ${taskRows.length} | resources: ${resRows.length}`;
+      refreshAll();
+    } catch (e) {
+      document.getElementById('status').textContent = `Failed to load variant ${variantKey}`;
+    }
   }
   function classifyAndLoad(rows) {
     const keys = rows.length ? Object.keys(rows[0]) : [];
