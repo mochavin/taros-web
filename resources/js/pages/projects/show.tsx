@@ -3,21 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { type BreadcrumbItem } from '@/types';
-import { useState } from 'react';
-
-function ScheduleViewer({ projectId }: { projectId: number }) {
-    const src = `/schedule-viewer.html?project=${projectId}`;
-    return (
-        <div>
-            <div className="flex items-center gap-2 mb-2">
-                <a href={src} target="_blank" rel="noreferrer" className="text-sm text-primary-600 hover:underline">Open schedule viewer in new tab</a>
-            </div>
-            <div style={{ height: 720, marginTop: 12 }}>
-                <iframe title="Schedule Viewer" src={src} style={{ width: '100%', height: '100%', border: '0', borderRadius: 8 }} />
-            </div>
-        </div>
-    );
-}
+import { ScheduleViewerComponent } from '@/components/schedule/schedule-viewer-component';
 
 interface ProjectShowData {
     project: {
@@ -80,10 +66,10 @@ export default function ProjectShow({ project }: ProjectShowData) {
                     </dl>
                 </div>
                 {/* Schedule viewer component */}
-                <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-                    <h2 className="text-lg font-medium">Schedule Viewer</h2>
-                    <p className="text-sm text-muted-foreground">Upload task_schedule.csv and resource_tracking.csv or drop them into the viewer.</p>
-                    <ScheduleViewer projectId={project.id} />
+                <div className="rounded-lg p-4 dark:border-sidebar-border">
+                    <h2 className="text-lg font-medium mb-2">Schedule Viewer</h2>
+                    <p className="text-sm text-muted-foreground mb-4">Upload task_schedule.csv and resource_tracking.csv or drop them into the viewer.</p>
+                    <ScheduleViewerComponent projectId={project.id} />
                 </div>
             </div>
         </AppLayout>
