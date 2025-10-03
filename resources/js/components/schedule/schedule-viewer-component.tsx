@@ -11,6 +11,7 @@ import { ResourceLoadChart } from './resource-load-chart';
 import { parseDate, parseLocalDateTimeInput, formatDateLocal } from '@/lib/schedule-utils';
 import type { Variants } from '@/types/schedule';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Loader2 } from 'lucide-react';
 
 const VARIANTS: Variants = {
     dqn_improve_lag: {
@@ -201,7 +202,19 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
     });
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 relative min-h-[400px]">
+            {isLoading && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] h-dvh">
+                    <div className="flex flex-col items-center gap-4 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border max-w-md w-full mx-4">
+                        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                        <div className="text-center">
+                            <p className="text-xl font-semibold">Loading Schedule Data</p>
+                            <p className="text-sm text-muted-foreground mt-2">Please wait while we load the variant data...</p>
+                            <p className="text-xs text-muted-foreground mt-1">Loading variant: {currentVariant}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Upload and Controls */}
             <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
                 <div className="space-y-4">
@@ -219,7 +232,7 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
                     <div className="flex flex-wrap items-end gap-4">
                         <div>
                             <Label htmlFor="variantSelect">Variant</Label>
-                            <Select value={currentVariant} onValueChange={handleVariantChange}>
+                            <Select value={currentVariant} onValueChange={handleVariantChange} disabled={isLoading}>
                                 <SelectTrigger id="variantSelect" className="w-[200px]">
                                     <SelectValue />
                                 </SelectTrigger>

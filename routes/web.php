@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return redirect()->route('login');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -16,17 +16,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Serve schedule CSVs from storage/app/private for the schedule viewer
     Route::get('projects/{project}/schedule/task_schedule.csv', function ($project) {
         $file = storage_path('app/private/task_schedule.csv');
-        if (!file_exists($file)) {
+        if (! file_exists($file)) {
             abort(404);
         }
+
         return response()->file($file, ['Content-Type' => 'text/csv']);
     })->name('projects.schedule.tasks');
 
     Route::get('projects/{project}/schedule/resource_tracking.csv', function ($project) {
         $file = storage_path('app/private/resource_tracking.csv');
-        if (!file_exists($file)) {
+        if (! file_exists($file)) {
             abort(404);
         }
+
         return response()->file($file, ['Content-Type' => 'text/csv']);
     })->name('projects.schedule.resources');
 
@@ -41,13 +43,14 @@ Route::get('schedule-viewer/variant/{variant}/task_schedule.csv', function ($var
         'dqn_no_lag' => 'no_lags/task_schedule_dqn_500_ignore_lag.csv',
         'greedy' => 'no_lags/task_schedule_greedy.csv',
     ];
-    if (!array_key_exists($variant, $map)) {
+    if (! array_key_exists($variant, $map)) {
         abort(404);
     }
-    $file = storage_path('app/private/' . $map[$variant]);
-    if (!file_exists($file)) {
+    $file = storage_path('app/private/'.$map[$variant]);
+    if (! file_exists($file)) {
         abort(404);
     }
+
     return response()->file($file, ['Content-Type' => 'text/csv']);
 });
 
@@ -58,13 +61,14 @@ Route::get('schedule-viewer/variant/{variant}/resource_tracking.csv', function (
         'dqn_no_lag' => 'no_lags/resource_tracking_dqn_500_ignore_lag.csv',
         'greedy' => 'no_lags/resource_tracking_greedy.csv',
     ];
-    if (!array_key_exists($variant, $map)) {
+    if (! array_key_exists($variant, $map)) {
         abort(404);
     }
-    $file = storage_path('app/private/' . $map[$variant]);
-    if (!file_exists($file)) {
+    $file = storage_path('app/private/'.$map[$variant]);
+    if (! file_exists($file)) {
         abort(404);
     }
+
     return response()->file($file, ['Content-Type' => 'text/csv']);
 });
 

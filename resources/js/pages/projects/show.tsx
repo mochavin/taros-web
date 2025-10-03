@@ -25,7 +25,7 @@ export default function ProjectShow({ project }: ProjectShowData) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={project.name} />
-            <div className="p-4 space-y-6">
+            <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">{project.name}</h1>
                     <div className="flex gap-2">
@@ -45,7 +45,7 @@ export default function ProjectShow({ project }: ProjectShowData) {
                         />
                     </div>
                 </div>
-                <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
+                {/* <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                     <dl className="grid gap-4 md:grid-cols-2 text-sm">
                         <div>
                             <dt className="font-medium">Tanggal Mulai</dt>
@@ -64,11 +64,11 @@ export default function ProjectShow({ project }: ProjectShowData) {
                             <dd>{project.updated_at}</dd>
                         </div>
                     </dl>
-                </div>
+                </div> */}
                 {/* Schedule viewer component */}
                 <div className="rounded-lg p-4 dark:border-sidebar-border">
-                    <h2 className="text-lg font-medium mb-2">Schedule Viewer</h2>
-                    <p className="text-sm text-muted-foreground mb-4">Upload task_schedule.csv and resource_tracking.csv or drop them into the viewer.</p>
+                    {/* <h2 className="text-lg font-medium mb-2">Schedule Viewer</h2>
+                    <p className="text-sm text-muted-foreground mb-4">Upload task_schedule.csv and resource_tracking.csv or drop them into the viewer.</p> */}
                     <ScheduleViewerComponent projectId={project.id} />
                 </div>
             </div>

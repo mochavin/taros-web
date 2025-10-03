@@ -293,7 +293,8 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
             ) : (
                 <div className="border rounded-lg p-4 bg-white dark:bg-gray-950 overflow-x-auto">
                     <div className="text-xs text-muted-foreground mb-2">
-                        Tasks: {total} | Page {currentPage}/{pages} | Span {totalH.toFixed(1)} h
+                        {/* Tasks: {total} | Page {currentPage}/{pages} |  */}
+                        Span {totalH.toFixed(1)} h
                     </div>
 
                     {/* Scale */}
