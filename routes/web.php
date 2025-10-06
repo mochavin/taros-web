@@ -38,8 +38,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Public endpoints for schedule viewer variants (safe: only known variants)
 Route::get('schedule-viewer/variant/{variant}/task_schedule.csv', function ($variant) {
     $map = [
+        // Variants coming from storage/app/private (folders shown in the screenshot)
+        'dqn_500_episodes_lag_is_0' => 'dqn 500 episodes lag is 0/task_schedule.csv',
+        'dqn_5000_episode' => 'dqn 5000 episode/task_schedule.csv',
+        'dqn_no_resource_constraint_500' => 'dqn no resource constraint 500/task_schedule.csv',
+        'greedy_w_negatif_lag' => 'greedy w negatif lag/task_schedule.csv',
+        'greedy_wo_negatif_lag' => 'greedy wo negatif lag/task_schedule.csv',
+        'ppo' => 'PPO 1000 episodes/task_schedule.csv',
+        'ppo_no_resource_constraint' => 'PPO wo resource constraint/task_schedule.csv',
+        // keep legacy keys for backwards compatibility if present
         'dqn_improve_lag' => 'with_lags/task_schedule_dqn_improve_lag.csv',
-        'ppo' => 'with_lags/task_schedule_ppo.csv',
         'dqn_no_lag' => 'no_lags/task_schedule_dqn_500_ignore_lag.csv',
         'greedy' => 'no_lags/task_schedule_greedy.csv',
     ];
@@ -56,8 +64,16 @@ Route::get('schedule-viewer/variant/{variant}/task_schedule.csv', function ($var
 
 Route::get('schedule-viewer/variant/{variant}/resource_tracking.csv', function ($variant) {
     $map = [
+        // Variants coming from storage/app/private (folders shown in the screenshot)
+        'dqn_500_episodes_lag_is_0' => 'dqn 500 episodes lag is 0/resource_tracking.csv',
+        'dqn_5000_episode' => 'dqn 5000 episode/resource_tracking.csv',
+        'dqn_no_resource_constraint_500' => 'dqn no resource constraint 500/resource_tracking.csv',
+        'greedy_w_negatif_lag' => 'greedy w negatif lag/resource_tracking.csv',
+        'greedy_wo_negatif_lag' => 'greedy wo negatif lag/resource_tracking.csv',
+        'ppo' => 'PPO 1000 episodes/resource_tracking.csv',
+        'ppo_no_resource_constraint' => 'PPO wo resource constraint/resource_tracking.csv',
+        // keep legacy keys for backwards compatibility if present
         'dqn_improve_lag' => 'with_lags/resource_tracking_improve_lag.csv',
-        'ppo' => 'with_lags/resource_tracking_ppo.csv',
         'dqn_no_lag' => 'no_lags/resource_tracking_dqn_500_ignore_lag.csv',
         'greedy' => 'no_lags/resource_tracking_greedy.csv',
     ];

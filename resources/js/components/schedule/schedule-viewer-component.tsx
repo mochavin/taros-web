@@ -9,70 +9,15 @@ import { TaskTable } from './task-table';
 import { ResourceTable } from './resource-table';
 import { ResourceLoadChart } from './resource-load-chart';
 import { parseDate, parseLocalDateTimeInput, formatDateLocal } from '@/lib/schedule-utils';
-import type { Variants } from '@/types/schedule';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Loader2 } from 'lucide-react';
+import { VARIANTS, DEFAULT_VARIANT } from '@/types/variants';
 
-const VARIANTS: Variants = {
-    dqn_improve_lag: {
-        tasksCandidates: [
-            '/schedule-viewer/variant/dqn_improve_lag/task_schedule.csv',
-            '/storage/app/private/with_lags/task_schedule_dqn_improve_lag.csv',
-            'task_schedule_dqn_improve_lag.csv',
-            'task_schedule.csv',
-        ],
-        resCandidates: [
-            '/schedule-viewer/variant/dqn_improve_lag/resource_tracking.csv',
-            '/storage/app/private/with_lags/resource_tracking_improve_lag.csv',
-            'resource_tracking_improve_lag.csv',
-            'resource_tracking.csv',
-        ],
-    },
-    dqn_no_lag: {
-        tasksCandidates: [
-            '/schedule-viewer/variant/dqn_no_lag/task_schedule.csv',
-            '/storage/app/private/no_lags/task_schedule_dqn_500_ignore_lag.csv',
-            'task_schedule_dqn_500_ignore_lag.csv',
-            'task_schedule.csv',
-        ],
-        resCandidates: [
-            '/schedule-viewer/variant/dqn_no_lag/resource_tracking.csv',
-            '/storage/app/private/no_lags/resource_tracking_dqn_500_ignore_lag.csv',
-            'resource_tracking_dqn_500_ignore_lag.csv',
-            'resource_tracking.csv',
-        ],
-    },
-    ppo: {
-        tasksCandidates: [
-            '/schedule-viewer/variant/ppo/task_schedule.csv',
-            '/storage/app/private/no_lags/task_schedule_ppo.csv',
-            'task_schedule_ppo.csv',
-            'task_schedule.csv',
-        ],
-        resCandidates: [
-            '/schedule-viewer/variant/ppo/resource_tracking.csv',
-            '/storage/app/private/no_lags/resource_tracking_ppo.csv',
-            'resource_tracking_ppo.csv',
-            'resource_tracking.csv',
-        ],
-    },
-    greedy: {
-        tasksCandidates: [
-            '/schedule-viewer/variant/greedy/task_schedule.csv',
-            '/storage/app/private/no_lags/task_schedule_greedy.csv',
-            'task_schedule_greedy.csv',
-            'task_schedule.csv',
-        ],
-        resCandidates: [
-            '/schedule-viewer/variant/greedy/resource_tracking.csv',
-            '/storage/app/private/no_lags/resource_tracking_greedy.csv',
-            'resource_tracking_greedy.csv',
-            'resource_tracking.csv',
-        ],
-    },
-};
-
-const DEFAULT_VARIANT = 'dqn_improve_lag';
+const formatVariantLabel = (variantKey: string): string =>
+    variantKey
+        .split('_')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
 interface ScheduleViewerComponentProps {
     projectId?: number;
@@ -239,7 +184,7 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
                                 <SelectContent>
                                     {Object.keys(VARIANTS).map((key) => (
                                         <SelectItem key={key} value={key}>
-                                            {key}
+                                            {formatVariantLabel(key)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
