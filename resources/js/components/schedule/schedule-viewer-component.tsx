@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -146,10 +146,10 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
         return rr;
     });
 
-    return (
-        <div className="space-y-4 relative min-h-[400px]">
+    const renderContent = (content: ReactNode) => (
+        <div className="relative h-[300px]">
             {isLoading && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] h-dvh">
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
                     <div className="flex flex-col items-center gap-4 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border max-w-md w-full mx-4">
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
                         <div className="text-center">
@@ -160,6 +160,12 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
                     </div>
                 </div>
             )}
+            {!isLoading && content}
+        </div>
+    );
+
+    return (
+        <div className="space-y-4 relative min-h-[400px]">
             {/* Upload and Controls */}
             <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
                 <div className="space-y-4">
@@ -177,7 +183,7 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
                     <div className="flex flex-wrap items-end gap-4">
                         <div>
                             <Label htmlFor="variantSelect">Variant</Label>
-                            <Select value={currentVariant} onValueChange={handleVariantChange} disabled={isLoading}>
+                            <Select value={currentVariant} onValueChange={handleVariantChange}>
                                 <SelectTrigger id="variantSelect" className="w-[200px]">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -233,19 +239,19 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
                 </TabsList>
 
                 <TabsContent value="gantt" className="mt-4">
-                    <GanttChart tasks={shiftedTasks} baselineShiftMs={baselineShiftMs} />
+                    {renderContent(<GanttChart tasks={shiftedTasks} baselineShiftMs={baselineShiftMs} />)}
                 </TabsContent>
 
                 <TabsContent value="tasks" className="mt-4">
-                    <TaskTable tasks={shiftedTasks} />
+                    {renderContent(<TaskTable tasks={shiftedTasks} />)}
                 </TabsContent>
 
                 <TabsContent value="resources" className="mt-4">
-                    <ResourceTable resources={shiftedResources} />
+                    {renderContent(<ResourceTable resources={shiftedResources} />)}
                 </TabsContent>
 
                 <TabsContent value="resload" className="mt-4">
-                    <ResourceLoadChart resources={shiftedResources} />
+                    {renderContent(<ResourceLoadChart resources={shiftedResources} />)}
                 </TabsContent>
             </Tabs>
         </div>
