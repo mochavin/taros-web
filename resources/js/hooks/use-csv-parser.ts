@@ -1,11 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Papa from 'papaparse';
 import type { TaskRow, ResourceRow } from '@/types/schedule';
+
+interface VariantCache {
+    taskRows: TaskRow[];
+    resRows: ResourceRow[];
+}
 
 export function useCSVParser() {
     const [taskRows, setTaskRows] = useState<TaskRow[]>([]);
     const [resRows, setResRows] = useState<ResourceRow[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Cache for storing variant data by a unique key
+    const variantCacheRef = useRef<Map<string, VariantCache>>(new Map());
 
     const parseCsvFile = useCallback(<T,>(file: File): Promise<T[]> => {
         return new Promise((resolve, reject) => {
@@ -84,6 +92,18 @@ export function useCSVParser() {
 
     const loadVariant = useCallback(
         async (tasksCandidates: string[], resCandidates: string[]) => {
+            // Create a cache key from the candidates
+            const cacheKey = JSON.stringify({ tasks: tasksCandidates, res: resCandidates });
+            
+            // Check if we have cached data for this variant
+            const cached = variantCacheRef.current.get(cacheKey);
+            if (cached) {
+                // Use cached data immediately
+                setTaskRows(cached.taskRows);
+                setResRows(cached.resRows);
+                return;
+            }
+
             setIsLoading(true);
             try {
                 const [taskText, resText] = await Promise.all([
@@ -91,15 +111,24 @@ export function useCSVParser() {
                     tryFetchTextCandidates(resCandidates),
                 ]);
 
+                let taskParsed: TaskRow[] = [];
+                let resParsed: ResourceRow[] = [];
+
                 if (taskText) {
-                    const taskParsed = parseCsvText<TaskRow>(taskText);
+                    taskParsed = parseCsvText<TaskRow>(taskText);
                     setTaskRows(taskParsed);
                 }
 
                 if (resText) {
-                    const resParsed = parseCsvText<ResourceRow>(resText);
+                    resParsed = parseCsvText<ResourceRow>(resText);
                     setResRows(resParsed);
                 }
+
+                // Cache the parsed data
+                variantCacheRef.current.set(cacheKey, {
+                    taskRows: taskParsed,
+                    resRows: resParsed,
+                });
             } catch (error) {
                 console.error('Error loading variant:', error);
             } finally {
