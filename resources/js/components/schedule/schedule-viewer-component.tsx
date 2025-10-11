@@ -66,10 +66,10 @@ export function ScheduleViewerComponent({ projectId, variants = [], defaultVaria
             return;
         }
 
-        if (variantMap.has(defaultVariant) && defaultVariant !== currentVariant) {
-            setCurrentVariant(defaultVariant);
+        if (variantMap.has(defaultVariant)) {
+            setCurrentVariant((prev) => (prev === defaultVariant ? prev : defaultVariant));
         }
-    }, [defaultVariant, hasVariants, variantMap, currentVariant]);
+    }, [defaultVariant, hasVariants, variantMap]);
 
     // Load variant whenever selection changes
     useEffect(() => {

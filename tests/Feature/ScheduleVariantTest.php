@@ -3,6 +3,7 @@
 use App\Models\Project;
 use App\Models\ScheduleVariant;
 use App\Models\User;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -99,8 +100,11 @@ it('stores a schedule variant and resets previous default', function (): void {
     expect($created)->not->toBeNull();
     expect($created->is_default)->toBeTrue();
 
-    Storage::disk('local')->assertExists('private/'.$created->task_path);
-    Storage::disk('local')->assertExists('private/'.$created->resource_path);
+    /** @var FilesystemAdapter $disk */
+    $disk = Storage::disk('local');
+
+    $disk->assertExists('private/'.$created->task_path);
+    $disk->assertExists('private/'.$created->resource_path);
 
     expect($existing->fresh()->is_default)->toBeFalse();
 });
@@ -151,11 +155,46 @@ it('updates a schedule variant, replaces files, and enforces single default', fu
     expect($updated->is_default)->toBeTrue();
     expect($first->fresh()->is_default)->toBeFalse();
 
-    Storage::disk('local')->assertMissing('private/'.$originalTaskPath);
-    Storage::disk('local')->assertMissing('private/'.$originalResourcePath);
+    /** @var FilesystemAdapter $disk */
+    $disk = Storage::disk('local');
 
-    Storage::disk('local')->assertExists('private/'.$updated->task_path);
-    Storage::disk('local')->assertExists('private/'.$updated->resource_path);
+    $disk->assertMissing('private/'.$originalTaskPath);
+    $disk->assertMissing('private/'.$originalResourcePath);
+
+    $disk->assertExists('private/'.$updated->task_path);
+    $disk->assertExists('private/'.$updated->resource_path);
+});
+
+it('allows updating a schedule variant without changing its slug', function (): void {
+    Storage::fake('local');
+
+    /** @var Project $project */
+    $project = test()->project;
+
+    $variant = ScheduleVariant::factory()
+        ->for($project)
+        ->create([
+            'slug' => 'unchanged_slug',
+            'is_default' => false,
+        ]);
+
+    Storage::disk('local')->put('private/'.$variant->task_path, 'tasks content');
+    Storage::disk('local')->put('private/'.$variant->resource_path, 'resources content');
+
+    $response = put(route('projects.schedule-variants.update', [$project, $variant]), [
+        'name' => 'Updated Label',
+        'slug' => 'unchanged_slug',
+        'description' => $variant->description ?? '',
+        'is_default' => false,
+    ]);
+
+    $response->assertRedirect(route('projects.schedule-variants.index', $project));
+    $response->assertSessionHasNoErrors();
+
+    $refreshed = $variant->fresh();
+
+    expect($refreshed->slug)->toBe('unchanged_slug');
+    expect($refreshed->name)->toBe('Updated Label');
 });
 
 it('deletes a schedule variant, cleans stored files, and assigns fallback default', function (): void {
@@ -188,8 +227,11 @@ it('deletes a schedule variant, cleans stored files, and assigns fallback defaul
     expect(ScheduleVariant::query()->whereKey($primary->id)->exists())->toBeFalse();
     expect($secondary->fresh()->is_default)->toBeTrue();
 
-    Storage::disk('local')->assertMissing('private/'.$primary->task_path);
-    Storage::disk('local')->assertMissing('private/'.$primary->resource_path);
+    /** @var FilesystemAdapter $disk */
+    $disk = Storage::disk('local');
+
+    $disk->assertMissing('private/'.$primary->task_path);
+    $disk->assertMissing('private/'.$primary->resource_path);
 });
 
 it('serves task schedule csv through public endpoint', function (): void {

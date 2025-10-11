@@ -28,7 +28,8 @@ class UpdateScheduleVariantRequest extends FormRequest
         $projectParameter = Route::current()?->parameter('project');
         $projectId = $projectParameter instanceof Project ? $projectParameter->getKey() : $projectParameter;
 
-        $scheduleVariantParameter = Route::current()?->parameter('scheduleVariant');
+        $scheduleVariantParameter = Route::current()?->parameter('schedule_variant')
+            ?? Route::current()?->parameter('scheduleVariant');
         $scheduleVariant = $scheduleVariantParameter instanceof ScheduleVariant ? $scheduleVariantParameter : null;
 
         $slugRule = Rule::unique('schedule_variants', 'slug');
