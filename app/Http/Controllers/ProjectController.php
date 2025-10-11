@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Projects\StoreProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectRequest;
 use App\Models\Project;
+use App\Models\ScheduleVariant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -42,6 +43,15 @@ class ProjectController
     {
         $this->authorizeProject($project);
 
+        $variants = $project->scheduleVariants()
+            ->orderByDesc('is_default')
+            ->orderBy('name')
+            ->get();
+
+        $defaultVariant = $variants->firstWhere('is_default', true)?->slug
+            ?? $variants->first()?->slug
+            ?? null;
+
         return Inertia::render('projects/show', [
             'project' => [
                 'id' => $project->id,
@@ -51,6 +61,8 @@ class ProjectController
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
             ],
+            'scheduleVariants' => $variants->map(fn (ScheduleVariant $variant) => $this->formatScheduleVariant($variant)),
+            'defaultVariant' => $defaultVariant,
         ]);
     }
 
@@ -89,5 +101,52 @@ class ProjectController
         if ($project->user_id !== Auth::id()) {
             abort(403);
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function formatScheduleVariant(ScheduleVariant $variant): array
+    {
+        $taskRoutes = $this->buildCandidateUrls(
+            $variant->taskStorageCandidates(),
+            route('projects.schedule-variants.tasks', [
+                'project' => $variant->project_id,
+                'scheduleVariant' => $variant,
+            ]),
+        );
+        $resourceRoutes = $this->buildCandidateUrls(
+            $variant->resourceStorageCandidates(),
+            route('projects.schedule-variants.resources', [
+                'project' => $variant->project_id,
+                'scheduleVariant' => $variant,
+            ]),
+        );
+
+        return [
+            'id' => $variant->id,
+            'name' => $variant->name,
+            'slug' => $variant->slug,
+            'description' => $variant->description,
+            'isDefault' => $variant->is_default,
+            'taskCandidates' => $taskRoutes,
+            'resCandidates' => $resourceRoutes,
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $paths
+     * @return array<int, string>
+     */
+    protected function buildCandidateUrls(array $paths, string $primary): array
+    {
+        $filtered = array_values(array_filter($paths));
+        $prefixed = array_map(static fn (string $path) => '/storage/app/private/'.$path, $filtered);
+
+        return array_values(array_unique(array_merge(
+            [$primary],
+            $prefixed,
+            $filtered,
+        )));
     }
 }

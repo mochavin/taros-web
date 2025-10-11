@@ -1,4 +1,5 @@
 <?php
+
 // Minimal helper to list and serve CSV files stored in storage/app/private
 // Usage:
 //  - /schedule-files.php?action=list     -> returns JSON array of basenames
@@ -6,14 +7,15 @@
 
 declare(strict_types=1);
 
-$base = __DIR__ . '/../storage/app/private';
-if (!is_dir($base)) {
+$base = __DIR__.'/../storage/app/private';
+if (! is_dir($base)) {
     http_response_code(500);
     echo json_encode(['error' => 'storage path not found']);
     exit;
 }
 
-function safe_basename(string $s): string {
+function safe_basename(string $s): string
+{
     // allow only simple filename chars
     return preg_replace('/[^A-Za-z0-9_\-\.]/', '', $s);
 }
@@ -35,15 +37,25 @@ if (isset($_GET['action']) && $_GET['action'] === 'list') {
 }
 
 if (isset($_GET['file'])) {
-    $fn = safe_basename((string)$_GET['file']);
-    if ($fn === '') { http_response_code(400); echo 'Invalid file'; exit; }
-    $path = $base . DIRECTORY_SEPARATOR . $fn;
+    $fn = safe_basename((string) $_GET['file']);
+    if ($fn === '') {
+        http_response_code(400);
+        echo 'Invalid file';
+        exit;
+    }
+    $path = $base.DIRECTORY_SEPARATOR.$fn;
     // ensure file inside base
     $real = realpath($path);
     if ($real === false || strpos($real, realpath($base)) !== 0) {
-        http_response_code(404); echo 'Not found'; exit;
+        http_response_code(404);
+        echo 'Not found';
+        exit;
     }
-    if (!is_file($real) || !is_readable($real)) { http_response_code(404); echo 'Not found'; exit; }
+    if (! is_file($real) || ! is_readable($real)) {
+        http_response_code(404);
+        echo 'Not found';
+        exit;
+    }
     header('Content-Type: text/csv');
     readfile($real);
     exit;

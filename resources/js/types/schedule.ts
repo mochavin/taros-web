@@ -21,12 +21,15 @@ export interface ResourceRow {
     Units: string;
 }
 
-export interface VariantConfig {
-    tasksCandidates: string[];
+export interface ScheduleVariantOption {
+    id: number;
+    slug: string;
+    name: string;
+    description?: string | null;
+    isDefault: boolean;
+    taskCandidates: string[];
     resCandidates: string[];
 }
-
-export type Variants = Record<string, VariantConfig>;
 
 export type TaskSortMode = 'id' | 'start' | 'finish' | 'duration' | 'duration_asc';
 

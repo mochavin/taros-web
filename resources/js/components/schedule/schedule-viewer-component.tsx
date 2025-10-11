@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { ResourceLoadChart } from './resource-load-chart';
 import { parseDate, parseLocalDateTimeInput, formatDateLocal } from '@/lib/schedule-utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Loader2 } from 'lucide-react';
-import { VARIANTS, DEFAULT_VARIANT } from '@/types/variants';
+import type { ScheduleVariantOption } from '@/types/schedule';
 
 const formatVariantLabel = (variantKey: string): string =>
     variantKey
@@ -21,27 +21,81 @@ const formatVariantLabel = (variantKey: string): string =>
 
 interface ScheduleViewerComponentProps {
     projectId?: number;
+    variants?: ScheduleVariantOption[];
+    defaultVariant?: string | null;
 }
 
-export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentProps) {
-    const [currentVariant, setCurrentVariant] = useState(DEFAULT_VARIANT);
+export function ScheduleViewerComponent({ projectId, variants = [], defaultVariant }: ScheduleViewerComponentProps) {
+    const hasVariants = variants.length > 0;
+    const variantMap = useMemo(() => {
+        const entries = variants.map((variant) => [variant.slug, variant] as const);
+        return new Map(entries);
+    }, [variants]);
+
+    const initialVariant = useMemo(() => {
+        if (defaultVariant && variantMap.has(defaultVariant)) {
+            return defaultVariant;
+        }
+
+        return variants[0]?.slug ?? '';
+    }, [defaultVariant, variantMap, variants]);
+
+    const [currentVariant, setCurrentVariant] = useState(initialVariant);
     const [customStart, setCustomStart] = useState('');
     const [status, setStatus] = useState('');
 
     const { taskRows, resRows, isLoading, loadTasksFromFile, loadResourcesFromFile, loadVariant, clearData, classifyAndLoad } =
         useCSVParser();
 
-    // Load default variant on mount
+    // Ensure current variant tracks available options
     useEffect(() => {
-        const variant = VARIANTS[DEFAULT_VARIANT];
-        if (variant) {
-            setStatus(`Loading variant ${DEFAULT_VARIANT}...`);
-            loadVariant(variant.tasksCandidates, variant.resCandidates).then(() => {
-                setStatus(`Variant ${DEFAULT_VARIANT} loaded. tasks: ${taskRows.length} | resources: ${resRows.length}`);
-            });
+        if (!hasVariants) {
+            setCurrentVariant('');
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+
+        if (currentVariant && variantMap.has(currentVariant)) {
+            return;
+        }
+
+        setCurrentVariant(initialVariant);
+    }, [currentVariant, hasVariants, initialVariant, variantMap]);
+
+    useEffect(() => {
+        if (!hasVariants || !defaultVariant) {
+            return;
+        }
+
+        if (variantMap.has(defaultVariant) && defaultVariant !== currentVariant) {
+            setCurrentVariant(defaultVariant);
+        }
+    }, [defaultVariant, hasVariants, variantMap, currentVariant]);
+
+    // Load variant whenever selection changes
+    useEffect(() => {
+        const variant = currentVariant ? variantMap.get(currentVariant) : undefined;
+        if (!variant) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        (async () => {
+            setStatus(`Loading variant ${variant.name ?? formatVariantLabel(variant.slug)}...`);
+            try {
+                await loadVariant(variant.taskCandidates, variant.resCandidates);
+            } catch (error) {
+                if (!isCancelled) {
+                    setStatus('Gagal memuat data varian.');
+                    console.error('Error loading variant:', error);
+                }
+            }
+        })();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [currentVariant, variantMap, loadVariant]);
 
     // Update status when data changes
     useEffect(() => {
@@ -50,17 +104,9 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
         }
     }, [taskRows.length, resRows.length, isLoading]);
 
-    const handleVariantChange = useCallback(
-        async (variantKey: string) => {
-            setCurrentVariant(variantKey);
-            const variant = VARIANTS[variantKey];
-            if (variant) {
-                setStatus(`Loading variant ${variantKey}...`);
-                await loadVariant(variant.tasksCandidates, variant.resCandidates);
-            }
-        },
-        [loadVariant],
-    );
+    const handleVariantChange = useCallback((variantKey: string) => {
+        setCurrentVariant(variantKey);
+    }, []);
 
     const handleTaskFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -183,14 +229,14 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
                     <div className="flex flex-wrap items-end gap-4">
                         <div>
                             <Label htmlFor="variantSelect">Variant</Label>
-                            <Select value={currentVariant} onValueChange={handleVariantChange}>
+                            <Select value={currentVariant || undefined} onValueChange={handleVariantChange} disabled={!hasVariants}>
                                 <SelectTrigger id="variantSelect" className="w-[200px]">
-                                    <SelectValue />
+                                    <SelectValue placeholder={hasVariants ? 'Pilih varian' : 'Tidak ada varian'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Object.keys(VARIANTS).map((key) => (
-                                        <SelectItem key={key} value={key}>
-                                            {formatVariantLabel(key)}
+                                    {variants.map((variant) => (
+                                        <SelectItem key={variant.slug} value={variant.slug}>
+                                            {variant.name || formatVariantLabel(variant.slug)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -217,6 +263,9 @@ export function ScheduleViewerComponent({ projectId }: ScheduleViewerComponentPr
                         </Button>
 
                         {status && <span className="text-sm text-muted-foreground">{status}</span>}
+                        {!hasVariants && (
+                            <span className="text-sm text-muted-foreground">Belum ada varian terdaftar.</span>
+                        )}
                     </div>
 
                     {/* <div

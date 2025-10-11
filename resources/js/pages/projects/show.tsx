@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { type BreadcrumbItem } from '@/types';
 import { ScheduleViewerComponent } from '@/components/schedule/schedule-viewer-component';
+import type { ScheduleVariantOption } from '@/types/schedule';
 
 interface ProjectShowData {
     project: {
@@ -14,9 +15,11 @@ interface ProjectShowData {
         created_at: string;
         updated_at: string;
     };
+    scheduleVariants: ScheduleVariantOption[];
+    defaultVariant?: string | null;
 }
 
-export default function ProjectShow({ project }: ProjectShowData) {
+export default function ProjectShow({ project, scheduleVariants, defaultVariant }: ProjectShowData) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
@@ -28,7 +31,10 @@ export default function ProjectShow({ project }: ProjectShowData) {
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">{project.name}</h1>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap items-center gap-2 justify-end">
+                        <Button asChild variant="secondary">
+                            <Link href={`/projects/${project.id}/schedule-variants`}>Schedule Variants</Link>
+                        </Button>
                         <Button asChild variant="outline">
                             <Link href={`/projects/${project.id}/edit`}>Edit</Link>
                         </Button>
@@ -69,7 +75,11 @@ export default function ProjectShow({ project }: ProjectShowData) {
                 <div className="rounded-lg p-4 dark:border-sidebar-border">
                     {/* <h2 className="text-lg font-medium mb-2">Schedule Viewer</h2>
                     <p className="text-sm text-muted-foreground mb-4">Upload task_schedule.csv and resource_tracking.csv or drop them into the viewer.</p> */}
-                    <ScheduleViewerComponent projectId={project.id} />
+                    <ScheduleViewerComponent
+                        projectId={project.id}
+                        variants={scheduleVariants}
+                        defaultVariant={defaultVariant}
+                    />
                 </div>
             </div>
         </AppLayout>
