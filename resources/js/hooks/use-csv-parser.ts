@@ -83,7 +83,7 @@ export function useCSVParser() {
                 if (!resp.ok) continue;
                 const text = await resp.text();
                 if (text && text.trim().length) return text;
-            } catch (err) {
+            } catch {
                 // ignore and continue
             }
         }

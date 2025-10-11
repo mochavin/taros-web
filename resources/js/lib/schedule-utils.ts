@@ -7,24 +7,24 @@ export function parseDate(s: string | null | undefined): Date | null {
     const t = String(s).trim().replace('T', ' ');
     const m = t.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
     if (!m) return new Date(t);
-    const [_, Y, M, D, h, mn, sc] = m;
-    return new Date(Number(Y), Number(M) - 1, Number(D), Number(h), Number(mn), Number(sc || '0'));
+    const [, year, month, day, hour, minute, second] = m;
+    return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second || '0'));
 }
 
 export function parseLocalDateTimeInput(val: string | null | undefined): Date | null {
     if (!val) return null;
     const m = val.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
     if (!m) return null;
-    const [_, Y, M, D, h, mn] = m;
-    return new Date(Number(Y), Number(M) - 1, Number(D), Number(h), Number(mn), 0);
+    const [, year, month, day, hour, minute] = m;
+    return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), 0);
 }
 
 export function parseLocalDateInput(val: string | null | undefined): Date | null {
     if (!val) return null;
     const m = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!m) return null;
-    const [_, Y, M, D] = m;
-    return new Date(Number(Y), Number(M) - 1, Number(D), 0, 0, 0, 0);
+    const [, year, month, day] = m;
+    return new Date(Number(year), Number(month) - 1, Number(day), 0, 0, 0, 0);
 }
 
 export function formatDateLocal(dt: Date | null): string {

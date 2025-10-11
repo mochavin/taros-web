@@ -12,6 +12,7 @@ import { parseDate, parseLocalDateTimeInput, formatDateLocal } from '@/lib/sched
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Loader2 } from 'lucide-react';
 import type { ScheduleVariantOption } from '@/types/schedule';
+// import Papa from 'papaparse';
 
 const formatVariantLabel = (variantKey: string): string =>
     variantKey
@@ -20,12 +21,11 @@ const formatVariantLabel = (variantKey: string): string =>
         .join(' ');
 
 interface ScheduleViewerComponentProps {
-    projectId?: number;
     variants?: ScheduleVariantOption[];
     defaultVariant?: string | null;
 }
 
-export function ScheduleViewerComponent({ projectId, variants = [], defaultVariant }: ScheduleViewerComponentProps) {
+export function ScheduleViewerComponent({ variants = [], defaultVariant }: ScheduleViewerComponentProps) {
     const hasVariants = variants.length > 0;
     const variantMap = useMemo(() => {
         const entries = variants.map((variant) => [variant.slug, variant] as const);
@@ -44,7 +44,7 @@ export function ScheduleViewerComponent({ projectId, variants = [], defaultVaria
     const [customStart, setCustomStart] = useState('');
     const [status, setStatus] = useState('');
 
-    const { taskRows, resRows, isLoading, loadTasksFromFile, loadResourcesFromFile, loadVariant, clearData, classifyAndLoad } =
+    const { taskRows, resRows, isLoading, loadTasksFromFile, loadResourcesFromFile, loadVariant, clearData } =
         useCSVParser();
 
     // Ensure current variant tracks available options
@@ -124,35 +124,44 @@ export function ScheduleViewerComponent({ projectId, variants = [], defaultVaria
         setStatus('');
     };
 
-    const handleDrop = useCallback(
-        (e: React.DragEvent<HTMLDivElement>) => {
-            e.preventDefault();
-            e.stopPropagation();
+    // const handleDrop = useCallback(
+    //     async (event: React.DragEvent<HTMLDivElement>) => {
+    //         event.preventDefault();
+    //         event.stopPropagation();
 
-            const files = Array.from(e.dataTransfer.files || []).filter((f) => f.name.toLowerCase().endsWith('.csv'));
-            if (!files.length) return;
+    //         const droppedFiles = Array.from(event.dataTransfer.files || []).filter((file) =>
+    //             file.name.toLowerCase().endsWith('.csv'),
+    //         );
 
-            files.forEach((file) => {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const text = ev.target?.result as string;
-                    if (text) {
-                        // Parse and classify
-                        const Papa = require('papaparse');
-                        const result = Papa.parse(text, { header: true, skipEmptyLines: true });
-                        classifyAndLoad(result.data || []);
-                    }
-                };
-                reader.readAsText(file);
-            });
-        },
-        [classifyAndLoad],
-    );
+    //         if (!droppedFiles.length) {
+    //             return;
+    //         }
 
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
+    //         for (const file of droppedFiles) {
+    //             try {
+    //                 const text = await file.text();
+    //                 if (!text) {
+    //                     continue;
+    //                 }
+
+    //                 const parsed = Papa.parse<Record<string, unknown>>(text, {
+    //                     header: true,
+    //                     skipEmptyLines: true,
+    //                 });
+
+    //                 classifyAndLoad((parsed.data ?? []) as Record<string, unknown>[]);
+    //             } catch (error) {
+    //                 console.error('Error processing dropped CSV file:', error);
+    //             }
+    //         }
+    //     },
+    //     [classifyAndLoad],
+    // );
+
+    // const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    //     e.preventDefault();
+    //     e.stopPropagation();
+    // };
 
     // Calculate baseline shift
     const computeBaselineShiftMs = useCallback(() => {
