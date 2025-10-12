@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ScheduleVariants\StoreScheduleVariantRequest;
 use App\Http\Requests\ScheduleVariants\UpdateScheduleVariantRequest;
+use App\Http\Requests\ScheduleVariants\UpdateScheduleVariantVisibilityRequest;
 use App\Models\Project;
 use App\Models\ScheduleVariant;
 use Illuminate\Http\RedirectResponse;
@@ -73,6 +74,7 @@ class ScheduleVariantController extends Controller
                 'slug' => $scheduleVariant->slug,
                 'description' => $scheduleVariant->description,
                 'is_default' => $scheduleVariant->is_default,
+                'is_hidden' => $scheduleVariant->is_hidden,
                 'task_path' => $scheduleVariant->task_path,
                 'resource_path' => $scheduleVariant->resource_path,
             ],
@@ -111,6 +113,29 @@ class ScheduleVariantController extends Controller
         return redirect()->route('projects.schedule-variants.index', $project);
     }
 
+    public function updateVisibility(
+        UpdateScheduleVariantVisibilityRequest $request,
+        Project $project,
+        ScheduleVariant $scheduleVariant,
+    ): RedirectResponse {
+        $this->assertOwnership($project, $scheduleVariant);
+
+        $validated = $request->validated();
+        $isHidden = (bool) ($validated['is_hidden'] ?? false);
+
+        if ($scheduleVariant->is_default && $isHidden) {
+            return redirect()->back()->withErrors([
+                'is_hidden' => 'Varian default tidak dapat disembunyikan.',
+            ]);
+        }
+
+        $scheduleVariant->forceFill([
+            'is_hidden' => $isHidden,
+        ])->save();
+
+        return redirect()->back();
+    }
+
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -119,15 +144,21 @@ class ScheduleVariantController extends Controller
     {
         $data['slug'] = Str::slug($data['slug'], '_');
         $data['is_default'] = (bool) ($data['is_default'] ?? false);
+        $data['is_hidden'] = (bool) ($data['is_hidden'] ?? false);
         $data['description'] = isset($data['description']) && trim((string) $data['description']) !== ''
             ? trim((string) $data['description'])
             : null;
+
+        if ($data['is_default']) {
+            $data['is_hidden'] = false;
+        }
 
         return [
             'name' => $data['name'],
             'slug' => $data['slug'],
             'description' => $data['description'],
             'is_default' => $data['is_default'],
+            'is_hidden' => $data['is_hidden'],
         ];
     }
 
@@ -300,6 +331,7 @@ class ScheduleVariantController extends Controller
             'slug' => $variant->slug,
             'description' => $variant->description,
             'isDefault' => $variant->is_default,
+            'isHidden' => $variant->is_hidden,
             'taskPath' => $variant->task_path,
             'resourcePath' => $variant->resource_path,
             'taskCandidateCount' => $variant->task_path ? 1 : 0,

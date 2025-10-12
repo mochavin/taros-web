@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\delete;
 use function Pest\Laravel\get;
+use function Pest\Laravel\patch;
 use function Pest\Laravel\post;
 use function Pest\Laravel\put;
 
@@ -58,11 +59,13 @@ it('lists schedule variants with candidate counts', function (): void {
         ->where('variants.0.isDefault', true)
         ->where('variants.0.taskCandidateCount', 1)
         ->where('variants.0.resourceCandidateCount', 1)
+        ->where('variants.0.isHidden', false)
         ->where('variants.0.taskPath', $default->task_path)
         ->where('variants.1.id', $secondary->id)
         ->where('variants.1.isDefault', false)
         ->where('variants.1.taskCandidateCount', 1)
         ->where('variants.1.resourceCandidateCount', 1)
+        ->where('variants.1.isHidden', false)
     );
 });
 
@@ -232,6 +235,81 @@ it('deletes a schedule variant, cleans stored files, and assigns fallback defaul
 
     $disk->assertMissing('private/'.$primary->task_path);
     $disk->assertMissing('private/'.$primary->resource_path);
+});
+
+it('updates schedule variant visibility through dedicated endpoint', function (): void {
+    /** @var Project $project */
+    $project = test()->project;
+
+    $variant = ScheduleVariant::factory()
+        ->for($project)
+        ->create([
+            'is_hidden' => false,
+        ]);
+
+    $response = patch(route('projects.schedule-variants.visibility', [$project, $variant]), [
+        'is_hidden' => true,
+    ]);
+
+    $response->assertRedirect();
+    expect($variant->fresh()->is_hidden)->toBeTrue();
+
+    $response = patch(route('projects.schedule-variants.visibility', [$project, $variant]), [
+        'is_hidden' => false,
+    ]);
+
+    $response->assertRedirect();
+    expect($variant->fresh()->is_hidden)->toBeFalse();
+});
+
+it('prevents hiding the default variant through visibility endpoint', function (): void {
+    /** @var Project $project */
+    $project = test()->project;
+
+    $default = ScheduleVariant::factory()
+        ->for($project)
+        ->create([
+            'is_default' => true,
+            'is_hidden' => false,
+        ]);
+
+    $response = patch(route('projects.schedule-variants.visibility', [$project, $default]), [
+        'is_hidden' => true,
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHasErrors('is_hidden');
+    expect($default->fresh()->is_hidden)->toBeFalse();
+});
+
+it('excludes hidden variants from project show payload', function (): void {
+    /** @var Project $project */
+    $project = test()->project;
+
+    $visible = ScheduleVariant::factory()
+        ->for($project)
+        ->create([
+            'is_default' => true,
+            'is_hidden' => false,
+        ]);
+
+    ScheduleVariant::factory()
+        ->for($project)
+        ->create([
+            'is_default' => false,
+            'is_hidden' => true,
+        ]);
+
+    $response = get(route('projects.show', $project));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('projects/show')
+        ->has('scheduleVariants', 1)
+        ->where('scheduleVariants.0.id', $visible->id)
+        ->where('scheduleVariants.0.isHidden', false)
+        ->where('defaultVariant', $visible->slug)
+    );
 });
 
 it('serves task schedule csv through public endpoint', function (): void {

@@ -20,6 +20,7 @@ class ScheduleVariant extends Model
         'slug',
         'description',
         'is_default',
+        'is_hidden',
         'task_path',
         'resource_path',
     ];
@@ -31,6 +32,7 @@ class ScheduleVariant extends Model
     {
         return [
             'is_default' => 'bool',
+            'is_hidden' => 'bool',
         ];
     }
 

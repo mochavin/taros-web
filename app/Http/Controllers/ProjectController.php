@@ -48,8 +48,10 @@ class ProjectController
             ->orderBy('name')
             ->get();
 
-        $defaultVariant = $variants->firstWhere('is_default', true)?->slug
-            ?? $variants->first()?->slug
+        $visibleVariants = $variants->where('is_hidden', false)->values();
+
+        $defaultVariant = $visibleVariants->firstWhere('is_default', true)?->slug
+            ?? $visibleVariants->first()?->slug
             ?? null;
 
         return Inertia::render('projects/show', [
@@ -61,7 +63,8 @@ class ProjectController
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
             ],
-            'scheduleVariants' => $variants->map(fn (ScheduleVariant $variant) => $this->formatScheduleVariant($variant)),
+            'scheduleVariants' => $visibleVariants
+                ->map(fn (ScheduleVariant $variant) => $this->formatScheduleVariant($variant)),
             'defaultVariant' => $defaultVariant,
         ]);
     }
@@ -129,6 +132,7 @@ class ProjectController
             'slug' => $variant->slug,
             'description' => $variant->description,
             'isDefault' => $variant->is_default,
+            'isHidden' => $variant->is_hidden,
             'taskCandidates' => $taskRoutes,
             'resCandidates' => $resourceRoutes,
         ];

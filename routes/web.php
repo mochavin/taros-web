@@ -56,6 +56,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('projects.schedule-variants.resources');
 
     Route::resource('projects', ProjectController::class);
+    Route::patch('projects/{project}/schedule-variants/{scheduleVariant}/visibility', [
+        ScheduleVariantController::class,
+        'updateVisibility',
+    ])->name('projects.schedule-variants.visibility');
     Route::resource('projects.schedule-variants', ScheduleVariantController::class)->except(['show']);
 });
 

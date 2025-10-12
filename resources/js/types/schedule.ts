@@ -27,6 +27,7 @@ export interface ScheduleVariantOption {
     name: string;
     description?: string | null;
     isDefault: boolean;
+     isHidden: boolean;
     taskCandidates: string[];
     resCandidates: string[];
 }

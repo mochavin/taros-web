@@ -54,6 +54,7 @@ class UpdateScheduleVariantRequest extends FormRequest
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'is_default' => ['nullable', 'boolean'],
+            'is_hidden' => ['nullable', 'boolean'],
             'task_file' => ['nullable', 'file', 'mimes:csv,txt'],
             'resource_file' => ['nullable', 'file', 'mimes:csv,txt'],
         ];

@@ -26,6 +26,7 @@ class ScheduleVariantFactory extends Factory
             'slug' => $slug,
             'description' => $this->faker->optional()->sentence(),
             'is_default' => false,
+            'is_hidden' => false,
             'task_path' => null,
             'resource_path' => null,
         ];

@@ -21,24 +21,29 @@ const formatVariantLabel = (variantKey: string): string =>
         .join(' ');
 
 interface ScheduleViewerComponentProps {
+    projectId?: number;
     variants?: ScheduleVariantOption[];
     defaultVariant?: string | null;
 }
 
 export function ScheduleViewerComponent({ variants = [], defaultVariant }: ScheduleViewerComponentProps) {
-    const hasVariants = variants.length > 0;
+    const visibleVariants = useMemo(
+        () => variants.filter((variant) => !variant.isHidden),
+        [variants],
+    );
+    const hasVariants = visibleVariants.length > 0;
     const variantMap = useMemo(() => {
-        const entries = variants.map((variant) => [variant.slug, variant] as const);
+        const entries = visibleVariants.map((variant) => [variant.slug, variant] as const);
         return new Map(entries);
-    }, [variants]);
+    }, [visibleVariants]);
 
     const initialVariant = useMemo(() => {
         if (defaultVariant && variantMap.has(defaultVariant)) {
             return defaultVariant;
         }
 
-        return variants[0]?.slug ?? '';
-    }, [defaultVariant, variantMap, variants]);
+        return visibleVariants[0]?.slug ?? '';
+    }, [defaultVariant, variantMap, visibleVariants]);
 
     const [currentVariant, setCurrentVariant] = useState(initialVariant);
     const [customStart, setCustomStart] = useState('');
@@ -51,6 +56,7 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
     useEffect(() => {
         if (!hasVariants) {
             setCurrentVariant('');
+            setStatus('Tidak ada varian yang ditampilkan. Unggah CSV untuk melihat data secara manual.');
             return;
         }
 
@@ -243,7 +249,7 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
                                     <SelectValue placeholder={hasVariants ? 'Pilih varian' : 'Tidak ada varian'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {variants.map((variant) => (
+                                    {visibleVariants.map((variant) => (
                                         <SelectItem key={variant.slug} value={variant.slug}>
                                             {variant.name || formatVariantLabel(variant.slug)}
                                         </SelectItem>
@@ -273,7 +279,10 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
 
                         {status && <span className="text-sm text-muted-foreground">{status}</span>}
                         {!hasVariants && (
-                            <span className="text-sm text-muted-foreground">Belum ada varian terdaftar.</span>
+                            <span className="text-sm text-muted-foreground">
+                                Belum ada varian jadwal yang ditampilkan. Silakan unggah CSV manual atau tampilkan varian dari halaman
+                                pengelolaan.
+                            </span>
                         )}
                     </div>
 

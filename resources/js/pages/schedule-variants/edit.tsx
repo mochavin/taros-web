@@ -14,6 +14,7 @@ interface ScheduleVariantEditPayload {
     slug: string;
     description: string | null;
     is_default: boolean;
+    is_hidden: boolean;
     task_path?: string | null;
     resource_path?: string | null;
 }
@@ -39,6 +40,7 @@ export default function ScheduleVariantEdit({ project, variant }: ScheduleVarian
         slug: variant.slug,
         description: variant.description ?? '',
         is_default: variant.is_default,
+        is_hidden: variant.is_hidden,
         task_file: null as File | null,
         resource_file: null as File | null,
     });
@@ -116,17 +118,37 @@ export default function ScheduleVariantEdit({ project, variant }: ScheduleVarian
                         <InputError message={errors.description} />
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <Checkbox
-                            id="is_default"
-                            checked={data.is_default}
-                            onCheckedChange={(value) => setData('is_default', value === true)}
-                        />
-                        <Label htmlFor="is_default" className="text-sm">
-                            Jadikan varian default
-                        </Label>
+                    <div className="flex flex-wrap gap-6">
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="is_default"
+                                checked={data.is_default}
+                                onCheckedChange={(value) => {
+                                    const next = value === true;
+                                    setData('is_default', next);
+                                    if (next) {
+                                        setData('is_hidden', false);
+                                    }
+                                }}
+                            />
+                            <Label htmlFor="is_default" className="text-sm">
+                                Jadikan varian default
+                            </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="is_hidden"
+                                checked={data.is_hidden}
+                                onCheckedChange={(value) => setData('is_hidden', value === true)}
+                                disabled={data.is_default}
+                            />
+                            <Label htmlFor="is_hidden" className="text-sm">
+                                Sembunyikan dari viewer schedule
+                            </Label>
+                        </div>
                     </div>
                     <InputError message={errors.is_default} />
+                    <InputError message={errors.is_hidden} />
 
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
