@@ -1,17 +1,28 @@
-import { useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useCSVParser } from '@/hooks/use-csv-parser';
-import { GanttChart } from './gantt-chart';
-import { TaskTable } from './task-table';
-import { ResourceTable } from './resource-table';
-import { ResourceLoadChart } from './resource-load-chart';
-import { parseDate, parseLocalDateTimeInput, formatDateLocal } from '@/lib/schedule-utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Loader2 } from 'lucide-react';
+import {
+    formatDateLocal,
+    parseDate,
+    parseLocalDateTimeInput,
+} from '@/lib/schedule-utils';
 import type { ScheduleVariantOption } from '@/types/schedule';
+import { Loader2 } from 'lucide-react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { GanttChart } from './gantt-chart';
+import { GanttChartFlat } from './gantt-chart-flat';
+import { ResourceLoadChart } from './resource-load-chart';
+import { ResourceTable } from './resource-table';
+import { TaskTable } from './task-table';
 // import Papa from 'papaparse';
 
 const formatVariantLabel = (variantKey: string): string =>
@@ -26,14 +37,19 @@ interface ScheduleViewerComponentProps {
     defaultVariant?: string | null;
 }
 
-export function ScheduleViewerComponent({ variants = [], defaultVariant }: ScheduleViewerComponentProps) {
+export function ScheduleViewerComponent({
+    variants = [],
+    defaultVariant,
+}: ScheduleViewerComponentProps) {
     const visibleVariants = useMemo(
         () => variants.filter((variant) => !variant.isHidden),
         [variants],
     );
     const hasVariants = visibleVariants.length > 0;
     const variantMap = useMemo(() => {
-        const entries = visibleVariants.map((variant) => [variant.slug, variant] as const);
+        const entries = visibleVariants.map(
+            (variant) => [variant.slug, variant] as const,
+        );
         return new Map(entries);
     }, [visibleVariants]);
 
@@ -48,15 +64,27 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
     const [currentVariant, setCurrentVariant] = useState(initialVariant);
     const [customStart, setCustomStart] = useState('');
     const [status, setStatus] = useState('');
+    const [ganttViewMode, setGanttViewMode] = useState<'hierarchy' | 'flat'>(
+        'hierarchy',
+    );
 
-    const { taskRows, resRows, isLoading, loadTasksFromFile, loadResourcesFromFile, loadVariant, clearData } =
-        useCSVParser();
+    const {
+        taskRows,
+        resRows,
+        isLoading,
+        loadTasksFromFile,
+        loadResourcesFromFile,
+        loadVariant,
+        clearData,
+    } = useCSVParser();
 
     // Ensure current variant tracks available options
     useEffect(() => {
         if (!hasVariants) {
             setCurrentVariant('');
-            setStatus('Tidak ada varian yang ditampilkan. Unggah CSV untuk melihat data secara manual.');
+            setStatus(
+                'Tidak ada varian yang ditampilkan. Unggah CSV untuk melihat data secara manual.',
+            );
             return;
         }
 
@@ -73,13 +101,17 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
         }
 
         if (variantMap.has(defaultVariant)) {
-            setCurrentVariant((prev) => (prev === defaultVariant ? prev : defaultVariant));
+            setCurrentVariant((prev) =>
+                prev === defaultVariant ? prev : defaultVariant,
+            );
         }
     }, [defaultVariant, hasVariants, variantMap]);
 
     // Load variant whenever selection changes
     useEffect(() => {
-        const variant = currentVariant ? variantMap.get(currentVariant) : undefined;
+        const variant = currentVariant
+            ? variantMap.get(currentVariant)
+            : undefined;
         if (!variant) {
             return;
         }
@@ -87,9 +119,14 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
         let isCancelled = false;
 
         (async () => {
-            setStatus(`Loading variant ${variant.name ?? formatVariantLabel(variant.slug)}...`);
+            setStatus(
+                `Loading variant ${variant.name ?? formatVariantLabel(variant.slug)}...`,
+            );
             try {
-                await loadVariant(variant.taskCandidates, variant.resCandidates);
+                await loadVariant(
+                    variant.taskCandidates,
+                    variant.resCandidates,
+                );
             } catch (error) {
                 if (!isCancelled) {
                     setStatus('Gagal memuat data varian.');
@@ -106,7 +143,9 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
     // Update status when data changes
     useEffect(() => {
         if (!isLoading && (taskRows.length > 0 || resRows.length > 0)) {
-            setStatus(`Loaded tasks: ${taskRows.length} | resource rows: ${resRows.length}`);
+            setStatus(
+                `Loaded tasks: ${taskRows.length} | resource rows: ${resRows.length}`,
+            );
         }
     }, [taskRows.length, resRows.length, isLoading]);
 
@@ -119,7 +158,9 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
         if (file) loadTasksFromFile(file);
     };
 
-    const handleResourceFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleResourceFileChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const file = e.target.files?.[0];
         if (file) loadResourcesFromFile(file);
     };
@@ -192,8 +233,12 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
         const s = parseDate(r.Start);
         const e = parseDate(r.Finish);
         const rr = { ...r };
-        if (s) rr.Start = formatDateLocal(new Date(s.getTime() + baselineShiftMs));
-        if (e) rr.Finish = formatDateLocal(new Date(e.getTime() + baselineShiftMs));
+        if (s)
+            rr.Start = formatDateLocal(new Date(s.getTime() + baselineShiftMs));
+        if (e)
+            rr.Finish = formatDateLocal(
+                new Date(e.getTime() + baselineShiftMs),
+            );
         return rr;
     });
 
@@ -202,21 +247,33 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
         const s = parseDate(r.SegmentStart);
         const e = parseDate(r.SegmentEnd);
         const rr = { ...r };
-        if (s) rr.SegmentStart = formatDateLocal(new Date(s.getTime() + baselineShiftMs));
-        if (e) rr.SegmentEnd = formatDateLocal(new Date(e.getTime() + baselineShiftMs));
+        if (s)
+            rr.SegmentStart = formatDateLocal(
+                new Date(s.getTime() + baselineShiftMs),
+            );
+        if (e)
+            rr.SegmentEnd = formatDateLocal(
+                new Date(e.getTime() + baselineShiftMs),
+            );
         return rr;
     });
 
     const renderContent = (content: ReactNode) => (
         <div className="relative h-[300px]">
             {isLoading && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-                    <div className="flex flex-col items-center gap-4 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border max-w-md w-full mx-4">
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/40 backdrop-blur-sm">
+                    <div className="mx-4 flex w-full max-w-md flex-col items-center gap-4 rounded-xl border bg-white p-8 shadow-2xl dark:bg-gray-800">
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
                         <div className="text-center">
-                            <p className="text-xl font-semibold">Loading Schedule Data</p>
-                            <p className="text-sm text-muted-foreground mt-2">Please wait while we load the variant data...</p>
-                            <p className="text-xs text-muted-foreground mt-1">Loading variant: {currentVariant}</p>
+                            <p className="text-xl font-semibold">
+                                Loading Schedule Data
+                            </p>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                Please wait while we load the variant data...
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Loading variant: {currentVariant}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -226,9 +283,9 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
     );
 
     return (
-        <div className="space-y-4 relative min-h-[400px]">
+        <div className="relative min-h-[400px] space-y-4">
             {/* Upload and Controls */}
-            <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+            <div className="rounded-lg border bg-gray-50 p-4 dark:bg-gray-900">
                 <div className="space-y-4">
                     {/* <div>
                         <div className="text-sm text-muted-foreground mb-2">Upload or drop these CSVs:</div>
@@ -244,14 +301,33 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
                     <div className="flex flex-wrap items-end gap-4">
                         <div>
                             <Label htmlFor="variantSelect">Variant</Label>
-                            <Select value={currentVariant || undefined} onValueChange={handleVariantChange} disabled={!hasVariants}>
-                                <SelectTrigger id="variantSelect" className="w-[200px]">
-                                    <SelectValue placeholder={hasVariants ? 'Pilih varian' : 'Tidak ada varian'} />
+                            <Select
+                                value={currentVariant || undefined}
+                                onValueChange={handleVariantChange}
+                                disabled={!hasVariants}
+                            >
+                                <SelectTrigger
+                                    id="variantSelect"
+                                    className="w-[200px]"
+                                >
+                                    <SelectValue
+                                        placeholder={
+                                            hasVariants
+                                                ? 'Pilih varian'
+                                                : 'Tidak ada varian'
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {visibleVariants.map((variant) => (
-                                        <SelectItem key={variant.slug} value={variant.slug}>
-                                            {variant.name || formatVariantLabel(variant.slug)}
+                                        <SelectItem
+                                            key={variant.slug}
+                                            value={variant.slug}
+                                        >
+                                            {variant.name ||
+                                                formatVariantLabel(
+                                                    variant.slug,
+                                                )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -260,28 +336,48 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
 
                         <div>
                             <Label htmlFor="fileTasks">Tasks CSV</Label>
-                            <Input id="fileTasks" type="file" accept=".csv" onChange={handleTaskFileChange} />
+                            <Input
+                                id="fileTasks"
+                                type="file"
+                                accept=".csv"
+                                onChange={handleTaskFileChange}
+                            />
                         </div>
 
                         <div>
                             <Label htmlFor="fileRes">Resources CSV</Label>
-                            <Input id="fileRes" type="file" accept=".csv" onChange={handleResourceFileChange} />
+                            <Input
+                                id="fileRes"
+                                type="file"
+                                accept=".csv"
+                                onChange={handleResourceFileChange}
+                            />
                         </div>
 
                         <div>
                             <Label htmlFor="customStart">Start baseline</Label>
-                            <Input id="customStart" type="datetime-local" value={customStart} onChange={(e) => setCustomStart(e.target.value)} />
+                            <Input
+                                id="customStart"
+                                type="datetime-local"
+                                value={customStart}
+                                onChange={(e) => setCustomStart(e.target.value)}
+                            />
                         </div>
 
                         <Button variant="outline" onClick={handleClear}>
                             Clear
                         </Button>
 
-                        {status && <span className="text-sm text-muted-foreground">{status}</span>}
+                        {status && (
+                            <span className="text-sm text-muted-foreground">
+                                {status}
+                            </span>
+                        )}
                         {!hasVariants && (
                             <span className="text-sm text-muted-foreground">
-                                Belum ada varian jadwal yang ditampilkan. Silakan unggah CSV manual atau tampilkan varian dari halaman
-                                pengelolaan.
+                                Belum ada varian jadwal yang ditampilkan.
+                                Silakan unggah CSV manual atau tampilkan varian
+                                dari halaman pengelolaan.
                             </span>
                         )}
                     </div>
@@ -301,12 +397,65 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
                 <TabsList>
                     <TabsTrigger value="gantt">Gantt</TabsTrigger>
                     <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                    <TabsTrigger value="resources">Resource Tracking</TabsTrigger>
+                    <TabsTrigger value="resources">
+                        Resource Tracking
+                    </TabsTrigger>
                     <TabsTrigger value="resload">Resource Load</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="gantt" className="mt-4">
-                    {renderContent(<GanttChart tasks={shiftedTasks} baselineShiftMs={baselineShiftMs} />)}
+                    <div className="space-y-4">
+                        {/* Gantt View Mode Selector */}
+                        <div className="flex items-center gap-4 rounded-lg border bg-muted/50 p-3">
+                            <Label className="font-semibold">View Mode:</Label>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant={
+                                        ganttViewMode === 'hierarchy'
+                                            ? 'default'
+                                            : 'outline'
+                                    }
+                                    size="sm"
+                                    onClick={() =>
+                                        setGanttViewMode('hierarchy')
+                                    }
+                                >
+                                    Hierarchy View
+                                </Button>
+                                <Button
+                                    variant={
+                                        ganttViewMode === 'flat'
+                                            ? 'default'
+                                            : 'outline'
+                                    }
+                                    size="sm"
+                                    onClick={() => setGanttViewMode('flat')}
+                                >
+                                    Flat View (Sortable)
+                                </Button>
+                            </div>
+                            <span className="ml-auto text-sm text-muted-foreground">
+                                {ganttViewMode === 'hierarchy'
+                                    ? 'Showing hierarchical structure with headings'
+                                    : 'Showing flat list with sorting options'}
+                            </span>
+                        </div>
+
+                        {/* Render appropriate view */}
+                        {ganttViewMode === 'hierarchy'
+                            ? renderContent(
+                                  <GanttChart
+                                      tasks={shiftedTasks}
+                                      baselineShiftMs={baselineShiftMs}
+                                  />,
+                              )
+                            : renderContent(
+                                  <GanttChartFlat
+                                      tasks={shiftedTasks}
+                                      baselineShiftMs={baselineShiftMs}
+                                  />,
+                              )}
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="tasks" className="mt-4">
@@ -314,11 +463,15 @@ export function ScheduleViewerComponent({ variants = [], defaultVariant }: Sched
                 </TabsContent>
 
                 <TabsContent value="resources" className="mt-4">
-                    {renderContent(<ResourceTable resources={shiftedResources} />)}
+                    {renderContent(
+                        <ResourceTable resources={shiftedResources} />,
+                    )}
                 </TabsContent>
 
                 <TabsContent value="resload" className="mt-4">
-                    {renderContent(<ResourceLoadChart resources={shiftedResources} />)}
+                    {renderContent(
+                        <ResourceLoadChart resources={shiftedResources} />,
+                    )}
                 </TabsContent>
             </Tabs>
         </div>
