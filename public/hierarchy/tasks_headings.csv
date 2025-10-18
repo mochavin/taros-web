@@ -1,0 +1,1137 @@
+TaskID,TaskName,OutlineLevel,ParentID,ChildrenCount
+0,TA AM4 rev110624,0,,0
+1,TURN AROUND PABRIK 4 2024,1,,0
+2,AREA : AMMONIA,2,,0
+3,SHUT DOWN DAN PENGAMANAN,3,,0
+5,SUB_AREA : REFORMING,3,,0
+6,CLASS : FURNACE,4,,0
+7,D1-H-201-K4 [Primary Reformer CELL A-B],5,,0
+8,"(200000360104 ) [Sisi Tube Catalyst] Buka Man Hole, Check Internal, Seat Gasket Tube, PT, Radiography Random, Circum_Measurement Tube Catalyst 100 %, ∆ P Test total 100 %, Ganti Catalyst (make up) tunggu hasil ∆ P Test, Leo Scan, Ganti Tube Catalyst 6 Ea",6,,0
+9,CIRCUM_MEASUREMENT TUBE CATALYST 100 %,7,,0
+29,GANTI TUBE CATALYST 2 TUBE (sesuai hasil delta P test) TUNGGU REC. ISTEK,7,,0
+43,PASANG TUBE CATALYST,8,,0
+46,PENGELASAN INLET TUBE CATALYST (2 Tube),8,,0
+51,PENGELASAN INLET TUBE CATALYST (2 EA),8,,0
+56,∆ P TEST TUBE CATALYST TOTAL 100 %,7,,0
+57,BUKA COVER TUBE,8,,0
+60,∆ P TEST TUBE CATALYST TOTAL 100 %,8,,0
+63,INSPECT&REPAIR,7,,0
+68,LOADING CATALYST,7,,0
+69,NAIKAN CATALYST,8,,0
+72,LOADING CATALYST,8,,0
+87,FINAL INSPECT&TUTUP COVER TUBE,7,,0
+94,"[Sisi Radiant Section] Check Ceramics Module, Gap area Expand Fire Brick, Ganti Plate Linning Man Hole (2 Ea)&Cleaning lantai dengan Vacum Cleaner",6,,0
+107,[Sisi Transtation Section] Ganti Firebrick Mat'l LBK-26 jumlah 5000 ea Rec.140000069362 tgl. 15.01.2024,6,,0
+112,"[Sisi Transtation Section] Check Ceramics Module Roof, Dinding, Castable Comer area Ducting",6,,0
+119,"[Sight Port Gas Burner] Lepas&Ganti Sight Port Gas Burner BI-1, CI-3 (9 ea) Rec. 140000048791",6,,0
+126,"Ganti Baut Burner yang patah (3 ea burner) Row 7A No.01,14 dan Row 7C No.10",6,,0
+130,GANTI ATAP,6,,0
+136,(200000296817) [Spring Pig Tail] Ganti Spring Pig Tail sesuai (150 ea) Rec.140000045470,6,,0
+141,D1-H-201-K4 [Primary Reformer CELL C-D],5,,0
+142,"(200000360105 ) [Sisi Tube Catalyst] Buka Man Hole, Check Internal, Seat Gasket Tube, PT, Radiography Random, Circum_Measurement Tube Catalyst 100 %, ∆ P Test total 100 %, Ganti Catalyst (make up) tunggu hasil ∆ P Test, Leo Scan, Ganti Tube Catalyst 6 Ea",6,,0
+143,CIRCUM_MEASUREMENT TUBE CATALYST 100 %,7,,0
+163,GANTI TUBE CATALYST 6 EA (ESTIMASI AWAL) TUNGGU REC. ISTEK ( NA ),7,,0
+177,PASANG TUBE CATALYST,8,,0
+180,PENGELASAN INLET TUBE CATALYST (6 EA),8,,0
+185,PENGELASAN INLET TUBE CATALYST (6 EA),8,,0
+190,∆ P TEST TUBE CATALYST TOTAL 100 %,6,,0
+191,BUKA COVER TUBE,7,,0
+194,∆ P TEST TUBE CATALYST TOTAL 100 %,7,,0
+197,INSPECT&REPAIR,6,,0
+202,LOADING CATALYST,6,,0
+203,NAIKAN CATALYST,7,,0
+206,LOADING CATALYST,7,,0
+221,FINAL INSPECT&TUTUP COVER TUBE,6,,0
+228,"[Sisi Radiant Section] Check Ceramics Module, Gap area Expand Fire Brick, Ganti Plate Linning Man Hole (2 Ea)&Cleaning lantai dengan Vacum Cleaner",6,,0
+241,"[Sisi Transtation Section] Check Ceramics Module Roof, Dinding, Castable Comer area Ducting",6,,0
+248,"[Sight Port Gas Burner] Lepas&Ganti Sight Port Gas Burner BI-1, CI-3 (9 ea) Rec. 140000048791",6,,0
+255,D1-H-201-K4 [Primary Reformer ],5,,0
+256,"(200000358553) [Outlet Header] Visual Inspect Lasan Sockolet O/L Hairpin to Header, PT Sampling Lasan Header&Pengukuran Creep di O/L Hairpin",6,,0
+257,OUTLET HEADER,7,,0
+267,D1-H-201-K4 [Primary Reformer ],5,,0
+268,"(200000360106 ) Transfer Line] Buka Cover, Check Internal&Repainting dengan indicating Paint, Repair Castable Rek. Tunggu Istek, Dryout",6,,0
+269,TRANSFER LINE,7,,0
+290,TEE HEADER (4 Tempat),7,,0
+298,CLASS : REACTOR,4,,0
+299,D1-R-203-K4 [Secondary Reformer],5,,0
+300,"(200000358556) Buka Cover, Angkat Burner Tip, Check Internal, Unload Catalys Bagian TOP (2 m3), Check Catalyst, Check visual Hexagonal Target Brick, Castable Dinding, Shell, Check Dome Brick dari sisi bawah, Loading Catalys (2 m3), Check dengan Theodolite",6,,0
+301,BUKA COVER&ANGKAT BURNER TIP,7,,0
+322,COOLING DOWN,7,,0
+325,UNLOADING CATALYST BAGIAN TOP (2 m3),7,,0
+326,TARGET BRICK,8,,0
+330,CATALYST,8,,0
+341,CHECK INTERNAL&REPAIR,7,,0
+354,LOADING CATALYST,7,,0
+355,CATALYST,8,,0
+368,TARGET BRICK,7,,0
+372,PASANG BURNER TIP,7,,0
+389,D1-R-501-K4 [Ammonia Converter],5,,0
+390,"(200000358557) [Shell] Pasang Scaffolding Bottom to Top (Pra TA), Brushing area lasan dan Check PAUT pada CW-2, [Bottom Head] Brushing area lasan dan Check PAUT pada Lasnan Transition Head to Bottom, [DMW Outlet Nozzle] PT/ Check ulang Retak Rambut, [SMW",6,,0
+391,"[SHELL] PASANG SCAFFOLDING BOTTOM TO TOP (PRA TA), BRUSHING AREA LASAN DAN CHECK PAUT PADA CW-2",7,,0
+401,[BOTTOM HEAD] BRUSHING AREA LASAN DAN CHECK PAUT PADA LASNAN TRANSITION HEAD TO BOTTOM,7,,0
+412,[DMW OUTLET NOZZLE] PT/ CHECK ULANG RETAK RAMBUT,7,,0
+420,[SMW OUTLET NOZZLE] PT/ CHECK ULANG RETAK RAMBUT,7,,0
+428,CLASS : EXCHANGER,4,,0
+429,D1-E-101-K4 [Fuel NG PreHeater],5,,0
+430,"(200000359511) Chemichal Cleaning Shell Side, Buka Cover, Check Internal, Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara, ET 100%, Total Tube (28 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tut",6,,0
+431,BUKA COVER,7,,0
+441,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+449,TUTUP COVER,7,,0
+457,D1-E-201-K4 [Feed Gas&Steam Preheater],5,,0
+458,"(200000359512) Buka Man Hole, Check Internal, Coil Tube, Fin Tube, Coil Support, Coil Bracket , PT Lasan Dissimilar Metal Weld (DMW),RT antara Coil dengan Weld Boss Inlet Header, Check Castabel di Intermediate Tube Sheel (ITS), Castable di End Tube Sheet",6,,0
+459,BUKA COVER,7,,0
+463,DRY ICE CLEANING,7,,0
+470,TUTUP COVER,7,,0
+476,D1-E-230-K4 [Mix Gas preheater],5,,0
+477,"(200000359514) Buka Cover, Check Internal, Tube, Tubesheet, Shell, Chennel Cover, Seat Gasket, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Curent Test 100 %, Total Tube (48) Ea, Pasang Slip Blind, leak Test 4 kg/ cm2&Tutup Cover",6,,0
+478,BUKA COVER,7,,0
+483,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+489,TUTUP COVER,7,,0
+496,D1-E-208-K4 [RG.Waste Heat Boiler],5,,0
+497,"(200000359515) Buka Man Hole, lepas Plug Castable, Check Internal, Castable, Lepas Shield Plate, Bongkar Castable&Ferulle, Cleaning Dengan Rotary Brush, Blow dengan Udara, Total Tube (212) Ea, Check TV-2031, Dryout, Repainting dengan Indicoating Paint &",6,,0
+498,BUKA COVER,7,,0
+510,CLEANING DENGAN ROTARY BRUSH,7,,0
+517,TUTUP COVER,7,,0
+529,D1-E-209-K4 [HP BFW Preheater],5,,0
+530,"Buka Cover, Check Internal, Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara,RFT 100%, Total Tube (78 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+531,BUKA COVER,7,,0
+548,TUTUP COVER,7,,0
+562,D1-E-312-K4 Final Cooler],5,,0
+563,"(200000359517) Buka Cover, Check Internal, Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Steel Test 100 % , Total Tube (500) Ea, PT Lasan Tube to Tube Sheet, Pasang Slip Blind, Leak Test 44 kg/ cm2&Tutup Cover",6,,0
+564,BUKA COVER,7,,0
+574,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+582,TUTUP COVER,7,,0
+594,CLASS : SAFETY VALVE (SV),4,,0
+595,D1-SV-1012-K5 [Inlet 1-E-230],5,,0
+596,"(300001303048 ) Lepas SV 4”xPx6” Check Internal, Lapping, Resetting 10 kg/ cm2, Repainting&Pasang SV",6,,0
+608,CLASS : VALVE REFORMING [DPIPING4-101-D0103],4,,0
+609,BV d/s FV-2004,5,,0
+610,"(200000367754) Lepas&Repair WS BV d/s FV-2004, Mal't Gate valve 10inch 600Lb A217 WC6 BB OS&Y RFF (Leakstroug) Rec. 140000054828 tgl.06-10-2022",6,,0
+621,BV d/s PV-5011B,5,,0
+622,"(200000367756) Lepas&Ganti Baru BV d/s PV-5011B, Mal't Gate valve 3inch 300Lb A216 WCB BB OS7Y RF (Kondisi terbuka, tidak bisa dioperate) Rec. 140000054828 tgl.06-10-2022",6,,0
+624,BV by pass Trap Steam FV-2006,5,,0
+625,"(200000360265 ) Potong&Ganti baru BV by pass Trap Steam FV-2006, Mal't Globe valve 3/4"" 800# A105 BB SWF (Leakstroug) 140000056009 tgl. 21.11.2022",6,,0
+628,BV drain 1-E-230,5,,0
+629,"(200000367759) Potong&Ganti Baru BV drain 1-E-230, Mal't Gate valve 3/4"" 800# A105 BB SW (Buntu) Rec. 140000054828 tgl.06-10-2022",6,,0
+632,BV u/s FV-2004,5,,0
+633,"(200000367820) Lepas&Repair WS BV u/s FV-2004, Mal't Gate valve 10inch 600Lb A216 WCB BB OS&Y RFF (Leakstroug) Rec. 140000054828 tgl.06-10-2022",6,,0
+644,BV u/s 1-PG-2007,5,,0
+645,"(200000367821) Potong&Ganti Baru BV u/s 1-PG-2007, Mal't Gate valve 1/2"" 800# A105 SWF (Leakstroug) Rec. 140000054828 tgl.06-10-2022",6,,0
+648,BV u/s 1-FV-2001,5,,0
+649,"(200000384600) Lepas&Repair WS BV u/s 1-FV-2001, Mal't Gate Valve 6"" 600 #A216 WCB BB RF (Leakout)",6,,0
+660,BV d/s 1-FV-2001,5,,0
+661,"(200000384602 ) Lepas&Repair WS BV d/s 1-FV-2001, Mal't Gate Valve 8"" 600 #A216 WCB BB RF (Leak Out)",6,,0
+672,BV u/s d/s 1-TV-2044,5,,0
+673,"(200000384601 ) Lepas&Repair WS BV u/s d/s 1-TV-2044, Mal't Butterfly Valve 12"" Class 300 #A217 WC6 Type Lug (Leakout)",6,,0
+684,BV u/s 1-FV-2018,5,,0
+685,"(200000384603) Lepas&Repair WS BV u/s 1-FV-2018, Mal't Gate Valve 8"" Class 1500 #A216 WCB BB PSB BW (Leak Out)",6,,0
+702,BV d/s 1-FV-2018,5,,0
+703,"(200000384604) Lepas&Repair WS BV d/s 1-FV-2018, Mal't Gate Valve 8"" Class 1500 #A216 WCB BB BW (Leak Out)",6,,0
+720,BV line SC-2009 (outlet HTS),5,,0
+721,"(200000367827) Potong&Ganti Baru BV line SC-2009 (outlet HTS), Mal't Gate valve 1/2"" 800# A105 BB SW (BV buntu) Rec. 140000054828 tgl.06-10-2022",6,,0
+724,BV drain d/s MV-2003 NH3 P4,5,,0
+725,"(200000379783) Potong&Ganti Baru BV drain d/s MV-2003 NH3 P4, Mal't Gate valve 3/4"" 800# A105 BB SW (BV buntu) Rec. 140000054830 tgl.06-10-2022",6,,0
+728,BV inlet sampling cooler LTS,5,,0
+729,"(200000468808 ) Potong&Ganti baru BV inlet sampling cooler LTS, Mal't Gate Valve 1/2"" 800# A105 BBOSY SWF (Leakstroug) Rec. 140000069600 tgl.21-01-2024",6,,0
+732,BV drain outlet HTS (1-R-204),5,,0
+733,"(200000468809 ) Potong&Ganti baru BV drain outlet HTS (1-R-204), Mal't Gate Valve 3/4"" 800# A105 BBOSY SW (Buntu) Rec. 140000069601 tgl.21-01-2024",6,,0
+736,Flange Downstream 1-MV-2003,5,,0
+737,"(200000468810 ) Repacking dilapangan dan Check Seat Gasket Flange Downstream 1-MV-2003, Mal't Gate 20""300# WCB RF (Leakout) Rec. 140000069602 tgl.21-01-2024",6,,0
+745,CLASS : PIPING REFORMING [DPIPING4-101-D0103],4,,0
+746,Utility Station Steam Stagnant 1-H-201,5,,0
+747,"(200000360273 ) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-H-201 Mal't Pipa 3/4"" A106-B SML Sch.80 PE (1 btg), Coupling 3/4"" SW A105 3000LB, (3 ea), Elbow 3/4"" SW A105 3000LB, (3 ea), Gate Valve 3/4"" #150 SW A105 1 e",6,,0
+754,Line Condensat Inlet 1-E-101,5,,0
+755,"(200000416137) Ganti Pipa dan Elbow Line SC-2006 (outlet secondary) sesuai rekomendasi Mat'l Pipa 1/2""A335-P11 SML SCH80 PE jumlah 1 batang, Elbow 3/4"" SW A182-F11 3000LB jumlah 3 ea. Rec.140000048270 (Tgl. 13.01.2022)",6,,0
+760,CLASS : MODIFIKASI PIPING REFORMING [DPIPING4-101-D0103],4,,0
+761,Line Bypass PV-1001,5,,0
+762,(500000007902) Penambahan Line Bypass PV-1001 (Untuk mempermudah akses maintenance saat normal operasi),6,,0
+767,CLASS : PAINTING REFORMING [DPIPING4-101-D0103],4,,0
+768,Kode Tulisan P4,5,,0
+769,"(200000472127) Repainting Name Tag Pabrik di Stack Reformer sesuai Corporate Indentity, Kode Tulisan P4",6,,0
+777,SUB_AREA : NG COMPRESSION,3,,0
+778,CLASS : EXCHANGER,4,,0
+779,D1-E-204A-K4 [Feed Gas Preheater A],5,,0
+780,"(200000358559) Buka Man Hole, Check Internal, Coil Tube, Fin Tube, Coil Support, Coil Bracket , PT Lasan Dissimilar Metal Weld (DMW), RT antara Coil dengan Weld Boss Inlet Header, Check Castable di Intermediate Tube Sheel (ITS), Castable di End Tube Sheet",6,,0
+781,BUKA COVER,7,,0
+785,DRY ICE CLEANING,7,,0
+792,TUTUP COVER,7,,0
+798,D1-E-204B-K4 [Feed Gas Preheater B],5,,0
+799,"(200000358601) Buka Man Hole, Check Internal, Coil Tube, Fin Tube, Coil Support, Coil Bracket , PT Lasan Dissimilar Metal Weld (DMW), RT antara Coil dengan Weld Boss Inlet Header, Check Castable di Intermediate Tube Sheel (ITS), Castable di End Tube Sheet",6,,0
+800,BUKA COVER,7,,0
+804,DRY ICE CLEANING,7,,0
+811,TUTUP COVER,7,,0
+817,D1-E-411-K4 [NG Recycle Cooler],5,,0
+818,"(200000358606) Buka Cover, Check Internal, Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara,RFT 100%, Total Tube (78 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+819,BUKA COVER,7,,0
+825,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+833,TUTUP COVER,7,,0
+842,CLASS : REACTOR,4,,0
+843,D1-R-202-K4 [Sulphur Absober],5,,0
+844,"(200000458500 ) Buka Cover, Check Internal, Unload/ Loading Catalyst (14 M3), Ceramic ball Top (0,3 M3), Bottom (1,5 M3 ), Pasang Scaffold Interna, Cleaning Internal, Brush semua sambungan lasan internal , Check ACFM, Check thickness&Hardness test",6,,0
+845,PERSIAPAN,7,,0
+847,BUKA MAN HOLE&RENDAM CATALYST,7,,0
+853,COOLING DOWN,7,,0
+857,UNLOADING CATALYST,7,,0
+876,CHECK INTERNAL,7,,0
+883,"FINAL INSPECT, TUTUP HAND HOLE DAN PASANG CORONG",7,,0
+892,LOADING CATALYST,7,,0
+913,FINAL INSPECT DAN TUTUP MAN HOLE,7,,0
+924,D1-R-202B-K4 [Desulfurizer B],5,,0
+925,"(200000359689) Buka Cover, Check Internal, Unload/ Loading Catalyst (14 M3), Ceramic ball Top (0,3 M3), Bottom (1,5 M3 ), Pasang Scaffold Interna, Cleaning Internal, Brush semua sambungan lasan internal , Check ACFM, Check thickness&Hardness test",6,,0
+926,PERSIAPAN,7,,0
+928,BUKA MAN HOLE&RENDAM CATALYST,7,,0
+934,COOLING DOWN,7,,0
+938,UNLOADING CATALYST,7,,0
+957,CHECK INTERNAL,7,,0
+964,"FINAL INSPECT, TUTUP HAND HOLE DAN PASANG CORONG",7,,0
+973,LOADING CATALYST,7,,0
+994,FINAL INSPECT DAN TUTUP MAN HOLE,7,,0
+1005,CLASS : VESSEL/ DRUM/ TANK,4,,0
+1006,D1-V-411-K4 [Steam Drum ],5,,0
+1007,"(200000469396 ) Buka Man Hole, Check Internal, lakukan Visual Inspeksi, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+1031,CLASS : ROTATING,4,,0
+1032,D1-TS-411-K4 [Steam Turbine For 1-K-411] (Governoor),5,,0
+1033,"(200000359675) Overhaul Turbin&Ganti E/H (Thrust Bearing Hunting hingga 115 deg dan Speed juga hunting, Terakhir OH : 2018) Srt. No. BTR 04963/D/TK/D24600/IT /2024 tgl. 30 Januari 2024 ",6,,0
+1034,PERSIAPAN,7,,0
+1037,PEMBONGKARAN,7,,0
+1061,PEMERIKSAAN,7,,0
+1090,PEMASANGAN,7,,0
+1120,D1-K-411-K4 [NG Compressor],5,,0
+1121,"(200000401653) Check Bearing, ukur clearance journal bearing Ukur dimensi Journal Bearing cage Lakukan cleaning journal bearing cage Ukur ketebalan thrust bearing pad Lakukan cleaning thrust bearing cage Lakukan penggantian O-ring ThrustBearing Lakukan pe",6,,0
+1136,CLASS : SAFETY VALVE (SV),4,,0
+1137,"D1-SV-0013-K4 [Local Safety Valve, 1-K-411]",5,,0
+1138,"(300001069095) Lepas SV 6”xRx8” Check Internal, Lapping, Resetting 5.8 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1154,"D1-SV-2111-K4 [Local Safety Valve, 1-K-411]",5,,0
+1155,"(300001062578) Lepas SV 8”xTx10” Check Internal, Lapping, Resetting 6 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1171,"D1-SV-4214-K4 [Local Safety Valve, 1-K-411]",5,,0
+1172,"(300001069083) Lepas SV 3”xLx4” Check Internal, Lapping, Resetting 5.5 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1188,CLASS : VALVE NG COMPRESSION [DPIPING4-101-D0101],4,,0
+1189,BV NG B.L,5,,0
+1190,(200000367715) Lepas&Repair WS BV NG B.L Gate valve 10inch 300Lb A216 WCB OS&Y BB RF Rec. 140000056009 tgl. 21-11-2022,6,,0
+1201,BV u/s 1-PG-2006,5,,0
+1202,"(200000367743) Potong&Ganti Baru BV u/s 1-PG-2006, Mal't Globe valve 11/2"" 800# A105 BB SWF (Leakstroug) Rec. 140000056009 tgl. 21-11-2022",6,,0
+1205,BV steam SM TS-411,5,,0
+1206,"(200000384575) Potong&Repair WS BV u/s 1-PG-2006, Mal't Gate Vale 6"" 600 #A216 WCB BB Butt Weld (Leak Out) Rec. 140000058153 tgl.04.02.2023",6,,0
+1223,BV steam SL TS-411,5,,0
+1224,"(200000384577) Potong&Repair WS BV steam SL TS-411, Mal't Gate Vale 6"" 600 #A216 WCB BB Butt Weldd (Leak Out) Rec. 140000058155 tgl. 04.02.2023",6,,0
+1241,CLASS : PIPING NG COMPRESSION [DPIPING4-101-D0101],4,,0
+1242,"Piping 12""for Natural Gas",5,,0
+1243,"(200000366270) Galian Pipa Gas Pabrik-4 untuk akses pemeriksaan LRUT (Piping 12""for Natural Gas), Lokasi penggalian total 14 titik, dengan kedalaman penggalian tiap lubang ± 2 meter (detail terlampir), Rekomendasi perbaikan menunggu hasil LRUT, Target ak",6,,0
+1251,SUB_AREA : AIR COMPRESSION,3,,0
+1252,CLASS : EXCHANGER,4,,0
+1253,D1-E-202A-K4 [Process Air Preheater A],5,,0
+1254,"(200000358608) Buka Man Hole, Check Internal, Coil Tube, Fin Tube, Coil Support, Coil Bracket ,Brushing las DMW, PT Lasan Dissimilar Metal Weld (DMW), RT antara Coil dengan Weld Boss Inlet Header, Check Castabel di Intermediate Tube Sheel (ITS), Castable",6,,0
+1255,BUKA COVER,7,,0
+1259,DRY ICE CLEANING,7,,0
+1266,TUTUP COVER,7,,0
+1272,D1-E-202B-K4 [Process Air Preheater B],5,,0
+1273,"(200000358609) Buka Man Hole, Check Internal, Coil Tube, Fin Tube, Coil Support, Coil Bracket ,Brushing las DMW, PT Lasan Dissimilar Metal Weld (DMW), RT antara Coil dengan Weld Boss Inlet Header, Check Castabel di Intermediate Tube Sheel (ITS), Castable",6,,0
+1274,BUKA COVER,7,,0
+1278,DRY ICE CLEANING,7,,0
+1285,TUTUP COVER,7,,0
+1291,D1-E-421-K4 [Air Comp. 1st Intercooler],5,,0
+1292,"Buka Cover, Check Internal Tube,Tube Sheet, Brushing PT Lasan Tube to Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Current Tes 100%, Total Tube (756 U-Tube), Pasang Slip Blind,Test Ring, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+1293,BUKA COVER,7,,0
+1300,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1308,TUTUP COVER,7,,0
+1317,D1-E-422-K4 [Air Comp. 2nd Intercooler],5,,0
+1318,"Buka Cover, Check Internal Tube, Tube Sheet,Brushing PT Lasan Tube to Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Curent Test 100 %, Total Tube (714 U-Tube), Pasang Slip Blind,Test Ring, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+1319,BUKA COVER,7,,0
+1326,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1334,TUTUP COVER,7,,0
+1343,D1-E-423-K4 [Air Comp. 3rd Intercooler],5,,0
+1344,"(200000359508) Buka Cover, Check Internal Tube, Tube Sheet, Brushing PT Lasan Tube to Tube Sheet, Mechanical Cleaning Tube,Blow dengan Udara, Eddy Curent Test 100 %, Total Tube (445 U-Tube), Pasang Slip Blind,Test Ring, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+1345,BUKA COVER,7,,0
+1352,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1360,TUTUP COVER,7,,0
+1369,D1-E-425-K4 [Air Comp. Turbine Condenser],5,,0
+1370,"(200000359509) Buka Cover, Check Internal, Rubber Lining, Anoda 100%(32ea), Mechanical Cleaning Internal Tube, Blow dengan Udara, Eddy Current Test 20 %, Total Tube (2769) Ea, Repair rubber linning (by naki), Fill Test isi dengan Demin Water pada sisi She",6,,0
+1371,BUKA COVER,7,,0
+1379,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1386,TUTUP COVER,7,,0
+1397,D1-E-435-K4 [Syn. Gas Comp. Turbine Condenser],5,,0
+1398,"(200000359510) Buka Cover, Check Internal, Rubber Lining, Anoda 100%(32 ea), Mechanical Cleaning Internal Tube, Blow dengan Udara, Eddy Current Test 100%, Total Tube (2438) Ea, Repair rubber linning (by naki) , Fill Test isi dengan Demin Water pada sisi S",6,,0
+1399,BUKA COVER,7,,0
+1407,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1414,TUTUP COVER,7,,0
+1425,CLASS : VESSEL/ DRUM/ TANK,4,,0
+1426,D1-V-421-K4 [Air Compressor 1ST Separator],5,,0
+1427,"(200000359619) Buka Man Hole, Check Internal,Demister, Shell, Vane, Pipe, Nozzle Deflector, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+1451,D1-V-422-K4 [Air Compressor 2ND Separator],5,,0
+1452,"(200000359760) Buka Man Hole, Check Internal,Demister, Shell, Vane, Pipe, Nozzle Deflector, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+1476,D1-V-423-K4 [Air Compressor 3RD Separator],5,,0
+1477,"(200000359761) Buka Man Hole, Check Internal,Demister, Shell, Vane, Pipe, Nozzle Deflector, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+1501,CLASS : ROTATING,4,,0
+1502,D1-K-421-LP-K4 [Process Air Compressor LP],5,,0
+1503,"(200000359676) Overhaul&Ganti Rotor (Erosi pada Vane Stage 3 dan 4,Terakhir OH : 2021) Srt. No. BTR 04963/D/TK/D24600/IT /2024 tgl. 30 Januari 2024",6,,0
+1504,PERSIAPAN,7,,0
+1507,PEMBONGKARAN,7,,0
+1527,PEMERIKSAAN,7,,0
+1555,PEMASANGAN,7,,0
+1580,D1-TS-421-K4 [Steam Turbine for Air Compressor],5,,0
+1581,(200000401654) Overhaul: Lakukan Over Speed Trip Test (OST) rotor Ganti oil pada Mechanical Governor Pengukuran neutral grounding resistance Blue contact pada hydrolic fit coupling Cek visual kondisi worm gear Cek visual kondisi sprocket Cek visual kondis,6,,0
+1582,PERSIAPAN,7,,0
+1585,PEMBONGKARAN,7,,0
+1612,PEMERIKSAAN,7,,0
+1641,PEMASANGAN,7,,0
+1677,D1-E-425-P1A-K4 [Turbine Condensate Pump A for 1-E-425],5,,0
+1678,(300001301134) OST,6,,0
+1682,"D1-K-421-LUBOIL-K4 [Lube Oil System, 1-K-421]",5,,0
+1683,(300001301135) OST,6,,0
+1687,CLASS : FILTER,4,,0
+1688,D1-F-421-K4 [Air compressor suction system],5,,0
+1689,"(200000360264) Repair Frame, Pemasangan pre filter, Penggantian Roll O-Matic filter, Penggantian Dry Pack",6,,0
+1701,CLASS : SAFETY VALVE (SV),4,,0
+1702,"D1-SV-4211-K4 [Local Safety Valve, Line 12""-V-01401-LB1]",5,,0
+1703,"(300001069082) Lepas SV 4”xMx6” Check Internal, Lapping, Resetting 40 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1715,"D1-SV-4215A-K4 [Safety Valve, 1-K-421-E1A]",5,,0
+1716,"(300001069084) Lepas SV ¾”x7.0x1” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1728,"D1-SV-4221-K4 [Safety Valve, 1-E-422]",5,,0
+1729,"(300001069085) Lepas SV 1½”xHx3” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1741,"D1-SV-4231-K4 [Safety Valve, 1-E-423]",5,,0
+1742,"(300001069086) Lepas SV 1½”xHx3” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1754,"D1-SV-4231-K4 [Safety Valve, 1-E-423]",5,,0
+1755,"(300001069086) Lepas SV 1½”xHx3” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1767,D1-SV-4245-K4 [Safety Valve for 1-E-425],5,,0
+1768,"(300001069087) Lepas SV 18” x 18” Check Internal, Lapping, Resetting ... kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1780,D1-SV-4345-K4 [Safety Valve for 1-E-435],5,,0
+1781,"(300001069088) Lepas SV 18” x 18” Check Internal, Lapping, Resetting ... kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+1793,CLASS : VALVE AIR COMPRESSION [DPIPING4-101-D0102],4,,0
+1794,BV u/s FV-2008,5,,0
+1795,"(200000367749) Lepas&Repair WS BV u/s FV-2008, Mal't Gate valve 6inch 600# A216 WCB BB OS&Y BB RF (Leakout) Rec. 140000056009 tgl. 21-11-2022",6,,0
+1806,BV u/s Trap Steam FV-2008,5,,0
+1807,"(200000367750) Potong&Ganti Baru BV u/s Trap Steam FV-2008, Mal't Gate valve 3/4"" 800# A105 BB SW (Leakout) Rec. 140000056009 tgl. 21-11-2022",6,,0
+1810,BV b/p Trap Steam FV-2008,5,,0
+1811,"(200000367751) Potong&Ganti Baru BV b/p Trap Steam FV-2008, Mal't Globe valve 3/4"" 800# A105 BB SW (Leakout) Rec. 140000056009 tgl. 21-11-2022",6,,0
+1814,Trap SL ejektor TS-421,5,,0
+1815,"(200000330374) Lepas&Ganti Baru Trap SL ejektor TS-421, Mal't Steam Trap TLV 3/4"" 600Lbs A216 Gr.WCB, SH5NL Flange, PMO :65kg/cm2, TMO : 425 DegC, Manufacture TLV (Trap tidak berfungsi) ",6,,0
+1817,Trap SM hoging TS-421,5,,0
+1818,"(200000330375) Lepas&Ganti Baru Trap SM hoging TS-421, Mal't Steam Trap TLV 3/4"" 150Lbs SS 316L SS3N Flange, SH5NL, PMO :21kg/cm2, TMO : 400 DegC, Manufacture TLV (Trap tidak berfungsi)",6,,0
+1820,BV SL ejektor 1-E-425-J1B intercoler ejektor (arah P1A),5,,0
+1821,"(200000367753) Potong&Ganti Baru BV SL ejektor 1-E-425-J1B intercoler ejektor (arah P1A), Mal't Globe valve 11/2"" 800# A105 BB SW (Leak Out) Rec. 140000056009 tgl. 21-11-2022",6,,0
+1824,BV steam SM TS-421,5,,0
+1825,"(200000384578) Lepas&Repair WS BV steam SM TS-421, Mal't Gate valve 12""600 #A216 WCB BB RF (Leak Out) Rec.140000058154 tgl. 04.02.2023",6,,0
+1836,Check Valve PA ke Utility (K-421),5,,0
+1837,"(200000468807 ) Lepas&Ganti baru Check Valve PA ke Utility (K-421), Mal't Check valve 4"" 150 WCB RF (Ada kelainan suara) Rec. 140000067888 tgl. 21.12.2023",6,,0
+1839,BV b/p Trap SL 1-E-435,5,,0
+1840,"(200000469176) Potong&Ganti Baru BV b/p Trap SL 1-E-435, Mal't Gate valve 3/4"" 800# A105 SW 1 ea (Leakstroug) Rec. 140000057587 tgl. 16.01.2023",6,,0
+1843,CLASS : PIPING AIR COMPRESSION [DPIPING4-101-D0102],4,,0
+1844,Dripleg Drain Muffler SM dekat FV-4041,5,,0
+1845,"(200000360270) Lepas box-boxan dan lepas blind flange, Cek seat gasket&Repair bila ada defect pada seat gasket, Dripleg Drain Muffler SM dekat FV-4041 Mal't Gasket 8"" SP-WD GR.304+Non Asbestos I&O-R C.S ANSI 600 (4,5T) 1 ea Rec.140000052476 (Tgl. 07.07.",6,,0
+1854,Utility Station Steam Stagnant 1-V-421,5,,0
+1855,"(200000360271) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-V-421 Mal't Pipa 3/4"" A106-B SML Sch.80 PE (1 btg),Coupling 3/4"" SW A105 3000LB, (2 ea), Elbow 3/4"" SW A105 3000LB, (3 ea), Gate Valve 3/4"" #150 SW A105 1 ea ",6,,0
+1863,Utility Station Steam Stagnant 1-K-441,5,,0
+1864,"(200000360272 ) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-K-441 Mal't Pipa 3/4"" A106-B SML Sch.80 PE (1 btg), Coupling 3/4"" SW A105 3000LB, (3 ea), Elbow 3/4"" SW A105 3000LB, (3 ea), Gate Valve 3/4"" #150 SW A105 1 e",6,,0
+1872,Line Sea Water Inlet&Outlet (Bona) Condenser 1-E-425,5,,0
+1873,"(200000401658) Lepas Spool, Bobok konkret Line Sw Inlet&Outlet (Bona), Check Internal & Repair, Line Sea Water Inlet & Outlet (Bona) Condenser 1-E-425, Rec.140000058470 (TGL. 13.02.2023)t",6,,0
+1885,Line Sea Water Inlet&Outlet (Bona) condenser 1-E-435,5,,0
+1886,"(200000401659) Lepas Spool, Bobok konkret Line Sw Inlet&Outlet (Bona), Check Internal & Repair, Line Sea Water Inlet & Outlet (Bona) condenser 1-E-435, Rec.140000058471 (TGL. 13.02.2023)",6,,0
+1898,CLASS : MODIFIKASI AIR COMPRESSION [DPIPING4-101-D0102],4,,0
+1899,N2 Generator (new) D1-K-421-HP-K4,5,,0
+1900,"(500000007619) Pemasangan N2 Generator baru di inlet stage 4/ discharge stage 3, N2 Generator (new) D1-K-421-HP-K4, Drawing …",6,,0
+1909,CLASS : PAINTING AIR COMPRESSION [DPIPING4-101-D0102],4,,0
+1910,Utility Station Steam Stagnant 1-K-421,5,,0
+1911,"(200000366138 ) Brushing, Repainting Utility Station Steam Stagnant 1-K-421&Pasang Isolasi Mat'l Pipa 3/4"" A106-B SML Sch.80 PE Rec.140000049808 (Tgl. 16.03.2022)",6,,0
+1915,SUB_AREA : CO2 REMOVAL,3,,0
+1916,CLASS : EXCHANGER,4,,0
+1917,D1-E-301A-K4 [Solution Heat Exchanger A],5,,0
+1918,"(200000359519) Buka Cover, Partiton Plate, Check Internal Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Curent Test 100%, Total Tube (803), Pasang Slip Blind, Leak Test 4 kg/ cm2, Pasang Partition Plate&Tutup Cover",6,,0
+1919,BUKA COVER,7,,0
+1927,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1933,TUTUP COVER,7,,0
+1942,D1-E-301-B-K4 [Solution Heat Exchanger B],5,,0
+1943,"(200000359600) Buka Cover, Partiton Plate, Check Internal Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Curent Test 100%, Total Tube (803 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2, Pasang Partition Plate&Tutup Cover",6,,0
+1944,BUKA COVER,7,,0
+1952,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1958,TUTUP COVER,7,,0
+1967,D1-E-302-K4 [CO2 Stripper ReBoiler],5,,0
+1968,"(200000359601) Chemical Cleaning Shell Side, Buka Cover, Pasang Test Ring, Check Internal Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Curent Test 100%, Total Tube (1265 U-Tube), OD=19, Thick=1,65 L=3600, Pasang Slip Blind, Leak Tes",6,,0
+1969,CHEMICAL CLEANING&BUKA COVER,7,,0
+1980,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+1986,TUTUP COVER,7,,0
+1996,D1-E-303-K4 [Lean Solution Cooler],5,,0
+1997,"(200000359682) Buka Cover, Check Internal Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Curent Test 30 %, Total Tube (1122 ) Ea, OD= 19,05, Thick= 2,11 L=6000, Brushing Tube to Tube Sheet, PT tube to tube sheet, Pasang Slip Blind, Le",6,,0
+1998,BUKA COVER,7,,0
+2009,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+2015,TUTUP COVER,7,,0
+2027,D1-E-305-K4 [DFW PreHeater No.2],5,,0
+2028,"(200000359683) Buka Cover, Check Internal Tube, Tube Sheet, Mechanical Cleaning, Blow dengan Udara, Eddy Current 100%,Pasang Slip Blind, Leak Test 4 kg/ cm2&Pasang Cover",6,,0
+2029,BUKA COVER,7,,0
+2037,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+2043,TUTUP COVER,7,,0
+2053,D1-E-308-K4 [Product Cooler],5,,0
+2054,(500000007273) Pemasangan Exchanger Baru,6,,0
+2070,CLASS : VESSEL/ DRUM/ TANK,4,,0
+2071,D1-C-301-K4 [CO2 Stripper],5,,0
+2072,"(200000359762) [MH 1] Buka Man Hole, Check Internal, Distributor Pipe, Liquid Distributor, Tray, Bubble Cap, Perforated Plate, Support, Cleaning Internal&Tutup Man Hole, [MH 2] Buka Man Hole, Check Internal , Support Hold Down Grid, Check Pall Ring Bed ",6,,0
+2073,BUKA MAN HOLE,7,,0
+2079,"[MH 1] Buka Man Hole, Check Internal, Distributor Pipe, Liquid Distributor, Tray, Bubble Cap, Perforated Plate, Support, Cleaning Internal&Tutup Man Hole",7,,0
+2089,"[MH 2] Buka Man Hole, Check Internal , Support Hold Down Grid, Check Pall Ring Bed 1, Distributor Pipe Tray, Liquid Distributor, Bubble Cap, Cleaning Internal&Tutup Man Hole",7,,0
+2101,"[MH 3] Buka Man Hole, Check Internal , Support Hold Down Grid, Check/ Leveling Pall Ring Bed 2, Internal Liquid Distributor, Cleaning Internal&Tutup Man Hole",7,,0
+2113,"[MH 4] Buka Man Hole, Check Internal , Distributor Pipe, Vortex Breaker Cleaning Internal&Tutup Man Hole",7,,0
+2125,D1-C-302-K4 [Co2 Absorber],5,,0
+2126,"(200000359764) [MH 1] Buka Man Hole, Check Internal, Demister, Support Demister, Bubble Cap, Partition Tray, Cleaning Internal&Tutup Man Hole, [MH 2] Buka Man Hole, Check Internal , Liquid Feed Pipe, Liquid Distributor, Distributor Tray, Deflector Plate",6,,0
+2127,BUKA MAN HOLE,7,,0
+2134,"[MH 1] Buka Man Hole, Check Internal, Demister, Support Demister, Bubble Cap, Partition Tray, Cleaning Internal&Tutup Man Hole",7,,0
+2145,"[MH 2] Buka Man Hole, Check Internal , Liquid Feed Pipe, Liquid Distributor, Distributor Tray, Deflector Plate, Cleaning Internal&Tutup Man Hole",7,,0
+2155,"[MH 3] Buka Man Hole, Check Internal, Liquid Distributor, Pipe Distributor, Porforated Tray, Check/ Levelling Pall Ring Bed 1, Bottom Support Pall Ring Bed 1 , Internal Support, Cleaning Internal&Tutup Man Hole",7,,0
+2168,"[MH 4] Buka Man Hole, Check Internal ,Liquid Feed Pipe, Liquid Distributor, Distributor Tray, Check/ Levelling Pall Ring Bed 2, Bottom Support Pall Ring Bed 2 , Internal Support, Cleaning Internal&Tutup Man Hole",7,,0
+2180,"[MH 5] Buka Man Hole, Check Internal , Redistributor, Distributor Tray, Check/ Levelling Pall Ring Bed 3, Bottom Support Pall Ring Bed 3, Internal Support, Cap Distributor Pipe Tray, Cleaning Internal&Tutup Man Hole",7,,0
+2192,"[MH 6] Buka Man Hole, Check Internal , Gas Diffuser Pipe, Unload pallring, Loading pallring, (15 M3) di vortex breaker Bed 4, Bottom Support Pall Ring Bed 4, Cleaning Internal&Tutup Man Hole",7,,0
+2193,"(PRA TA) PASANG SCAFFOLD, TALANG&PARALON",8,,0
+2200,"UNLOD PALL RING (10,9 M3)",7,,0
+2206,CLEANING&INSPECT,7,,0
+2210,PASANG SCAFFOLD&CORONG UNTUK LOADING,7,,0
+2215,LOADING PALL RING,7,,0
+2222,FINAL INSPECT&TUTUP MAN HOLE [MH-6],7,,0
+2232,D1-V-301-K4 [LP Flush Drum],5,,0
+2233,"(200000359765) [MH TOP] Buka Man Hole, Check Internal, Demister, Check sadle packing( unload jika perlu), Support Demister&Tutup Man Hole, [MH 1] Buka Man Hole, Check Internal, Bubble Cap, Tray, Support, Pipe Distributor, Check/unload Pall Ring, Cleanin",6,,0
+2234,BUKA MAN HOLE,7,,0
+2240,"[MH TOP] Buka Man Hole, Check Internal, Demister, Check sadle packing( unload jika perlu), Support Demister&Tutup Man Hole",7,,0
+2250,"[MH 1] Buka Man Hole, Check Internal, Bubble Cap, Tray, Support, Pipe Distributor, Check/unload Pall Ring, Cleaning Internal&Tutup Man Hole",7,,0
+2261,"[MH 2] Buka Man Hole, Check Internal , Support pall Ring Bed 1, Ganti Pall Ring (97 M3), Lepas Distributor , Cleaning&Tutup Man Hole",7,,0
+2262,"(PRA TA) PASANG SCAFFOLD, TALANG&PARALON",8,,0
+2270,HOLD DOWN GRID&LIQUID DISTRIBUTOR,7,,0
+2282,"UNLOD PALL RING (40,8 M3)",7,,0
+2288,CLEANING&INSPECT,7,,0
+2292,PASANG SCAFFOLD&CORONG UNTUK LOADING,7,,0
+2297,"LOADING PALL RING (40,8 M3)",7,,0
+2304,FINAL INSPECT&TUTUP MAN HOLE,7,,0
+2320,D1-V-302-K4 [HP Flush Drum],5,,0
+2321,"(200000359766) [MH 1] Buka Man Hole, Check Internal, Tray, Support, Pipe Distributor, Pall Ring, Cleaning Internal&Tutup Man Hole, [MH 2] Buka Man Hole, Check Internal , Perforated Plate, Distributor Pipe Tray, Ganti Pall Ring 41 M3 ,Distributor & Tutup",6,,0
+2322,BUKA MAN HOLE,7,,0
+2328,"[MH 1] Buka Man Hole, Check Internal, Tray, Support, Pipe Distributor, Pall Ring, Cleaning Internal&Tutup Man Hole",7,,0
+2339,"[MH 2] Buka Man Hole, Check Internal , Perforated Plate, Distributor Pipe Tray, Ganti Pall Ring (41 M3), Lepas Distributor&Tutup Man Hole",7,,0
+2340,"(PRA TA) PASANG SCAFFOLD, TALANG&PARALON",8,,0
+2347,UNLOD PALL RING ( 41 M3),7,,0
+2353,CLEANING&INSPECT,7,,0
+2357,PASANG SCAFFOLD&CORONG UNTUK LOADING,7,,0
+2362,LOADING PALL RING,7,,0
+2369,FINAL INSPECT&TUTUP MAN HOLE [MH-6],7,,0
+2379,D1-C-701-K4 [Process Condensate Stripper],5,,0
+2380,"(200000359767) [MH 1] Buka Man Hole, Check Internal, Bubble Cap Tray, Cleaning&Tutup Man Hole, [MH 2] Buka Man Hole, Check Internal, Distributor Pipe, Deflector, Cleaning & Tutup Man Hole",6,,0
+2381,BUKA MAN HOLE,7,,0
+2387,"[MH 1] Buka Man Hole, Check Internal, Bubble Cap Tray, Cleaning&Tutup Man Hole",7,,0
+2399,"[MH 2] Buka Man Hole, Check Internal, Distributor Pipe, Deflector, Cleaning&Tutup Man Hole",7,,0
+2411,D1-V-601-K4 [Deareator],5,,0
+2412,"(200000359768) Buka Man Hole, Check Internal, Partition Plate, Pipe Distributor, Ganti (pipa distributor 10"") Rek istek 14000043570,Tray, Pall Ring Cleaning Internal&Tutup Man Hole",6,,0
+2413,BUKA MAN HOLE,7,,0
+2420,MAN HOLE ATAS ( Steam Drum),7,,0
+2439,MAN HOLE BAWAH (Steam Drum),7,,0
+2466,D1-F-301-K4 [MDEA Solution Make-Up Filter],5,,0
+2467,"(200000416134 ) Buka Cover, Check Internal, Catrige Filter, Cleaning Ganti Catrige Filter&Tutup Cover",6,,0
+2487,CLASS : ROTATING,4,,0
+2488,D1-TX-301-K4 [Hydraulic Turbine for 1-P-301A],5,,0
+2489,(200000343889) Ganti Needle Valve&Ganti Gasket Housing Bearing yg terdapat rembes,6,,0
+2490,GANTI NEEDLE VALVE,7,,0
+2492,GASKET HOUSING BEARING,7,,0
+2497,D1-P-301A-K4 [Semi Lean Solution Pump A SEU],5,,0
+2498,"(200000341778) Check Seal Sight Glass Oil Bearing (Rembes, Harus SD), Lakukan Realignment&Penggantian oli (Maintenance Strategy 2 Years)",6,,0
+2499,SEAL SIGHT GLASS OIL BEARING,7,,0
+2504,REALIGNMENT,7,,0
+2511,GANTI OLI,7,,0
+2514,CLASS : SAFETY VALVE (SV),4,,0
+2515,"D1-SV-3012-K4 [Safety Valve, 1-V-301]",5,,0
+2516,"(300001069090) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 3 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+2532,"D1-SV-3014-K4 [Local Safety Valve, 1-P-303A]",5,,0
+2533,"(300001069091) Lepas SV 1”xEx2” Check Internal, Lapping, Resetting 18 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+2549,CLASS : VALVE CO2 REMOVAL [DPIPING4-101-D0105],4,,0
+2550,BV drain line strainer sealing PV-3009 yg arah P-5,5,,0
+2551,"(200000367828) Potong&Ganti Baru BV drain line strainer sealing PV-3009 yg arah P-5, Mal't Gate valve 1/2"" 800# A105 BB SWF (Leakstroug) Rec. 140000054828 tgl.06-10-2022",6,,0
+2554,BV PG-3113,5,,0
+2555,"(200000367830) Lepas&Ganti Baru BV PG-3113, Mal't Needle Valve threaded 1/2"" 3000Psi SS316 (Handwheel dool) Rec. 140000058723",6,,0
+2557,BV Sealing Header 1-P-303 B,5,,0
+2558,"(200000384605) Potong&Ganti Baru BV Sealing Header 1-P-303 B, Mal't Globe Valve 3/4"" Class 800 #A105 BB SW (Leakstroug)",6,,0
+2561,Handwhell BV sampling MDEA d/s FV-3002,5,,0
+2562,"(200000468811 ) Potong&Ganti baru Handwhell BV sampling MDEA d/s FV-3002, Mal't GTV 1/2"" 800# CF8M BBOSY SW (Doll)",6,,0
+2565,BV Upstream LV-3009,5,,0
+2566,"(200000468812 ) Lepas&Repair di WS BV Upstream LV-3009, Mal't GTV 20"" 600# CF8 RF (Leakstroug) Rec. 140000069603 tgl.21-01-2024",6,,0
+2577,BV raw water di utility section dekat 1-P-304,5,,0
+2578,"(200000468813 ) Potong&Ganti baru BV raw water di utility section dekat 1-P-304, Mal't GTV 3/4"" 800# A105 BBOSY SW (Leakstroug) Rec. 140000069605 tgl.21-01-2024",6,,0
+2581,BV Drain Flush Drum,5,,0
+2582,"(200000471349 ) Lepas&Repair WS BV Drain Flush Drum, Mal't Gate valve 6"" 150Lb WCB RF (Leakstroug) Rec.140000069825 tgl. 28.01.2024",6,,0
+2593,BV 1-E-301,5,,0
+2594,"(200000471350) Potong&Ganti baru BV 1-E-301, Mal't Gate valve 1/2"" 800Lb A182 316 SW (Handwheel dool) Rec.140000069826 tgl. 28.01.2024",6,,0
+2597,BV u/s FV-7001,5,,0
+2598,"(200000471351 ) Lepas&Repair WS BV u/s FV-7001, Mal't Gate Valve 6"" 600Lb WCB RF (Leakout) Rec.140000069835 tgl. 28.01.2024",6,,0
+2609,CLASS : PIPING CO2 REMOVAL [DPIPING4-101-D0105],4,,0
+2610,Utility Station Steam Stagnant 1-E-308,5,,0
+2611,"(200000360276) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-E-308 Mal't Pipa 1/2"" A335-P11 SML SCH80 PE 2 btg, Coupling 3/4"" SW A105 3000LB, (2 ea), Elbow 3/4"" SW A105 3000LB, (3 ea), Gate Valve 3/4"" #150 SW A105 1 ea ",6,,0
+2619,CLASS : MODIFIKASI CO2 REMOVAL [DPIPING4-101-D0105],4,,0
+2620,D1-E-308-K4 (E-2907-F) [Product Cooler],5,,0
+2621,"(500000007900) Demolish Exchanger lama (HE tambahan dari Pabrik 1), Perlu potong pipa, D1-E-308-K4 (E-2907-F), Mal't",6,,0
+2628,BV Drain Inlet 1-R-204,5,,0
+2629,(500000007902) Penambahan baru BV Drain Inlet 1-R-204,6,,0
+2637,Line Outlet Expantion Drum (Demin) O2 REMOVAL,5,,0
+2638,(500000007903 ) Penambahan Line Venting,6,,0
+2644,D1-LS-7001-K4,5,,0
+2645,(500000007901) Penambahan Independent Transmitter LS-7001 di 1-C-701 ( cancel ),6,,0
+2651,D1-PT-3009-K4,5,,0
+2652,(500000008268) Penambahan Independent Transmitter PS-3009 di line MDEA solution discharge 1-P-302,6,,0
+2658,D1-LT-3003-K3,5,,0
+2659,(500000008269) Redundancy Transmitter LT-3003 (dipisahkan antara LSHH dan LSLL 3003) ( Cancel ),6,,0
+2665,SUB_AREA : METHANATION,3,,0
+2666,CLASS : EXCHANGER,4,,0
+2667,D1-E-211-K4 [Methanator Trim Heater],5,,0
+2668,"(200000360115) Buka Cover, Check Internal Tube, Tube Sheet, Mechanical Cleaning, Blow dengan Udara, Total Tube (104 U-Tube) OD=25,4, Thick=2,11 L=5100, Pasang Slip Blind, Leak Test 4 kg/ cm2&Pasang Cover",6,,0
+2669,BUKA COVER,7,,0
+2677,MECHANICAL CLEANING,7,,0
+2682,TUTUP COVER,7,,0
+2692,D1-E-311-K4 [Gas / Gas Exchanger],5,,0
+2693,"(200000359518) Buka Cover, Check Internal, Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, PT Lasan Tube to Tube Sheet, RFT 100%, Total Tube (943) Ea, Brushing Tube to tube Sheet, PT Tube Sheet, Pasang Slip Blind, Leak Test 5 kg/ cm2&Tutu",6,,0
+2694,BUKA COVER,7,,0
+2704,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+2712,TUTUP COVER,7,,0
+2724,CLASS : VESSEL/ DRUM/ TANK,4,,0
+2725,D1-V-311-K4 [Final Gas Separator],5,,0
+2726,"(200000359772) Buka Man Hole, Check Internal, lakukan Visual Inspeksi untuk Baut Vane Element, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+2750,CLASS : SAFETY VALVE (SV),4,,0
+2751,"D1-SV-3122-K4 [Local Safety Valve,1-E-312]",5,,0
+2752,"(300001069092) Lepas SV 3”xLx4” Check Internal, Lapping, Resetting 6.49 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+2768,CLASS : VALVE METHANATION [DPIPING4-101-D0106],4,,0
+2769,BV supply demin ke 1-V-311,5,,0
+2770,"(200000367831) Potong&Ganti Baru BV supply demin ke 1-V-311, Mal't Gate valve 3/4"" 800# A182 F304 BB SW (Leakstroug)",6,,0
+2773,CLASS : MODIFIKASI METHANATION [DPIPING4-101-D0106],4,,0
+2774,Gas Trap di area Amoniak 1-E-312,5,,0
+2775,(500000008270 ) Penambahan Gas Trap di area Amoniak 1-E-312,6,,0
+2778,SUB_AREA : SYNTHESIS,3,,0
+2779,CLASS : FURNACE,4,,0
+2780,D1-H-501-K4 [Start-Up Heater],5,,0
+2781,(200000358554) [Header dan Tube] PT lasan DMW Coil Tube to Weldolet Header&Isolasi Dinding,6,,0
+2782,SHELL,7,,0
+2791,HEADER DAN TUBE,7,,0
+2798,CLASS : EXCHANGER,4,,0
+2799,D1-E-431-K4 [Syn.Gas Compressor 1ST InterCooler],5,,0
+2800,"Buka Cover, Check Internal, Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Brushing lasan Tube to tubesheet PT Lasan Tube to Tube Sheet , Total Tube (422 U-Tube), Eddy Current 100%, Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+2801,BUKA COVER,7,,0
+2808,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+2816,TUTUP COVER,7,,0
+2825,D1-E-432-K4 [Syn Gas Compressor 2 nd Intercooler],5,,0
+2826,"Buka Cover, Check Internal, Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (373 U-Tube), Eddy Current 100%, Brushing lasan Tube to tubesheet ,PT Lasan Tube to Tube Sheet, Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+2827,BUKA COVER,7,,0
+2837,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+2846,TUTUP COVER,7,,0
+2857,D1-E-433-K4 [Syn Gas Compressor After Cooler],5,,0
+2858,"(200000359725) Buka Cover, Check Internal, Tube, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (410 U-Tubu), Eddy Current 100%, Pasang Slip Blind, leak Test 4 kg/ cm2&Tutup Cover",6,,0
+2859,BUKA COVER,7,,0
+2869,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+2878,TUTUP COVER,7,,0
+2889,D1-E-434-K4 [Circulator By Pass Cooler],5,,0
+2890,"(200000359726) Buka Cover, Check Internal, Tube, Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (461 U-Tube) Ea, Brushing lasan Tube to tubesheet, PT Lasan Tube to Tube Sheet, Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+2891,BUKA COVER,7,,0
+2900,MECHANICAL CLEANING,7,,0
+2907,TUTUP COVER,7,,0
+2918,D1-E-503-K4 [Hot Heat [A] EXCHANGER],5,,0
+2919,"(200000359727) Buka Cover bawah dan penggantian Packing, Potong Diaphragm, Check Internal, Mechanical Cleaning, Blow dengan Udara, Total Tube (3563) Ea, Pasang Slip Blind, leak Test, Las Diaphragm&Tutup Cover, siapkan pengamanan untuk blanket N2 di Conve",6,,0
+2920,BUKA COVER,7,,0
+2927,MECHANICAL CLEANING,7,,0
+2932,TUTUP COVER,7,,0
+2945,ADD D1-E-504-K4 [Water Cooler],5,,0
+2946,"(………….) Buka Cover, Check Internal, Tube, Tube Sheet, Mechanical Cleaning Tube,  Blow dengan Udara, Eddy Curent Test 30 %,Total Tube (1330) Ea, OD=19 Tick 2,7 P=7000, PT Lasan Tube to Tube Sheet, Pasang Slip Blind, Leak Test 4 kg/ cm2 & Tutup Cove",6,,0
+2971,D1-E-514-K4 [Purge Gas Chiller],5,,0
+2972,"(200000359728) Chemical Cleaning sisi tube, Buka Cover, Check Internal, , Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara,RFT 100%, Total Tube (39 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tut",6,,0
+2973,CHEMICAL CLEANING&BUKA COVER ( Tidak bisa dilakukan ),7,,0
+2983,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+2990,TUTUP COVER,7,,0
+2998,CLASS : VESSEL/ DRUM/ TANK,4,,0
+2999,D1-V-431-K4 [Syn.Gas Compressor 1ST Separator],5,,0
+3000,"(200000359769) Buka Man Hole, Check Internal, lakukan Visual Inspeksi, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+3024,D1-V-432-K4 [Syn.Gas Compressor 2ND Separator],5,,0
+3025,"(200000359770) Buka Man Hole, Check Internal, lakukan Visual Inspeksi, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+3049,D1-V-433-K4 [Syn.Gas Compressor 3ND Separator],5,,0
+3050,"(200000359771) Buka Man Hole, Check Internal, lakukan Visual Inspeksi, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+3074,CLASS : ROTATING,4,,0
+3075,D1-TS-431-K4 [Steam Turbine for 1-K-431],5,,0
+3076,"(200000359677) Overhoul, Check 1st Stage Nozzle&Ganti Lube Oil dg Idemitzu (Erosi pada 1st Stage Nozzle, Terakhir OH: 2021, Ada kenaikan vibrasi 1 sisi, indikasi rubbing) Srt. No. BTR 04963/D/TK/D24600/IT /2024 tgl. 30 Januari 2024, Check Bearing Turbin",6,,0
+3077,PERSIAPAN,7,,0
+3080,PEMBONGKARAN,7,,0
+3112,PEMERIKSAAN,7,,0
+3132,PEMASANGAN,7,,0
+3169,D1-K-431-LP-K4 [Syn. Gas Compressor LP],5,,0
+3170,"(200000359678) Overhoul (Time Base, Terakhir dikerjakan TA tahun 2009) Terakhir OH : 2009, Srt. No. BTR 04963/D/TK/D24600/IT /2024 tgl. 30 Januari 2024",6,,0
+3171,PERSIAPAN,7,,0
+3174,PEMBONGKARAN,7,,0
+3209,PEMERIKSAAN,7,,0
+3236,PEMASANGAN,7,,0
+3276,D1-K-431-TS1-K4 [Lube Oil Pump Turbine For 1-K-431-P1A],5,,0
+3277,"(200000401655 ) (Overhaul) Check Bearing, Ukur clearance journal bearing Ukur dimensi journal bearing cage Cleaning journal bearing cage NDT PT pada bolt holder bearing Cleaning pada thrust bearing cage Lakukan penggantian O-ring thrustbearing Lakukan pen",6,,0
+3278,PEMBONGKARAN,7,,0
+3287,PENGECHECKAN,7,,0
+3319,PEMASANGAN,7,,0
+3335,CLASS : SAFETY VALVE (SV),4,,0
+3336,"D1-SV-0011-K4 [Local Safety Valve, 1-K-431]",5,,0
+3337,"(300001069093) Lepas SV 4”xPx8” Check Internal, Lapping, Resetting 48.9 kg/ cm2, Repainting&Pasang SV",6,,0
+3353,"D1-SV-0012-K4 [Local Safety Valve, 1-K-431]",5,,0
+3354,"(300001069094) Lepas SV 4”xPx8” Check Internal, Lapping, Resetting 46.6 kg/ cm2, Repainting&Pasang SV",6,,0
+3370,"D1-SV-0015-K4 [Local Safety Valve, 1-K-431]",5,,0
+3371,"(300001069096) Lepas SV 1”xDx2” Check Internal, Lapping, Resetting 70 kg/ cm2, Repainting&Pasang SV",6,,0
+3387,"D1-SV-4313-K4 [Local Safety Valve, 1-K-431]",5,,0
+3388,"(300001069097) Lepas SV 3”xKx6” Check Internal, Lapping RTJ di Lokasi, Resetting 144 kg/ cm2, Repainting&Pasang SV",6,,0
+3405,"D1-SV-4314-K4 [Safety Valve, Line 8""-SG-01418-SC1-P2]",5,,0
+3406,"(300001069098) Lepas SV 4”xPsx6” Check Internal, Lapping RTJ di Lokasi, Resetting 148 kg/ cm2, Repainting&Pasang SV",6,,0
+3423,"D1-SV-4318-K4 [Safety Valve, 1-E-433]",5,,0
+3424,"(300001069099) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV",6,,0
+3440,"D1-SV-4320-K4 [Local Safety Valve, 1-K-431]",5,,0
+3441,"(300001069100) Lepas SV 4”XN2x6” Check Internal, Lapping, Resetting 46.6 kg/ cm2, Repainting&Pasang SV",6,,0
+3457,"D1-SV-5042-K4 [Safety Valve, 1-E-504]",5,,0
+3458,"(300001069101) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV",6,,0
+3474,CLASS : VALVE SYNTHESIS [DPIPING4-101-D0107],4,,0
+3475,BV Three Way Valve Up Side,5,,0
+3476,"(200000367677) Potong&Ganti Baru BV Three Way Valve Up Side LG-2002, Mal't Three Way Valve 3/4""15 (Leakstroug) 00# A105 PSB BW (Leakstroug) Rec. 140000054828 tgl.06-10-2022 ( repair )",6,,0
+3479,BV Three Way Valve Low Side LG-2002,5,,0
+3480,"(200000367678) Potong&Ganti Baru BV Three Way Valve Low Side LG-2002 , Mal't Three Way Valve 3/4""1500# A105 PSB BW (Leakstroug) Rec. 140000054828 tgl.06-10-2022 ( repair )",6,,0
+3483,BV drain ke Sewer Continues Blow Down d/s LV-2003,5,,0
+3484,"(200000367832) Potong&Ganti Baru BV drain ke Sewer Continues Blow Down d/s LV-2003, Mal't Gate valve 1""800# A105 SW (Leakstroug) Rec. 140000054828 tgl.06-10-2022",6,,0
+3487,Gland packing BV inlet SH 1-TS-431,5,,0
+3488,"(200000367833) Potong&Ganti Baru Gland packing BV inlet SH 1-TS-431, Mal't Gate valve 8""1500# A216 WCB BW (Leakout) Rec. 140000054828 tgl.06-10-2022",6,,0
+3491,Packing GV steam 1-TS-441,5,,0
+3492,(200000367679) Repacking Packing GV steam 1-TS-441 (Leakout) Rec. 140000054828 tgl.06-10-2022,6,,0
+3497,Packing GV steam 1-TS-431,5,,0
+3498,(200000367920 ) Repacking Packing GV steam (Leakout) Rec. 140000054828 tgl.06-10-2022,6,,0
+3503,Trap SM hoging TS-431 di bawah K-441,5,,0
+3504,"(200000330371) Lepas&Ganti Baru Trap SM hoging TS-431 di bawah K-441, Mal't TLV type free float 3/4"" SH5NL-46 RF (Trap tidak berfungsi)",6,,0
+3506,Trap SL ejektor TS-431 di bawah K-441,5,,0
+3507,"(200000330370) Lepas&Ganti Baru Trap SL ejektor TS-431 di bawah K-441, Mal't TLV type free float 3/4"" SS3N-16 RF ANSI150#F (Trap tidak berfungsi) Rec. 140000054828 tgl.06-10-2022",6,,0
+3509,Trap SL gland kondenser ejektor TS-431,5,,0
+3510,"(200000367834) Lepas&Ganti Baru rap SL gland kondenser ejektor TS-431, Mal't TLV type free float 3/4"" SS3N-16 RF ANSI150#F (Trap tidak berfungsi) Rec. 140000054828 tgl.06-10-2022",6,,0
+3512,Trap SL seal steam TS-431 samping gland kondenser,5,,0
+3513,"(200000367837) Lepas&Ganti Baru Trap SL seal steam TS-431 samping gland kondenser, Mal't TLV type free float 3/4"" SS3N-16 RF ANSI150#F (Trap tidak berfungsi) Rec. 140000054828 tgl.06-10-2022",6,,0
+3515,Steam trap exhaust TS-441,5,,0
+3516,"(200000330368) Lepas&Ganti Baru Steam trap exhaust TS-441, Mal't TLV type free float 3/4"" SH6NL RF Rec. 140000054828 tgl.06-10-2022",6,,0
+3518,Steam trap bocoran SL 441,5,,0
+3519,"(200000330369) Lepas&Ganti Baru Steam trap bocoran SL 441, Mal't TLV type free float 3/4"" SS3N-16 RF Rec. 140000054828 tgl.06-10-2022",6,,0
+3521,BV u/s FV-5002 B,5,,0
+3522,"(200000384608) Potong BV&Repair di WS BV u/s FV-5002 B, Mal't Gate Valve 4"" Class 1500 #A216 WCB BW PSB (Leakstroug) Rec. 140000058158 tgl. 04.02.2023",6,,0
+3539,BV u/s d/s FV-5002 A,5,,0
+3540,"(200000384609 ) Potong BV&Repair di WS BV u/s d/s FV-5002 A, Mal't Gate Valve 4"" Class 1500 #A216 WCB BW PSB 2Ea (Leakstroug)",6,,0
+3557,BV d/s FV-5002 A,5,,0
+3558,"( 200000384610 ) Potong BV&Repair di WS BV d/s FV-5002 A, Mal't Gate Valve 4"" Class 1500 #A216 WCB BW PSB 2 Ea (Leakstroug)",6,,0
+3575,Trap dry gas seal K-431 sisi HP,5,,0
+3576,"(200000384611) Potong&Ganti baru Trap dry gas seal K-431 sisi HP, Mal't Gate Valve 3/4"" Class 800 #A105 BB SW ",6,,0
+3579,Bv Steam SHH inlet TS-431,5,,0
+3580,"(200000384612) Potong&Repair di WS BV Steam SHH inlet TS-431, Mal't Gate Valve 10"" Class 2500 #A217 WC9 BB BW (Leakout)",6,,0
+3597,BV steam SH inlet TS-431,5,,0
+3598,"(200000384613) Potong&Repair di WS BV steam SH inlet TS-431, Mal't Gate Valve 8"" Class 1500 #A216 WCB BB BW (Leakout)",6,,0
+3615,BV steam SHH inlet TS-441,5,,0
+3616,"(200000384614 ) Potong BV&Repair di WS BV steam SHH inlet TS-441, Mal't Gate valve 12""Class 2500 #A217 WC9 BB BV",6,,0
+3633,BV d/s Trap Steam Hogging E-425,5,,0
+3634,"(200000468786 ) Potong&Ganti baru BV d/s Trap Steam Hogging E-425, Mal't GTV 3/4"" 800# A105 BBOSY SW (Leakstroug) Rec. 140000069606 tgl.21-01-2024",6,,0
+3637,BV b/p Trap SL Ejektor TS-431,5,,0
+3638,"(200000468787 ) Potong&Ganti baru BV b/p Trap SL Ejektor TS-431, Mal't GTV 3/4"" 800# A105 BBOSY SW (Leakstroug) Rec. 140000069608 tgl.21-01-2024",6,,0
+3641,BV b/p Trap Hogging TS-431,5,,0
+3642,"(200000468788) Potong&Ganti baru BV b/p Trap Hogging TS-431, Mal't GTV 3/4"" 800# A105 BBOSY SW (Leakstroug)",6,,0
+3645,Trap SM Ekstraksi TS-431,5,,0
+3646,"(200000468789) Lepas&Ganti baru Trap SM Ekstraksi TS-431, Mal't TLV SH5NL-46 Flange 300# (Leakstroug) Rec. 140000069611 tgl.21-01-2024",6,,0
+3648,Stem BV u/s SV-5012,5,,0
+3649,"(200000468790) Lepas&Ganti baru Stem BV u/s SV-5012, Mal't GTV 2"" 300# A105 LCB RF (Leakout) Rec. 140000069612 tgl.21-01-2024",6,,0
+3651,Stem BV u/s SV-5013,5,,0
+3652,"(200000468791) Lepas&Ganti baru Stem BV u/s SV-5013, Mal't GTV 2"" 300# A105 LCB RF (Leakout) Rec. 140000069613 tgl.21-01-2024",6,,0
+3654,Gland packing BV line FT-5004 sisi high side,5,,0
+3655,"(200000468792) Potong&Ganti baru Gland packing BV line FT-5004 sisi high side, Mal't GTV 3/4"" 800# A105 BBOSY SW (Korosi parah) Rec. 140000069614 tgl.21-01-2024",6,,0
+3658,BV FT-5004 low side,5,,0
+3659,"(200000468793) Potong&Ganti baru BV FT-5004 low side, Mal't GTV 3/4"" 800# A105 BBOSY SW (Korosi parah) Rec. 140000069615 tgl.21-01-2024",6,,0
+3662,BV drain u/s LV-5004 A,5,,0
+3663,"(200000468794 ) Potong&Ganti baru BV drain u/s LV-5004 A, Mal't GTV 3/4"" 1500# A105 PSBOSY SW, 2 ea (Korosi parah) Rec. 140000069616 tgl.21-01-2024",6,,0
+3666,BV drain u/s LV-5004 B,5,,0
+3667,"(200000468795) Potong&Ganti baru BV drain u/s LV-5004 B, Mal't GTV 3/4"" 1500# A105 PSBOSY SW, 2 ea (Korosi parah) Rec. 140000069617 tgl.21-01-2024",6,,0
+3670,"BV 1/2""diatas PCV-4301",5,,0
+3671,"(200000468796 ) Potong&Ganti baru BV 1/2"" diatas PCV-4301, Mal't GTV 1/2"" 800# A105 BBOSY SW GTV 1"" 800# A105 BBOSY SW 3 ea (Handwhell rusak) Rec. 140000069618 tgl.21-01-2024",6,,0
+3674,BV inlet N² DGS ke gate valve range yg lbh tinggi. K-431/441 sisi HP,5,,0
+3675,"(200000468797) Potong&Ganti baru BV inlet N² DGS ke gate valve range yg lbh tinggi. K-431/441 sisi HP, Mal't GTV 1"" 800# A105 BBOSY SW 3 ea (Leakstroug) Rec. 140000069621 tgl.21-01-2024",6,,0
+3678,BV u/s Check Valve N2 Buffer 1-K-431 sisi HP,5,,0
+3679,"(200000468798 ) Potong&Ganti baru BV u/s Check Valve N2 Buffer 1-K-431 sisi HP, Mal't GTV 1/2"" 1500# A105 BBOSY SW, 2 ea (Leakstroug) Rec. 140000069622 tgl.21-01-2024",6,,0
+3682,BV drain outlet 1-E-431,5,,0
+3683,"(200000468799) Potong&Ganti baru BV drain outlet 1-E-431, Mal't GTV 3/4"" 800# A105 BBOSY SW (Leakstroug) Rec. 140000069619 tgl.21-01-2024",6,,0
+3686,CV Drain N2 (K-431),5,,0
+3687,"(200000469177 ) Potong&Ganti baru CV Drain N2 (K-431), Mal't Check valve 1/2"" 1500# A182 F304 SW 1 ea (Leakstroug) Rec. 140000067574 tgl. 12.12.2023",6,,0
+3690,TTV 1-TS-441,5,,0
+3691,(200000470219) Lepas&Repair TTV di WS (PM Check hanya bisa saat TA),6,,0
+3698,CLASS : PIPING SYNTHESIS [DPIPING4-101-D0107],4,,0
+3699,Support suction 1-K-441,5,,0
+3700,"(200000401740) Ganti support existing dengan yang baru&Pengecatan Struktural dengan sistem 1, Support suction 1-K-441 Mal't H-Beam 100x100x6 mm material CS sepanjang 5000 mm, L 65x65x6 mm material CS sepanjang 5000 mm Rec. 140000058473 (Tgl. 13.02.2023)",6,,0
+3705,Besi support sisi luar dan dalam 1-E-507,5,,0
+3706,"(200000472140) Ganti existing anchor bolt yang keropos, Cleaning/ surface preparation dengan SSPC SP3 (Power tool cleaning), Recoating dengan inorganix zinc (75 um), Besi support sisi luar dan dalam 1-E-507 Mal't Anchor bolt&double nut M30 material A307",6,,0
+3710,Baut Support 1- E-506,5,,0
+3711,"(200000472142 ) Ganti baut yang korosi, Brushing support plate yang korosi (saddle support)&Repainting dengan sistem 1-A (maintenance), Baut Support 1- E-506 Mal't Baut M36 Mat'l A307-B/A563-A 10 set Rec. 140000069788 Tgl. 26.01.2024",6,,0
+3715,Settlement D1-E-435-P1A-K4,5,,0
+3716,(200000485245 ) Hasil pengecekan oleh Istek 1 yang buat Rekomendasi REKON,6,,0
+3720,CLASS : MODIFIKASI SYNTHESIS [DPIPING4-101-D0107],4,,0
+3721,D1-GS-0101-K3,5,,0
+3722,"(500000008271 ) Perlu diextend line discharge ke posisi atasnya piperack, posisi eksisting kurang aman karena sejajar dengan piperack",6,,0
+3725,D1-PT-5011-K3 ( CANCEL ),5,,0
+3726,(500000008272) Penambahan Independent Transmitter PT-5011 di 1-V-502,6,,0
+3732,Gas Trap di area Amoniak1-E-510,5,,0
+3733,(500000008238) PenambahanGas Trap di area Amoniak1-E-510,6,,0
+3739,CLASS : PAINTING SYNTHESIS [DPIPING4-101-D0107],4,,0
+3740,Line Burner start up heater 1-H-501(bottom),5,,0
+3741,"(200000366266) Brushing, Repainting&Pasang Isolasi, Line Burner start up heater 1-H-501(bottom)",6,,0
+3745,Gas Trap GS-0101 line header CW return d/s 1-K-431-E1A,5,,0
+3746,"(200000366266-1) Cleaning/ surface preparation dengan SSPC SP3 (Power tool cleaning), Recoating dengan system 1A (epoxy surface tolerance), top coat (polyurethane), Gas Trap GS-0101 line header CW return d/s 1-K-431-E1A Rec. 140000069870 tgl. 29.01.2024",6,,0
+3748,SUB_AREA : BFW PREPARATION&STEAM,3,,0
+3749,CLASS : EXCHANGER,4,,0
+3750,D1-E-205-K4 [BFW Preheater],5,,0
+3751,"(200000359729) Buka Man Hole, Check Internal, Coil Tube, Fin Tube, Coil Support, Coil Bracket , RT 100%, Brushing Las DMW, PT Lasan Dissimilar Metal Weld (DMW) antara Coil dengan Weld Boss Inlet Header, Check Castabel di Intermediate Tube Sheel (ITS), Cas",6,,0
+3752,BUKA COVER,7,,0
+3756,DRY ICE CLEANING,7,,0
+3763,TUTUP COVER,7,,0
+3769,ADD D1-E-212A-K4 [BFW Preheater NO 1 A],5,,0
+3770,"(………... ) Buka Cover, Partiton Plate, Check Internal Tube, Tube Sheet, PT Lasan Tube to Tube Sheet,  Mechanical Cleaning Tube, Blow dengan Udara, Remote Field Test 100%, Total U-Tube (362) Ea, OD=19, Thick=2,77 L=6150, Pasanh Slip Blind, Leak Test, ",6,,0
+3789,ADD D1-E-212B-K4 [BFW Preheater NO 1 B],5,,0
+3790,"(…………) Buka Cover, Partiton Plate, Check Internal Tube, Tube Sheet, PT Lasan Tube to Tube Sheet,  Mechanical Cleaning Tube, Blow dengan Udara, Remote Field Test 100%, Total U-Tube (362) Ea, OD=19, Thick=2,77 L=6150, Pasanh Slip Blind, Leak Test, P",6,,0
+3809,D1-E-213A-K4 [BFW PreHeater A No.2],5,,0
+3810,"(200000359730) Buka Cover, Partiton Plate, Check Internal Tube, Tube Sheet, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (520 U-Tube), OD=19, Thick=2,77 L=620, Pasang Slip Blind, Leak Te",6,,0
+3811,BUKA COVER,7,,0
+3818,MECHANICAL CLEANING,7,,0
+3825,TUTUP COVER,7,,0
+3833,D1-E-213B-K4 [BFW PreHeater B No.2],5,,0
+3834,"(200000359731) Buka Cover, Partiton Plate, Check Internal Tube, Tube Sheet, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Current Test 100 %, Total Tube (520 U-Tube), OD=19, Thick=2,77 L=620, P",6,,0
+3835,BUKA COVER,7,,0
+3840,MECHANICAL CLEANING&EDDY CURRENT,7,,0
+3850,TUTUP COVER,7,,0
+3858,D1-E-304-K4 [DFW PreHeater No.1],5,,0
+3859,"Buka Cover, Check Internal, Tube, Mechanical Cleaning Tube, Blow dengan Udara, Eddy Current Test 100%, Total Tube (268 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cove",6,,0
+3860,BUKA COVER,7,,0
+3866,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+3872,TUTUP COVER,7,,0
+3880,D1-E-501-K4[S.G. Waste Heat Boiler],5,,0
+3881,"(200000472078) Buka Cover, Potong Diaphragm, Pasang Balon u/ Pengamanan System, Check Internal, Tube, Ferrul, Tube Sheet, PT lasan Tube to Tube Sheet, Inlet Nozzle, PT dari sisi dalam dan Luar pada lasan Dissimilar Metal Weld antara Nozzle inlet dan pipin",6,,0
+3882,BUKA COVER,7,,0
+3897,CHECK INTERNAL,7,,0
+3910,TUTUP COVER,7,,0
+3923,CLASS : ROTATING,4,,0
+3924,D1-P-601A-K4 [HP BFW Pump A],5,,0
+3925,(300001303865 ) Lakukan realignment Lakukan penggantian oli (Maintenance Strategy 2 Years) Cek bearing,6,,0
+3926,CEK BEARING,7,,0
+3930,REALIGNMENT,7,,0
+3934,GANTI OLI,7,,0
+3937,D1-TS-601A-K4 [Turbine steam for 1-P-601A],5,,0
+3938,"(200000401656) (Overhaul) Check Bearing, Ukur clearance journal bearing Ukur dimensi journal bearing cage Cleaning journal bearing cage NDT PT pada bolt holder bearing Cleaning pada thrust bearing cage Lakukan penggantian O-ring thrustbearing Lakukan peng",6,,0
+3939,PEMBONGKARAN,7,,0
+3948,PENGECHECKAN,7,,0
+3980,PEMASANGAN,7,,0
+3996,CLASS : SAFETY VALVE (SV),4,,0
+3997,"D1-SV-6002-K4 [Local Safety Valve, 1-TS-601A]",5,,0
+3998,"(300001069102) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 5.5 kg/ cm2, Repainting&Pasang SV",6,,0
+4014,CLASS : VALVE BFW PREPARATION&STEAM [DPIPING4-101-D0108],4,,0
+4015,BV u/s FV-3004,5,,0
+4016,"(200000360268) Lepas&Repair WS BV u/s FV-3004, Mal't Gate valve 8inch 300Lb A351 CF8 BB OS&Y RF (Leakstroug) Rec. 140000054832 tgl.06-10-2022",6,,0
+4027,BV Drain diantara MV-2003,5,,0
+4028,"(200000360266) Potong&Ganti baru BV Drain diantara MV-2003, Mal't Gate valve 3/4"" 800# A105 BB SW (Buntu) Rec. 140000054830 tgl.06-10-2022",6,,0
+4031,BV drain SL exhaust 1-TS-601 di elbow ke pipe rak,5,,0
+4032,"(200000367839) Potong&Ganti baru BV drain SL exhaust 1-TS-601 di elbow ke pipe rak, Mal't Gate valve 3/4"" 800# A105 BB SW (Macet / Keras ditutup) Rec. 140000054832 tgl.06-10-2022",6,,0
+4035,BV drain d/s HV-6012B,5,,0
+4036,"(200000360267) Potong&Ganti baru BV drain d/s HV-6012B, Mal't Gate valve 3/4inch 1500Lb A105 PSB or Welded Bonnet SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4039,BV drain d/s HV-6012B,5,,0
+4040,"(200000367865) Potong&Ganti Baru BV drain d/s HV-6012B, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4043,BV IBD 1-E-501,5,,0
+4044,"(200000367867) Potong&Ganti Baru BV IBD 1-E-501, Mal't Gate valve 2""1500# A216 WCB PSB BW (Leakstroug) Rec. 140000054833 tgl.06-10-2022 ( Repair shop )",6,,0
+4047,BV Steam SM Inlet TS-601,5,,0
+4048,"(200000384616) Lepas&Repair WS BV Steam SM Inlet TS-601, Mal't Gate Valve 8"" 600 #A216 WCB BB RF (Leak out ) Rec. 140000058156 tgl.tgl.06-10-2022",6,,0
+4059,BV Heating Up Casing 1-P-601 B,5,,0
+4060,"(200000468860) Potong&Ganti baru BV Heating Up Casing 1-P-601 B, Mal't GTV 1"" 1500# A105 BBOSY SW Qty 2ea (Leak out )",6,,0
+4063,BV b/p Steam inlet TS-601A,5,,0
+4064,"(200000468861 ) Potong&Ganti baru BV b/p Steam inlet TS-601A, Mal't GTV 2"" 1500# A182 F11 PSBOSY SW (Leakstroug) Rec. 140000069624 tgl.21-01-2024",6,,0
+4067,Trap Steam SM Ektraksi,5,,0
+4068,"(200000468862 ) Lepas&Ganti baru Trap Steam SM Ektraksi, Mal't TLV SH5NL-46 Flange 300# Material : A105 PMA : 65kg (Leakstroug) Rec. 140000069611 tgl.21-01-2024",6,,0
+4070,BV Drain ke Sewer Continues Blowdown d/s LV-2003 (E-220),5,,0
+4071,"(200000468863) Potong&Ganti baru BV Drain ke Sewer Continues Blowdown d/s LV-2003 (E-220), Mal't GTV 1"" 800# A105 BBOSY SW 2 ea (Leakstroug) Rec. 140000069625 tgl.21-01-2024",6,,0
+4074,Lever TTV 1-P-601A,5,,0
+4075,(200000471353) Lepas&Repair di WS Lever TTV 1-P-601A (Leakstroug) Rec.140000069827 tgl. 28.01.2024,6,,0
+4082,CLASS : PIPING BFW PREPARATION&STEAM [DPIPING4-101-D0108],4,,0
+4083,Flange d/s 1-MV-2003,5,,0
+4084,"(200000401741) Buka Isolasi, Check seat gasket&Ganti Gasket, Flange d/s 1-MV-2003, Mal't Gasket 20"" SP-WD Gr.304 + Non Asbestos O-Ring CS ANSI 300 (4,5T) 2 ea. Rec. 140000058388 (Tlg. 10.02.2023)",6,,0
+4094,"Line HV-6012 A ( buka box2 an, utk HV punya instrumen )",5,,0
+4095,"(200000401742 ) Potong&Ganti line 8"" A106 SCH 140, Ganti Flange dan Gasket, Line HV-6012 A, Mal't Pipa 8"" sch 140 material A106-B 2000 mm, Flange 8"" material A105 ANSI 1500 WN-RJ Sch 160 2 ea, Gasket 8"" OCT Ring Soft Iron ANSI 1500 2 ea Rec. 14000005847",6,,0
+4101,Flange d/s BV drain inlet TS-441,5,,0
+4102,"(200000472834) Lepas flange to flange, Check Seat Gasket, Repair&Ganti baru Gasket, Flange d/s BV drain inlet TS-441, Mal't Gasket ¾"" OCT ring A182-F5 ANSI 2500 1 ea, Rec. 140000069872 tgl. 29.01.2024",6,,0
+4109,Flange to flange FT-9351,5,,0
+4110,"(200000472143) Lepas Bolt Flang, Check Seat Gas, Mal't ke, Repair, Flange to flange FT-9351 Mal't Gasket 3""SP-WD gr. 304 + Non Asbestos I&O-R C.S ANSI 600 (4,5T) 2 ea Rec. 140000069916 tgl. 30.01.2024",6,,0
+4117,Line Buntu 1-SC-2009,5,,0
+4118,"(200000472145) Potong&Ganti lLine Buntu 1-SC-2009, Line Buntu 1-SC-2009, Mal't Pipa ½"" Sch 80 material A106-B 2 btg, Pipa ¾"" Sch 80 material A106-B 2 btg, Elbow ½"" 90 deg SW material A105 3000LB 3 ea, Elbow ¾"" 90 deg SW material A105 3000LB 3 ea, Gate V",6,,0
+4121,CLASS : MODIFIKASI BFW PREPARATION&STEAM [DPIPING4-101-D0108],4,,0
+4122,Drain d/s HV-6012A,5,,0
+4123,"(500000007904 ) Potong&Las Tambah BV Drain d/s HV-6012A Mal't Gate Valve 1"" 1500# A105 PSBOSY SW Rec. 140000071115 tgl. 15.03.2024",6,,0
+4127,Line Drain Spool 1-V-501,5,,0
+4128,"(500000007905 ) Tambah Line Drain Spool 1-V-501 Mal't Gate Valve 2""150# WCB RF, Pipa 2""Sch 40 Mal't A333-B 50 mm, Flange 2"" A350-LF2 ANSI 150 SO-RF, Gasket SPW 2"" 150# SS 2ea Gasket SPW 2"" 150# SS 2ea Rec.140000071116 tgl. 15.03.2024 & Rec. 140000071187",6,,0
+4132,"Tambah BV Bypass Venting SV-4413 BV 1""disch stage 3 K-441",5,,0
+4133,"( 500000007906 ) Penambahan Valve (Double Valve) dan Reroute Line BV Bypass Venting SV-4413 BV 1""disch stage 3 K-441, Mal't Gate Valve 1""800# A105 BBOSY SW Rec. 140000071117 tgl.15.03.2024",6,,0
+4138,CLASS : PAINTING BFW PREPARATION&STEAM [DPIPING4-101-D0108],4,,0
+4139,Utility Station Steam Stagnant 1-E-212A,5,,0
+4140,"(200000366269) Brushing, Repainting&Pasang Isolasi, Utility Station Steam Stagnant 1-E-212A Mal't Pipa 3/4"" A106-B SML Sch.80 PE Rec.140000049808 (Tgl. 16.03.2022)",6,,0
+4144,SUB_AREA : STEAM GENERATION,3,,0
+4145,CLASS : EXCHANGER,4,,0
+4146,D1-E-203-K4 [Steam Superheater],5,,0
+4147,"(200000359733) Buka Man Hole, Check Internal, Coil Tube, Fin Tube, Coil Support, Coil Bracket , RT 100%, Brushing DMW, PT Lasan Dissimilar Metal Weld (DMW) antara Coil dengan Weld Boss Inlet Header, RT 100% Lasan DMW 1-E-203 Coil Inlet to Weld Boss, Check",6,,0
+4148,BUKA COVER,7,,0
+4152,DRY ICE CLEANING,7,,0
+4160,TUTUP COVER,7,,0
+4166,D1-E-701A-K4 [Process Condensate [A] EXCHANGER A],5,,0
+4167,"(200000359734) Buka Cover, Check Internal, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (502) Ea, Pasang Slip Blind, Leak Test 5 kg/ cm2&Tutup Cover",6,,0
+4168,BUKA COVER,7,,0
+4179,MECHANICAL CLEANING,7,,0
+4184,TUTUP COVER,7,,0
+4197,D1-E-701B-K4 [Process Condensate [A] EXCHANGER B],5,,0
+4198,"(200000359735) Buka Cover, Check Internal, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (502) Ea, Pasang Slip Blind, Leak Test 5 kg/ cm2&Tutup Cover",6,,0
+4199,BUKA COVER,7,,0
+4210,MECHANICAL CLEANING,7,,0
+4215,TUTUP COVER,7,,0
+4228,D1-E-701C-K4 [Process Condensate [A] EXCHANGER C],5,,0
+4229,"(200000359736) Buka Cover, Check Internal, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (502) Ea, Pasang Slip Blind, Leak Test 5 kg/ cm2&Tutup Cover",6,,0
+4230,BUKA COVER,7,,0
+4241,MECHANICAL CLEANING,7,,0
+4246,TUTUP COVER,7,,0
+4259,D1-E-703-K4 [Stripped Condensate Cooler],5,,0
+4260,"(200000359737) Buka Cover, Check Internal,, Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara,ET 100%, Total Tube (150), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+4261,BUKA COVER,7,,0
+4269,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+4277,TUTUP COVER,7,,0
+4287,CLASS : VESSEL/ DRUM/ TANK,4,,0
+4288,D1-V-201-K4 [Steam Drum],5,,0
+4289,"(200000359773) Buka Man Hole, Check Internal, Shell, Partition Plate, Demister, Vortex Breaker, Cleaning&Tutup Man Hole",6,,0
+4309,CLASS : ROTATING,4,,0
+4310,D1-K-201A-K4 [Flue Gas Blower A SEU],5,,0
+4311,"(200000360118) Check/ Ganti Bearing, Cek visual kondisi blade/impeller Cek visual Casing blower, Maintenance Strategy (2 Years) Repainting internal Restroke IGV (D0124) Insitu balancing, running Test",6,,0
+4312,BEARING,7,,0
+4325,FAN,7,,0
+4343,D1-K-201B-K4 [Flue Gas Blower B SEU],5,,0
+4344,"(200000401657 ) Check/ Ganti Bearing, Cek visual kondisi blade/impeller Cek visual Casing blower (Maintenance Strategy (2 Years) 2 Years) Repainting internal Restroke IGV (D0124) Insitu balancing, Running Test",6,,0
+4345,BEARING,7,,0
+4358,FAN,7,,0
+4376,CLASS : SAFETY VALVE (SV),4,,0
+4377,"D1-SV-2012-K4 [Local Safety Valve, 1-V-201]",5,,0
+4378,"(300001069103) Lepas SV 2½”xKx6” Check Internal, Lapping RTJ di Lokasi, Resetting 132 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+4395,"D1-SV-2013-K4 [Local Safety Valve, 1-V-201]",5,,0
+4396,"(300001069104) Lepas SV 2½”xKx6” Check Internal, Lapping RTJ di Lokasi, Resetting 136 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+4413,"D1-SV-2014-K4 [Local Safety Valve, 1-V-201]",5,,0
+4414,"(300001069105) Lepas SV 1½”xDx2” Check Internal, Lapping RTJ di Lokasi, Resetting 170 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+4431,"D1-SV-7001-K4 [Local Safety Valve, 1-C-701]",5,,0
+4432,"(300001069106) Lepas SV 1½”xFx2” Check Internal, Lapping, Resetting 47 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+4448,"D1-SV-2201-K4 [Local Safety Valve, 1-C-701]",5,,0
+4449,"(300001304173) Lepas SV 3/4""Check Internal, Lapping, Resetting 6,4 kg/ cm2, Repainting& Pasang SV Rec. 140000058819 tgl. 24.02.2023",6,,0
+4461,CLASS : VALVE STEAM GENERATION [DPIPING4-101-D0109],4,,0
+4462,Check Valve d/s 1-LV-4045,5,,0
+4463,"(200000367795 ) Lepas&Ganti Baru Check Valve d/s 1-LV-4045, Mal't Check valve 2inch 600Lb A216 WCB RF Type Swing (Leakstroug) Rec. 140000054831 tgl.06-10-2022",6,,0
+4465,BV u/s high side LG-2002,5,,0
+4466,"(200000367868) Potong&Ganti Baru BV u/s high side LG-2002, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4469,BV d/s high side LG-2002,5,,0
+4470,"(200000367869) Potong&Ganti Baru BV d/s high side LG-2002, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug)",6,,0
+4473,BV u/s low side LG-2002,5,,0
+4474,"(200000367870) Potong&Ganti Baru BV u/s low side LG-2002, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4477,BV d/s low side LG-2002,5,,0
+4478,"(200000367790) Potong&Ganti Baru BV d/s low side LG-2002, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4481,BV u/s high side LG-2001,5,,0
+4482,"(200000367791 ) Potong&Ganti Baru BV u/s high side LG-2001, Mal't Gate valve 3/4""1500# A105 PSB SW ( )",6,,0
+4485,BV d/s high side LG-2001,5,,0
+4486,"(200000367792) Potong&Ganti Baru BV d/s high side LG-2001, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4489,BV u/s low side LG-2001,5,,0
+4490,"(200000367794 ) Potong&Ganti Baru BV u/s low side LG-2001, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4493,Check Valve d/s 1-LV-4045,5,,0
+4494,"(200000367796 ) Potong&Ganti Baru Check Valve d/s 1-LV-4045, Mal't Gate valve 3/4""1500# A105 PSB SW (Leakstroug) Rec. 140000054833 tgl.06-10-2022",6,,0
+4497,BV IBD 1-E-208,5,,0
+4498,"(200000360269) Potong&Ganti Baru BV IBD 1-E-208, Mal't Gate valve 2""1500# A216 WCB PSB BW (Leakstroug) Rec. 140000054831 tgl.06-10-2022",6,,0
+4501,BV IBD 1-E-210,5,,0
+4502,"(200000367793 ) Potong&Ganti Baru BV IBD 1-E-210, Mal't Gate valve 2""1500# A216 WCB PSB BW (Leakstroug) Rec. 140000054831 tgl.06-10-2022",6,,0
+4505,"BV b/p 2""FV-2018",5,,0
+4506,"(200000367794) Potong&Ganti Baru BV b/p 2"" FV-2018, Mal't Globe valve 2"" 1500# A105 PSB SW Rec. 140000054831 tgl.06-10-2022",6,,0
+4509,BV d/s LV-4045,5,,0
+4510,"(200000384617) Potong&Ganti Baru BV d/s LV-4045, Mal't Gate Valve 2"" Class 1500 #A216 WCB Type PSB SW (Leakstroug)",6,,0
+4513,BV u/s IBD 1-E-501,5,,0
+4514,"(200000468864) Potong&Ganti baru BV u/s IBD 1-E-501, Mal't High Pressure But Weld End Gate Valve 2"" 1500#A105 WCB BW (Gasket bocor) Rec. 140000069626 tgl.21-01-2024",6,,0
+4517,TTV 1-TS-431,5,,0
+4518,(200000468865 ) Lepas&Repair TTV di WS TTV 1-TS-431 (Loss putarannya),6,,0
+4525,BV No.2 Line Blow Down 1-E-501,5,,0
+4526,"(200000468866) Potong&Ganti baru BV No.2 Line Blow Down 1-E-501, Mal't GTV 2"" 1500# A105 PSBOSY SW (Cover Bonet leak out) Rec. 140000069627 tgl.21-01-2024",6,,0
+4529,BV LG 2002 Threeway Valve,5,,0
+4530,"(200000471420) Potong&Ganti baru BV LG 2002 Threeway Valve, Mal't GTV & Globe 3/4"" 1500Lb A182F11 SW (Macet) Rec.140000069831 tgl. 28.01.2024",6,,0
+4533,Threeway Valve,5,,0
+4534,"(200000471425 ) Lepas&Repair WS serta Lapping RTJ di Lokasi, Mal't Threeway Valve 3/4"" 1500# A182 F11 RJ (Macet) Rec.140000069828 tgl. 28.01.2024",6,,0
+4545,BV LG 2001 Threeway Valve,5,,0
+4546,"(200000471427) Potong&Ganti baru BV LG 2001 Threeway Valve, Mal't GTV & Globe 3/4"" 1500Lb A182F11 SW (Macet) Rec.140000069829 tgl. 28.01.2024",6,,0
+4549,Check Valve d/s FV-2018,5,,0
+4550,"(200000471429 ) Lepas&Repair WS Check Valve d/s FV-2018, Mal't Check Valve 8"" 1500Lb WCB/WC6 RF (Leakout) Rec.140000069834 tgl. 28.01.2024",6,,0
+4560,BV Drain Check Valve d/s FV-2018,5,,0
+4561,"(200000471431) Potong&Ganti baru BV Drain Check Valve d/s FV-2018, Mal't GTV 1"" 1500Lb A182F304 SW (Handwheel Patah) Rec.140000069833 tgl. 28.01.2024",6,,0
+4564,Check Valve d/s FV-2018,5,,0
+4565,"(200000483185 ) Lepas Check valve, Bawa ke Welding Shop untuk lepas bok-bokan&Repair di Work Shop Valve Mal't Check Valve 8"" 1500# WCB/WC6 Rec. 140000069834 Rek. 28.01.2024",6,,0
+4575,CLASS : PIPING STEAM GENERATION [DPIPING4-101-D0109],4,,0
+4576,Utility Station Steam Stagnant 1-FV-2016,5,,0
+4577,"(200000360277) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-FV-2016, Mal't Pipa 3/4"" A106-B SML Sch.80 PE (3 btg), Coupling 3/4"" SW A105 3000LB, (2 ea), Elbow 3/4"" SW A105 3000LB, (5 ea), Gate Valve 3/4"" #150 SW A105 1",6,,0
+4584,Utility Station Steam Stagnant 1-E-220 (Shower 02),5,,0
+4585,"(200000360278 ) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-E-220 (Shower 02), Mal't Pipa 3/4"" A106-B SML Sch.80 PE (3 btg), Coupling 3/4"" SW A105 3000LB, (2 ea), Elbow 3/4"" SW A105 3000LB, (5 ea), Gate Valve 3/4"" #15",6,,0
+4592,CLASS : MODIFIKASI STEAM GENERATION [DPIPING4-101-D0109],5,,0
+4593,D1-TE-9042-K3 ( Cancel ),6,,0
+4594,(500000008239) Penambahan Independent Transmitter TE-9042 di line header steam SH,7,,0
+4600,SUB_AREA : AMMONIA REFRIGERATION,3,,0
+4601,CLASS : EXCHANGER,4,,0
+4602,D1-E-506-K4 [1ST Ammonia Chiller],5,,0
+4603,"(200000359738) Buka Cover, Potong Diaphragm, Check Internal,Mechanical Cleaning, Blow dengan Udara, Total Tube (1131 U-Tbe), Brushing Tube To Tube Sheet, PT Tube To Tube Sheet Pasang Slip Blind, leak Test, Las Diaphragm&Tutup Cover",6,,0
+4604,BUKA COVER,7,,0
+4614,MECHANICAL CLEANING,7,,0
+4621,TUTUP COVER,7,,0
+4635,D1-E-507-K4 [2ND Cold [A] EXCHANGER],5,,0
+4636,"(200000359739) Pasang Scafold, buka isolasi,Check Seal Weld Plug Venting",6,,0
+4644,D1-E-508-K4 [2ND Ammonia Chiller],5,,0
+4645,"Buka Cover, Potong Diaphragm, Check Internal, Mechanical Cleaning, Blow dengan Udara, Total Tube (1131 U-Tube) , Brushing Tube To Tube Sheet, PT Tube To Tube Sheet, Pasang Slip Blind, leak Test, Las Diaphragm&Tutup Cover",6,,0
+4646,BUKA COVER,7,,0
+4656,MECHANICAL CLEANING,7,,0
+4663,TUTUP COVER,7,,0
+4677,D1-E-510-K4 [Ammonia Condenser],5,,0
+4678,"(200000359614) Buka Cover, Check Internal, Mechanical Cleaning Tube, Blow dengan Udara, Total Tube (4137) Ea,Brushing Tube To Tube Sheet, PT Tube To Tube Sheet, Pasang Slip Blind, leak Test 4 km/ cm2, Las&Tutup Cover",6,,0
+4679,BUKA COVER,7,,0
+4689,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+4696,TUTUP COVER,7,,0
+4708,"D1-E-511-K4 [ Inert Vent, Gas Chiller]",5,,0
+4709,"(200000359615) Buka Cover, Check Internal, Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara, RFT 100%, Total Tube (39 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+4710,BUKA COVER,7,,0
+4717,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+4724,TUTUP COVER,7,,0
+4733,D1-E-512-K4 [Ammonia Product Heater],5,,0
+4734,"(200000359616) Chemical Cleaning sisi tube dan shell,Buka Injeksi Sealent Cover, Check Internal, Check Seat Gasket Cover&Shell,Build Up, Machining, Tube, ET 100%, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara, Total Tube (387) OD 1",6,,0
+4735,CHMICAL CLEANING&BUKA COVER ( Tidak bisa dilakukan ),7,,0
+4749,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+4758,TUTUP COVER,7,,0
+4769,D1-E-441-K4 [Ammonia Comp. InterCooler],5,,0
+4770,"(200000359617) Buka Cover, Check Internal, Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara,RFT 100%, Total Tube (350 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+4771,BUKA COVER,7,,0
+4781,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+4788,TUTUP COVER,7,,0
+4800,CLASS : VESSEL/ DRUM/ TANK,4,,0
+4801,D1-V-442-K4 [Ammonia Comp. 2ND Stage KO Drum],5,,0
+4802,"(200000469394) Buka Man Hole, Check Internal, lakukan Visual Inspeksi, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+4826,D1-V-443-K4 [Ammonia Comp. 3RD Stage KO Drum],5,,0
+4827,"(200000469395 ) Buka Man Hole, Check Internal, lakukan Visual Inspeksi, Chemical Cleaning Demister, Timbang Demister, Cleaning Internal&Tutup Man Hole",6,,0
+4851,CLASS : ROTATING,4,,0
+4852,D1-P-501B-K4 [Ammonia Product Pump B],5,,0
+4853,(200000350096) Ganti Mechanical Seal&Bearing (Rembes Harus SD),6,,0
+4865,D1-TS-441-K4 [Steam Turbine for 1-K-441],5,,0
+4866,"(200000360261) Overhoul&Ganti E/H (Stem GV & gland sisi governor side ada bocoran steam ngowos, Terakhir OH : 2016) Rek.140000060069 tgl. 06.04.2023/ Srt. No. BTR 04963/D/TK/D24600/IT /2024 tgl. 30 Januari 2024",6,,0
+4867,PERSIAPAN,7,,0
+4870,PEMBONGKARAN,7,,0
+4904,PEMERIKSAAN,7,,0
+4917,PEMASANGAN,7,,0
+4945,D1-K-441-LP-K4 [Ammonia Compressor LP],5,,0
+4946,"(200000360262 ) Lepas&Ganti Dry Gas Seal (Time Base, Terakhir OH : 2012) Rek.140000060069 tgl. 06.04.2023/ Srt. No. BTR 04963/D/TK/D24600/IT /2024 tgl. 30 Januari 2024",6,,0
+4947,INBOARD,7,,0
+4961,OUTBORD,7,,0
+4975,D1-K-441-HP-K4 [Ammonia Compressor HP],5,,0
+4976,"(200000360263 ) Overhoul (Time Base, Terakhir OH : 2012) Rek.140000060069 tgl. 06.04.2023/ Srt. No. BTR 04963/D/TK/D24600/IT /2024 tgl. 30 Januari 2024",6,,0
+4977,PERSIAPAN,7,,0
+4980,PEMBONGKARAN,7,,0
+5003,PEMERIKSAAN,7,,0
+5036,PEMASANGAN,7,,0
+5059,CLASS : SAFETY VALVE (SV),4,,0
+5060,"D1-SV-2031-K4 [Local Safety Valve, 1-TS-441]",5,,0
+5061,"(300001069107) Lepas SV 3”xMx6” Check Internal, Lapping RTJ di Lokasi, Resetting 118 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5078,"D1-SV-2032-K4 [Local Safety Valve, 1-TS-441]",5,,0
+5079,"(300001069108) Lepas SV 3”xMx6” Check Internal, Lapping RTJ di Lokasi, Resetting 121.5 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5096,"D1-SV-4415-K4 [Local Safety Valve, 1-TS-441]",5,,0
+5097,"(300001069109) Lepas SV 6”xQ1x8” Check Internal, Lapping, Resetting 46.6 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5114,CLASS : VALVE AMMONIA REFRIGERATION [DPIPING4-101-D0110],4,,0
+5115,BV 1&2 sampling Ammonia,5,,0
+5116,"(200000468867 ) Potong&Ganti baru BV 1 & 2 sampling Ammonia, Mal't GTV 1/2"" 800# A105 BBOSY SW (Leak) Rec. 140000069628 tgl.21-01-2024",6,,0
+5119,Handwhell BV drain suct. stage 2 K441,5,,0
+5120,"(200000468868) Potong&Ganti baru Handwhell BV drain suct. stage 2 K441, Mal't GTV 3/4"" 800# A105 BBOSY SW (Keropos/ korosi) Rec. 140000069629 tgl.21-01-2024",6,,0
+5123,Steam trap SL TS 441,5,,0
+5124,"(200000330369) Lepas&Ganti Baru Steam trap SL TS 441, Mal't Trap Steam Disc 1/2""; 150",6,,0
+5126,Steam trap exhaust TS 441,5,,0
+5127,"(200000330368) Lepas&Ganti Baru Steam trap exhaust TS 441, Mal't Trap Steam Disc 1/2""; 150",6,,0
+5129,BV Drain High Side LT-5012,5,,0
+5130,"(200000471433 ) Potong&Ganti baru BV Drain High Side LT-5012, Mal't Gate valve 1/2"" 800# A105 BBOSY SW (Leakstroug) Rec.140000069830 tgl. 28.01.2024",6,,0
+5133,CLASS : PIPING AMMONIA REFRIGERATION [DPIPING4-101-D0110],4,,0
+5134,"Utility Station Steam Stagnant , 1-E-512.",5,,0
+5135,"(200000360279 ) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant , 1-E-512, Mal't Pipa 3/4"" A106-B SML Sch.80 PE (1 btg), Coupling 3/4"" SW A105 3000LB, (2 ea), Elbow 3/4"" SW A105 3000LB, (2 ea), Gate Valve 3/4"" #150 SW A105 ",6,,0
+5142,Line Sampling Lab Ammonia dekat 1-V-501,5,,0
+5143,"(200000458504) Potong&Ganti Line 1/2"", Line Sampling Lab Ammonia dekat 1-V-501, Mal't Globe Valve 1/2"" API602 CL.800 A350-LF2 A182-F0394 SW BB , OS& Y 3 ea, Pipa 1/2"" Mat'l A333-6 SML SCH80 PE jumlah 1 btg, Elbow 1/2"" SW A350-LF 3000LB jumlah 1 ea, Rec.",6,,0
+5150,Besi Support sisi luar dan dalam 1-V-501,5,,0
+5151,"(200000472149) Ganti existing anchor bolt yang keropos, Cleaning/ surface preparation dengan SSPC SP3 (Power tool cleaning), Recoating dengan inorganix zinc (75 um), Besi Support sisi luar dan dalam 1-V-501, Mal't Anchor bolt&double nut M24 mat A307 Gr.",6,,0
+5154,"LG-5007, 1-V-503 ( No Spare a)",5,,0
+5155,"(200000472153) Lepas&Ganti Level Glass dengan yang baru, Besi Support sisi luar dan dalam 1-V-501, LG-5007, 1-V-503, Mal't Glass borrosilicate, Gasket Rubber Rec. 140000069986 tgl. 31.01.2024",6,,0
+5157,Support Suction 1-K-441,5,,0
+5158,"(200000401740) Ganti support existing dengan yang baru&Pengecatan Struktural dengan sistem 1, Support suction 1-K-441 Mal't H-Beam 100x100x6 mm material CS sepanjang 5000 mm, L 65x65x6 mm material CS sepanjang 5000 mm Rec. 140000058473 (Tgl. 13.02.2023)",6,,0
+5163,"Pipa Produk Ammonia P4 dari 1-P-501A/B s/d Ammonia Storage (4""-AL-40005-MK1-C8)",5,,0
+5164,"(200000472128 ) Penggantian cold insulation menggunakan cryogel. (estimasi kebutuhan total luasan ± 200 m2) Line pipe produk ammonia P4 dari 1-P-501A/B sampai dengan P3, Mal't Pipa 1/2""sch 80 material A333 Gr.6 sebanyak 3 batang, Pipa 3.4""sch 80 A333 Gr",6,,0
+5176,CLASS : PAINTING AMMONIA REFRIGERATION [DPIPING4-101-D0110],4,,0
+5177,Support Line Suction 1-K441,5,,0
+5178,(200000401743) Brushing&Repainting Support Line Suction 1-K441,6,,0
+5182,CLASS : ISOLASI AMMONIA REFRIGERATION [DPIPING4-101-D0110],4,,0
+5183,Line Refrigerasi Sistem,5,,0
+5184,"(200000367941 ) Lepas Isolasi yg Icing, Check Line&Ganti Isolasi, Rec. 140000058394 (Tgl. 11.02.2023)",6,,0
+5191,SUB_AREA : N2 START-UP,3,,0
+5192,CLASS : EXCHANGER,4,,0
+5193,D1-E-214-K4 [Start-Up N2 Cooler],5,,0
+5194,"(200000359618) Buka Cover, Check Internal, Tube, Brushing Tube to Tube Sheet, PT Lasan Tube to Tube Sheet, Mechanical Cleaning, Blow dengan Udara,RFT 100%, Total Tube (189 U-Tube), Pasang Slip Blind, Leak Test 4 kg/ cm2&Tutup Cover",6,,0
+5195,BUKA COVER,7,,0
+5202,MECHANICAL CLEANING&EDDY CURENT TEST,7,,0
+5210,TUTUP COVER,7,,0
+5219,CLASS : SAFETY VALVE (SV),4,,0
+5220,D1-SV-2141-K4,5,,0
+5221,"(300001069129) Lepas SV 1½”xHx3” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5233,CLASS : VALVE N2 START-UP [DPIPING4-101-D0113],4,,0
+5234,"BV Drain in CW E-214 [Safety Valve, 1-E-214]",5,,0
+5235,"(200000367940) Lepas&Ganti Baru BV Drain in CW E-214, Mal't Gate valve 3/4"" 800# A105 BB SW (Leakstroug)",6,,0
+5238,CLASS : PAINTING N2 START-UP [DPIPING4-101-D0113],4,,0
+5239,"Line N2 dekat 1-V-601 Ukuran 3/4""",5,,0
+5240,"(200000481448) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan) Mal't Pipa 3/4""A106-B SCH80 5 btg, Elbow 3/4""90 Deg A105 SCH80 5 ea, SO Flange 3/4"" 150# A105 RF 10 ea Rec. 140000070451 & 140000070453 tgl. 1",6,,0
+5248,"Flange dan Valve Line N2 3/4""di dekat 1-K-421 E1A dan 1-K-421 E1B",5,,0
+5249,"(200000481448-1) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan) Rec. 140000070451&140000070453 tgl. 19.02.2024",6,,0
+5257,Flangedi dekat 1-K-421,5,,0
+5258,"(200000481448-2) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan) Rec. 140000070451&140000070453 tgl. 19.02.2024",6,,0
+5266,"Line N2 3/4""di dekat 1-K-431-E1A dan 1-K-431 E1B",5,,0
+5267,"(200000481448-3) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan)",6,,0
+5275,"Line N2 station area Ammonia 3/4""dekat 1-R-501",5,,0
+5276,"(200000481448-4) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan) Rec. 140000070451&140000070453 tgl. 19.02.2024",6,,0
+5284,"Line N2 3/4""di dekat 1-P-501A",5,,0
+5285,"(200000481448-5) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan)",6,,0
+5293,"Line N2 + Elbow 3/4""dekat 1-K-441 (ada tanda diikat merah)",5,,0
+5294,"(200000481448-6) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan) Rec. 140000070451&140000070453 tgl. 19.02.2024",6,,0
+5302,"Line N2 separation (Lantai 2 area kompresor) Elbow 3/4""Check Valve 3/4""#800",5,,0
+5303,"(200000481448-7) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan) Rec. 140000070451&140000070453 tgl. 19.02.2024",6,,0
+5311,"Line N2 2""(header) + Gate Valve 2""",5,,0
+5312,"(200000481448-8) Pasang Scaffold, Brushing, Repainting Sistem 1-A (Ganti Line jika hasil Brushing ada penipisan) Mal't Pipa 2""Mat'l Carbon Steel SCH STD 1 btgRec. 140000070451& 140000070453 tgl. 19.02.2024",6,,0
+5320,SUB_AREA : CO SHIFT CONVERSION,3,,0
+5321,CLASS : REACTOR,4,,0
+5322,D1-R-205-K4 [LT. CO Converter],5,,0
+5323,"(200000359674) Buka Cover, Check Internal, Unload/ Loading Catalyst Bad atas (15 M3), Ceramic ball Top (1,1 M3), Bottom 4,9 M3 ), Pasang Scaffold Interna, Cleaning Internal, Brush semua sambungan lasan internal , Check ACFM, Check thickness&Hardness tes",6,,0
+5324,BUKA MAN HOLE,7,,0
+5333,UNLOADING CATALYST,7,,0
+5348,BRUSHING&CHECK INTERNAL,7,,0
+5365,LOADING CATALYST,7,,0
+5384,FINAL INSPECT&TUTUP MAN HOLE,7,,0
+5394,CLASS : SAFETY VALVE (SV),4,,0
+5395,"D1-SV-2162-K4 [Local Safety Valve, 1-R-205]",5,,0
+5396,"(300001069089) Lepas SV 4”xPx6” Check Internal, Lapping, Resetting 10 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5412,CLASS : VALVE CO SHIFT CONVERSION [DPIPING4-101-D0104],4,,0
+5413,BV Line SC-2009,5,,0
+5414,"(200000471434 ) Potong&Ganti baru BV Line SC-2009, Mal't Gate valve 1/2"" 800# A105 BBOSY SW (Buntu) Rec.140000069832 tgl. 28.01.2024",6,,0
+5417,BV Drain u/s MV 2001,5,,0
+5418,"(200000481446) Potong&Ganti baru BV dari 3/4"" ke 1"" (2 ea) BV Drain u/s MV 2001 Mal't Gate valve 1"" 800# A105 BBOSY SW Rec. 140000070998 tgl.09.03.2024",6,,0
+5421,BV Drain d/s MV 2001,5,,0
+5422,"(200000481447) Potong&Ganti baru BV dari 3/4"" ke 1"" (2 ea) BV Drain d/s MV 2001 Mal't Gate valve 1"" 800# A105 BBOSY SW Rec. 140000070998 tgl.09.03.2024",6,,0
+5425,CLASS : PIPING CO SHIFT CONVERSION [DPIPING4-101-D0104],4,,0
+5426,Utility Station Steam Stagnant 1-R-204,5,,0
+5427,"(200000360274) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-R-204 Mal't Pipa 3/4"" A106-B SML Sch.80 PE (3 btg), Coupling 3/4"" SW A105 3000LB, (3 ea), Elbow 3/4"" SW A105 3000LB, (3 ea), Gate Valve 3/4"" #150 SW A105 1 ea",6,,0
+5434,Utility Station Steam Stagnant 1-R-205,5,,0
+5435,"(200000360275 ) Ganti Line 3/4""CS, Repainting& Pasang Isolasi, Utility Station Steam Stagnant 1-R-205 Mal't Pipa 3/4"" A106-B SML Sch.80 PE (1 btg), Coupling 3/4"" SW A105 3000LB, (2 ea), Gate Valve 3/4"" #150 SW A105 1 ea, Gate Valve 3/4"" #150 SW A105 1 e",6,,0
+5442,Line 1-SC-2006,5,,0
+5443,"(200000467810 ) Penggantian Line, Line 1-SC-2006 Mal't Pipa 1/2""A335-P11 SML SCH80 PE 2 btg, Elbow 1/2""SW A182-F11 3000LB 4 ea Elbow 1/2"" SW A182-F11 3000LB 4 ea",6,,0
+5450,CLASS : MODIFIKASI CO SHIFT CONVERSION [DPIPING4-101-D0104],4,,0
+5451,BV Drain Inlet 1-R-204,5,,0
+5452,"(200003133550) Tambah BV, Drain Inlet 1-R-204, Mal't dari JPP ( Job Package ke jpp no 2022.01.0023)",6,,0
+5459,Line 1-SC-2006,5,,0
+5460,"(500000008171) Tambah BV dibawah Header, Line 1-SC-2006, Mal't Gate Valve 1/2""API602 CL.800 A182-F11 A182-F6 Seat& Disk STL SW BB.OS&Y 1 ea Rek. 140000067502 Tgl. 13.01.2022",6,,0
+5467,SUB_AREA : FLARE AND VENT SYSTEM,3,,0
+5468,CLASS : SAFETY VALVE (SV),4,,0
+5469,"D1-SV-2011-K4 [Local Safety Valve, 1-X-201]",5,,0
+5470,"(300001069110) Lepas SV 2”xHx3”Check Internal, Lapping, Resetting 53 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5486,"D1-SV-2091-K4 [Local Safety Valve, 1-X-201]",5,,0
+5487,"(300001069111) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 37.5 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5503,"D1-SV-2092-K4 [Local Safety Valve, 1-X-201]",5,,0
+5504,"(300001069112) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 39.3 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5520,"D1-SV-3013-K4 [Local Safety Valve, 1-X-201]",5,,0
+5521,"(300001069113) Lepas SV 1”xEx2” Check Internal, Lapping, Resetting 34 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5537,"D1-SV-3021-K4 [Local Safety Valve, 1-X-201]",5,,0
+5538,"(300001069114) Lepas SV 3” xKx4” Check Internal, Lapping, Resetting 6.4 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5554,"D1-SV-3022A-K4 [Local Safety Valve, 1-X-201]",5,,0
+5555,"(300001069115) Lepas SV 6”xRx10” Check Internal, Lapping, Resetting 12 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5571,"D1-SV-3023A-K4 [Local Safety Valve, 1-X-201]",5,,0
+5572,"(300001069116) Lepas SV 6”xRx10” Check Internal, Lapping, Resetting 12.6 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5588,"D1-SV-3023B-K4 [Local Safety Valve, 1-X-201]",5,,0
+5589,"(300001069117) Lepas SV 6”xRx10” Check Internal, Lapping, Resetting 12.6 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5605,"D1-SV-3024-K4 [Local Safety Valve, 1-X-201]",5,,0
+5606,"(300001069118) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 34 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5622,"D1-SV-3041-K4 [Local Safety Valve, 1-X-201]",5,,0
+5623,"(300001062579) Lepas SV 2½” xJx4” Check Internal, Lapping, Resetting 37.5 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5639,"D1-SV-3121-K4 [Local Safety Valve, 1-X-201]",5,,0
+5640,"(300001069119) Lepas SV 4”xPx6” Check Internal, Lapping, Resetting 43 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5656,"D1-SV-4111-K4 [Local Safety Valve, 1-X-201]",5,,0
+5657,"(300001062580) Lepas SV 3”xKx4” Check Internal, Lapping, Resetting 35.2 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5673,"D1-SV-4112-K4 [Local Safety Valve, 1-X-201]",5,,0
+5674,"(300001069081) Lepas SV 2½” xJx4” Check Internal, Lapping, Resetting 46.4 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5690,"D1-SV-4312A-K4 [Local Safety Valve, 1-X-201]",5,,0
+5691,"(300001069120) Lepas SV 3”xKx6” Check Internal, Lapping RTJ di Lokasi, Resetting 155 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5708,"D1-SV-4312B-K4 [Local Safety Valve, 1-X-201]",5,,0
+5709,"(300001069121) Lepas SV 3”xKx6” Check Internal, Lapping RTJ di Lokasi, Resetting 155 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5726,"D1-SV-4312C-K4 [Local Safety Valve, 1-X-201]",5,,0
+5727,"(300001069122) Lepas SV 3”xKx6” Check Internal, Lapping RTJ di Lokasi, Resetting 155 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5744,"D1-SV-4413-K4 [Local Safety Valve, 1-X-201]",5,,0
+5745,"(300001069123) Lepas SV 6”xQx8” Check Internal, Lapping, Resetting 20 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5761,"D1-SV-5011-K4 [Local Safety Valve, 1-X-201]",5,,0
+5762,"(300001069124) Lepas SV 2”xGx3” Check Internal, Lapping RTJ di Lokasi, Resetting 155 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5779,"D1-SV-5012-K4 [Local Safety Valve, 1-X-201]",5,,0
+5780,"(300001069125) Lepas SV ¾”x7.0x1” Check Internal, Lapping, Resetting 36 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5796,"D1-SV-5013-K4 [Local Safety Valve, 1-X-201]",5,,0
+5797,"(300001069126) Lepas SV 1”xEx2” Check Internal, Lapping, Resetting 28 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5813,"D1-SV-5021-K4 [Local Safety Valve, 1-X-201]",5,,0
+5814,"(300001069127) Lepas SV 4”xLx6” Check Internal, Lapping, Resetting 28 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5830,"D1-SV-5052-K4 [Local Safety Valve, 1-X-201]",5,,0
+5831,"(300001069128) Lepas SV 1”xEx2” Check Internal, Lapping, Resetting 53 kg/ cm2, Repainting&Pasang SV Rec. 140000053092",6,,0
+5847,CLASS : VALVE FLARE AND VENT SYSTEM [DPIPING4-101-D0111],4,,0
+5848,BV upstream SV-5012,5,,0
+5849,"(200000367798) Lepas&Ganti BV upstream SV-5012, Mal't Gate Valve 2"" 300# WCB RF (Leakout) Rec. 140000054831 tgl.06-10-2022",6,,0
+5851,BV u/s SV-5012 NH3 P5,5,,0
+5852,"(200000379784) Lepas&Ganti Baru Lepas & Ganti Baru, Mal't Gate valve 2"" 300# A352 LCB BB OS&Y RF (Leakout) Rec. 140000056049 tgl.23-11-2022",6,,0
+5854,BV u/s SV-5013,5,,0
+5855,"(200000384618) Lepas&Ganti Baru BV u/s SV-5013, Mal't Lepas & Ganti Baru BV u/s SV-5013 (Leakout) Rec. 140000058157 tgl.23-11-2022",6,,0
+5857,CLASS : PIPING FLARE AND VENT SYSTEM [DPIPING4-101-D0111],4,,0
+5858,Elbow line u/s HV-3006,5,,0
+5859,"(200000472157 ) Potong&Ganti Elbow, Pengelasan GTAW dengan filler rod ER 70S2, RT, Elbow line u/s HV-3006, Mal't Elbow 10"" sch 30 BW (SML) A234 WPB 1 ea Rec. 140000069868 tgl. 29.01.2024",6,,0
+5862,SUB_AREA : CHEMICAL SYSTEM [DPIPING4-101-D0112],3,,0
+5863,CLASS : VALVE CHEMICAL SYSTEM [DPIPING4-101-D0112],4,,0
+5864,BV Fill Up MDEA,5,,0
+5865,"(200000469178) Potong&Ganti Baru BV Fill Up MDEA, Mal't GTV 1"" 800# A105 SW (Tidak bisa di operate) Rec. 140000062590 tgl. 05.07.2023",6,,0
+5868,ADITIONAL ITEM MECHANICAL,3,,0
+5869,(200000433977) Additional Job Item Mechanical,4,,0
+5881,START UP DAN PRODUKSI AMMONIA,3,,0
+5883,ADDITIONAL ,3,,0
+5884,HEAT EXCHANGER,4,,0
+5885,D1-P-601A-E1-K4 ( Lube Oil Cooler for HP BFW Pump A ),5,,0
+5892,D1-P-601B-E1-K4 ( Lube Oil Cooler for HP BFW Pump B ),5,,0
+5899,VALVE,4,,0
+5900,K-441 BV Drain Suct stage 1 ( Korosi parah ),5,,0
+5904,K-203 BV drain line disc. N2 blower handwhell patah,5,,0
+5908,E-230 BV Drain E-230 sisi kondensate ( handwhell doll ),5,,0
+5912,K-203 BV drain line disc. N2 blower handwhell patah,5,,0
+5916,"FV-2018 BV 8 "" By pass FV-2018 ",5,,0
+5921,SV-4201,5,,0
+5928,SV-4301,5,,0
+5935,"212A BV sampling BFW 1"" 2ea handwhell patah BV line drain dari 212B",5,,0
+5939,"FV-2108 Ganti dan tambah BV 1,5"" by pass FV-2018",5,,0
+5943,BV steam SL Batteray Limit macet,5,,0
+5945,E-210 MSV-2003 outlet E-210 ( berat dioperate ),5,,0
+5950,E-230 drain sisi gas inlet E-230 buntu,5,,0
+5954,BV u/s HV-3006 Berat dioperate,5,,0
+5956,BV drain line kondensate header dekat batteray limit ( HW hilang ),5,,0
+5960,E-504 BV inlet & outlet CW E-504,5,,0
+5966,BV B/p 9042 berat dioperate,5,,0
+5968,ARC P-601,5,,0
+5976,BV minimum flow P- 301 ,5,,0
+5982,Check Valve P-301,5,,0
+5988,"BV Line 1/2"" u/s PG-2032 inlet HTS",5,,0
+5991,PIPING dan All Area,4,,0
+5992,Besi support penyangga V-502,5,,0
+5994,Besi support penyangga V-501,5,,0
+5996,Besi support penyangga E-507,5,,0
+5998,Ganti isolasi dingin V-502,5,,0
+6004,Ganti isolasi dingin E-507,5,,0
+6010,Ganti isolasi dingin V-503,5,,0
+6016,Ganti isolasi dingin E-514,5,,0
+6022,penambahan line drain emergency cooling water outlet cooler sealing P-601A,5,,0
+6024,penambahan line drain emergency cooling water outlet cooler sealing P-601B,5,,0
+6026,"Ganti line header N2, piperack samping K-441",5,,0
+6028,Repair flange orifice steam process FT-2004,5,,0
+6030,Line Header tap point SC-2007 Outlet korosi,5,,0
+6033,repair Box line condensate steam dekat P-308 ,5,,0
+6035,Ganti line steam trap dibawah FV-2008,5,,0
+6037,Pasang line flushing BFW ke SC-2009,5,,0
+6039,Repair Box Line SLTo H-501,5,,0
+6041,"Ganti Line BFW 3/4"" to Inlet R-204 PV 6003",5,,0
+6043,SV-2003 ganti line kondensat outlet SV-0015 Ti d/s LV-2003,5,,0
+6045,Line sampling gas SC-2006 Korosi,5,,0
+6047,Line sampling gas SC-2002 Korosi,5,,0
+6049,Line sampling gas midlle LTS Ke inlet SC-2008 Korosi,5,,0
+6051,Repair Box2 an line drain C-701,5,,0
+6053,Line sampling gas inlet SC-2002,5,,0
+6055,BV  samping middle LTS Leak Through,5,,0
+6057,"Line By pass 1"" Outlet R-201",5,,0
+6059,Line outlet SC-2001 ,5,,0
+6061,Reposisi BV injeksi Ameral LPFD,5,,0

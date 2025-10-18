@@ -1,22 +1,46 @@
-import { useState, useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { TaskRow, TaskSortMode } from '@/types/schedule';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    dateRangeFilterPredicate,
+    formatIndoDateTime,
+    paginate,
     parseDate,
     parseLocalDateTimeInput,
-    paginate,
-    textFilterPredicate,
-    dateRangeFilterPredicate,
     sortTaskRows,
-    formatIndoDateTime,
+    textFilterPredicate,
 } from '@/lib/schedule-utils';
+import type { TaskRow, TaskSortMode } from '@/types/schedule';
+import Papa from 'papaparse';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface GanttChartProps {
     tasks: TaskRow[];
     baselineShiftMs: number;
+}
+
+interface HierarchyRow {
+    TaskID: string;
+    TaskName: string;
+    OutlineLevel?: string | number;
+    ParentID?: string;
+    ChildrenIDs?: string;
+    IsSummary?: string | boolean;
+}
+
+interface DisplayRow {
+    taskId: string;
+    taskName: string;
+    outlineLevel: number;
+    isSummary: boolean;
+    taskData?: TaskRow; // undefined for summary rows without schedule data
 }
 
 export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
@@ -33,102 +57,246 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
         content: React.ReactNode;
     }>({ visible: false, x: 0, y: 0, content: null });
 
+    // hierarchy loaded from public/hierarchy/tasks_hierarchy.csv
+    const [hierarchyById, setHierarchyById] = useState<
+        Record<string, HierarchyRow>
+    >({});
+    const [hierarchyList, setHierarchyList] = useState<HierarchyRow[]>([]);
     const tooltipRef = useRef<HTMLDivElement>(null);
 
-    // Apply baseline shift to tasks
-    const shiftedTasks = tasks.map((r) => {
-        if (!baselineShiftMs) return r;
-        const s = parseDate(r.Start);
-        const e = parseDate(r.Finish);
-        const rr = { ...r };
-        if (s) {
-            const shifted = new Date(s.getTime() + baselineShiftMs);
-            rr.Start = shifted.toISOString().replace('T', ' ').slice(0, 19);
-        }
-        if (e) {
-            const shifted = new Date(e.getTime() + baselineShiftMs);
-            rr.Finish = shifted.toISOString().replace('T', ' ').slice(0, 19);
-        }
-        return rr;
-    });
+    // Load hierarchy CSV on mount
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const resp = await fetch('/hierarchy/tasks_hierarchy.csv', {
+                    cache: 'no-store',
+                });
+                if (!resp.ok) return;
+                const text = await resp.text();
+                const parsed = Papa.parse<HierarchyRow>(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                });
+                const data = (parsed.data || []) as HierarchyRow[];
+                const map: Record<string, HierarchyRow> = {};
+                const list: HierarchyRow[] = [];
+                for (const r of data) {
+                    if (!r) continue;
+                    const idStr = String(r.TaskID ?? '').trim();
+                    if (!idStr) continue;
+                    map[idStr] = r;
+                    list.push(r);
+                }
+                if (!cancelled) {
+                    setHierarchyById(map);
+                    setHierarchyList(list);
+                }
+            } catch (err) {
+                // ignore failures to keep chart usable
+                console.warn('Failed to load hierarchy CSV', err);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
-    // Filter tasks
+    // Apply baseline shift to tasks
+    const shiftedTasks = useMemo(() => {
+        return tasks.map((r) => {
+            if (!baselineShiftMs) return r;
+            const s = parseDate(r.Start);
+            const e = parseDate(r.Finish);
+            const rr = { ...r };
+            if (s) {
+                const shifted = new Date(s.getTime() + baselineShiftMs);
+                rr.Start = shifted.toISOString().replace('T', ' ').slice(0, 19);
+            }
+            if (e) {
+                const shifted = new Date(e.getTime() + baselineShiftMs);
+                rr.Finish = shifted
+                    .toISOString()
+                    .replace('T', ' ')
+                    .slice(0, 19);
+            }
+            return rr;
+        });
+    }, [tasks, baselineShiftMs]);
+
+    // Build task lookup by TaskID for quick access
+    const tasksById = useMemo(() => {
+        const map: Record<string, TaskRow> = {};
+        for (const task of shiftedTasks) {
+            map[String(task.TaskID)] = task;
+        }
+        return map;
+    }, [shiftedTasks]);
+
+    // Build display rows combining hierarchy and task data
+    const allDisplayRows = useMemo(() => {
+        const rows: DisplayRow[] = [];
+
+        // If no hierarchy loaded, fallback to showing tasks only
+        if (hierarchyList.length === 0) {
+            for (const task of shiftedTasks) {
+                rows.push({
+                    taskId: String(task.TaskID),
+                    taskName: task.TaskName,
+                    outlineLevel: 0,
+                    isSummary: false,
+                    taskData: task,
+                });
+            }
+            return rows;
+        }
+
+        // Build display rows from hierarchy, enriching with task data when available
+        for (const hier of hierarchyList) {
+            const taskId = String(hier.TaskID);
+            const outlineLevel = Number(hier.OutlineLevel ?? 0);
+            const isSummary =
+                String(hier.IsSummary).toLowerCase() === 'true' ||
+                hier.IsSummary === true;
+            const taskData = tasksById[taskId];
+
+            rows.push({
+                taskId,
+                taskName: hier.TaskName,
+                outlineLevel,
+                isSummary,
+                taskData,
+            });
+        }
+
+        return rows;
+    }, [hierarchyList, shiftedTasks, tasksById]);
+
+    // Filter display rows
     const predText = textFilterPredicate(filter);
     const fromDt = parseLocalDateTimeInput(fromDate);
     const toDt = parseLocalDateTimeInput(toDate);
     const predDate = dateRangeFilterPredicate(fromDt, toDt);
-    const filtered = shiftedTasks.filter((row) => predText(row as unknown as Record<string, unknown>) && (!fromDt && !toDt ? true : predDate(row)));
 
-    // Sort tasks
-    const ordered = sortTaskRows(filtered, sortMode);
+    const filtered = useMemo(() => {
+        return allDisplayRows.filter((row) => {
+            // Text filter on task name or ID
+            if (filter) {
+                const matchText = predText({
+                    TaskID: row.taskId,
+                    TaskName: row.taskName,
+                } as unknown as Record<string, unknown>);
+                if (!matchText) return false;
+            }
+
+            // Date filter only applies to rows with task data
+            if ((fromDt || toDt) && row.taskData) {
+                if (!predDate(row.taskData)) return false;
+            }
+
+            return true;
+        });
+    }, [allDisplayRows, filter, fromDt, toDt, predText, predDate]);
+
+    // Sort display rows - when hierarchy is present, maintain hierarchy order
+    // When no hierarchy, sort by task data
+    const ordered = useMemo(() => {
+        if (hierarchyList.length > 0) {
+            // Hierarchy order is preserved from the CSV file
+            return filtered;
+        }
+
+        // Fallback to sorting tasks when no hierarchy
+        const tasksToSort = filtered
+            .filter((r) => r.taskData)
+            .map((r) => r.taskData!);
+        const sorted = sortTaskRows(tasksToSort, sortMode);
+        return sorted.map((task) => ({
+            taskId: String(task.TaskID),
+            taskName: task.TaskName,
+            outlineLevel: 0,
+            isSummary: false,
+            taskData: task,
+        }));
+    }, [filtered, sortMode, hierarchyList.length]);
 
     // Paginate
     const actualPageSize = pageSize === -1 ? ordered.length || 1 : pageSize;
-    const { slice, page: currentPage, pages, total } = paginate(ordered, page, actualPageSize);
+    const {
+        slice,
+        page: currentPage,
+        pages,
+        total,
+    } = paginate(ordered, page, actualPageSize);
 
     // Ensure page is valid
     useEffect(() => {
         if (currentPage !== page) setPage(currentPage);
     }, [currentPage, page]);
 
-    // Calculate date range for gantt
-    let minStart: Date | null = null;
-    let maxFinish: Date | null = null;
-    for (const r of filtered) {
-        const s = parseDate(r.Start);
-        const e = parseDate(r.Finish);
-        if (!s || !e) continue;
-        if (!minStart || s < minStart) minStart = s;
-        if (!maxFinish || e > maxFinish) maxFinish = e;
-    }
+    // Calculate date range for gantt (only from rows with task data)
+    const { minStart, maxFinish, totalH } = useMemo(() => {
+        let minStart: Date | null = null;
+        let maxFinish: Date | null = null;
 
-    let totalH = 1;
-    if (minStart && maxFinish) {
-        totalH = (maxFinish.getTime() - minStart.getTime()) / 36e5;
-        if (!isFinite(totalH) || totalH <= 0) totalH = 1;
-    }
+        for (const r of filtered) {
+            if (!r.taskData) continue;
+            const s = parseDate(r.taskData.Start);
+            const e = parseDate(r.taskData.Finish);
+            if (!s || !e) continue;
+            if (!minStart || s < minStart) minStart = s;
+            if (!maxFinish || e > maxFinish) maxFinish = e;
+        }
+
+        let totalH = 1;
+        if (minStart && maxFinish) {
+            totalH = (maxFinish.getTime() - minStart.getTime()) / 36e5;
+            if (!isFinite(totalH) || totalH <= 0) totalH = 1;
+        }
+
+        return { minStart, maxFinish, totalH };
+    }, [filtered]);
 
     const maxWidthPx = 1200;
     const pxPerHour = maxWidthPx / totalH;
 
     // Generate scale ticks
-    const step = Math.max(1, Math.floor(totalH / 10));
-    const ticks: Array<{ left: number; label: string }> = [];
-    if (minStart) {
-        for (let h = 0; h <= totalH; h += step) {
-            const left = Math.round(h * pxPerHour);
-            const dt = new Date(minStart.getTime() + h * 36e5);
-            const lbl = dt.toISOString().replace('T', ' ').slice(0, 16);
-            ticks.push({ left, label: lbl });
+    const ticks = useMemo(() => {
+        const step = Math.max(1, Math.floor(totalH / 10));
+        const tickList: Array<{ left: number; label: string }> = [];
+        if (minStart) {
+            for (let h = 0; h <= totalH; h += step) {
+                const left = Math.round(h * pxPerHour);
+                const dt = new Date(minStart.getTime() + h * 36e5);
+                const lbl = dt.toISOString().replace('T', ' ').slice(0, 16);
+                tickList.push({ left, label: lbl });
+            }
         }
-    }
+        return tickList;
+    }, [minStart, totalH, pxPerHour]);
 
     const calculateTooltipPosition = (mouseX: number, mouseY: number) => {
         const pad = 12;
-        const tooltipWidth = 420; // Approximate max-width of tooltip
-        const tooltipHeight = 200; // Approximate height of tooltip
+        const tooltipWidth = 420;
+        const tooltipHeight = 200;
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
 
         let x = mouseX + pad;
         let y = mouseY + pad;
 
-        // Check if tooltip would overflow right edge
         if (x + tooltipWidth > viewportWidth) {
             x = mouseX - tooltipWidth - pad;
         }
 
-        // Check if tooltip would overflow bottom edge
         if (y + tooltipHeight > viewportHeight) {
             y = mouseY - tooltipHeight - pad;
         }
 
-        // Ensure tooltip doesn't go off left edge
         if (x < 4) {
             x = 4;
         }
 
-        // Ensure tooltip doesn't go off top edge
         if (y < 4) {
             y = 4;
         }
@@ -136,43 +304,111 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
         return { x, y };
     };
 
-    const handleMouseEnter = (e: React.MouseEvent, task: TaskRow) => {
-        const duration = task.DurationHours && !isNaN(Number(task.DurationHours))
-            ? Number(task.DurationHours).toFixed(1)
-            : '';
+    const handleMouseEnter = (e: React.MouseEvent, row: DisplayRow) => {
+        const task = row.taskData;
+        if (!task) {
+            // Summary row without task data
+            const content = (
+                <div className="max-w-md rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
+                    <table className="w-full">
+                        <tbody>
+                            <tr>
+                                <td className="pr-2 text-gray-400">TaskID</td>
+                                <td>{row.taskId}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">
+                                    Task Name
+                                </td>
+                                <td>{row.taskName}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">Type</td>
+                                <td>
+                                    {row.isSummary ? 'Summary/Heading' : 'Task'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">
+                                    Outline Level
+                                </td>
+                                <td>{row.outlineLevel}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            );
+            const pos = calculateTooltipPosition(e.clientX, e.clientY);
+            setTooltip({ visible: true, x: pos.x, y: pos.y, content });
+            return;
+        }
+
+        const duration =
+            task.DurationHours && !isNaN(Number(task.DurationHours))
+                ? Number(task.DurationHours).toFixed(1)
+                : '';
+
+        const hierarchy = hierarchyById[String(task.TaskID)];
+        const parentId = hierarchy ? hierarchy.ParentID : undefined;
 
         const content = (
-            <div className="bg-gray-900 text-white text-xs p-2 rounded-md shadow-lg max-w-md">
+            <div className="max-w-md rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
                 <table className="w-full">
                     <tbody>
                         <tr>
-                            <td className="text-gray-400 pr-2">TaskID</td>
+                            <td className="pr-2 text-gray-400">TaskID</td>
                             <td>{task.TaskID}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Task Name</td>
+                            <td className="pr-2 text-gray-400">Task Name</td>
                             <td>{task.TaskName}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Start</td>
+                            <td className="pr-2 text-gray-400">Start</td>
                             <td>{formatIndoDateTime(task.Start)}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Finish</td>
+                            <td className="pr-2 text-gray-400">Finish</td>
                             <td>{formatIndoDateTime(task.Finish)}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Duration Hours</td>
+                            <td className="pr-2 text-gray-400">
+                                Duration Hours
+                            </td>
                             <td>{duration}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Is Elapsed</td>
+                            <td className="pr-2 text-gray-400">Is Elapsed</td>
                             <td>{task.IsElapsed}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Assignments</td>
+                            <td className="pr-2 text-gray-400">Assignments</td>
                             <td>{task.Assignments}</td>
                         </tr>
+                        {hierarchy && (
+                            <>
+                                <tr>
+                                    <td className="pr-2 text-gray-400">
+                                        Outline Level
+                                    </td>
+                                    <td>{row.outlineLevel}</td>
+                                </tr>
+                                <tr>
+                                    <td className="pr-2 text-gray-400">
+                                        Is Summary
+                                    </td>
+                                    <td>{String(row.isSummary)}</td>
+                                </tr>
+                                {parentId && (
+                                    <tr>
+                                        <td className="pr-2 text-gray-400">
+                                            ParentID
+                                        </td>
+                                        <td>{parentId}</td>
+                                    </tr>
+                                )}
+                            </>
+                        )}
                     </tbody>
                 </table>
             </div>
@@ -197,7 +433,7 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
         <div className="space-y-4">
             {/* Filters */}
             <div className="flex flex-wrap items-end gap-4">
-                <div className="flex-1 min-w-[200px]">
+                <div className="min-w-[200px] flex-1">
                     <Label htmlFor="taskFilter">Filter tasks</Label>
                     <Input
                         id="taskFilter"
@@ -257,7 +493,10 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
                 </div>
                 <div>
                     <Label htmlFor="taskSort">Sort</Label>
-                    <Select value={sortMode} onValueChange={(v) => setSortMode(v as TaskSortMode)}>
+                    <Select
+                        value={sortMode}
+                        onValueChange={(v) => setSortMode(v as TaskSortMode)}
+                    >
                         <SelectTrigger id="taskSort" className="w-[180px]">
                             <SelectValue />
                         </SelectTrigger>
@@ -265,8 +504,12 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
                             <SelectItem value="id">Task ID</SelectItem>
                             <SelectItem value="start">Start time</SelectItem>
                             <SelectItem value="finish">Finish time</SelectItem>
-                            <SelectItem value="duration">Duration (longest first)</SelectItem>
-                            <SelectItem value="duration_asc">Duration (shortest first)</SelectItem>
+                            <SelectItem value="duration">
+                                Duration (longest first)
+                            </SelectItem>
+                            <SelectItem value="duration_asc">
+                                Duration (shortest first)
+                            </SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -278,10 +521,20 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
                     Rows: {total} | Page {currentPage}/{pages}
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(page - 1)}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage <= 1}
+                        onClick={() => setPage(page - 1)}
+                    >
                         Prev
                     </Button>
-                    <Button variant="outline" size="sm" disabled={currentPage >= pages} onClick={() => setPage(page + 1)}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage >= pages}
+                        onClick={() => setPage(page + 1)}
+                    >
                         Next
                     </Button>
                 </div>
@@ -289,52 +542,143 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
 
             {/* Gantt Chart */}
             {!minStart || !maxFinish ? (
-                <div className="border rounded-lg p-8 text-center text-muted-foreground">No valid dates in data</div>
+                <div className="rounded-lg border p-8 text-center text-muted-foreground">
+                    No valid dates in data
+                </div>
             ) : (
-                <div className="border rounded-lg p-4 bg-white dark:bg-gray-950 overflow-x-auto">
-                    <div className="text-xs text-muted-foreground mb-2">
-                        {/* Tasks: {total} | Page {currentPage}/{pages} |  */}
+                <div className="overflow-x-auto rounded-lg border bg-white p-4 dark:bg-gray-950">
+                    <div className="mb-2 text-xs text-muted-foreground">
                         Span {totalH.toFixed(1)} h
                     </div>
 
                     {/* Scale */}
-                    <div className="relative h-6 ml-[200px] mb-2">
+                    <div className="relative mb-2 ml-[250px] h-6">
                         {ticks.map((tick, i) => (
                             <div
                                 key={i}
                                 className="absolute h-full border-l border-gray-200 dark:border-gray-800"
                                 style={{ left: `${tick.left}px` }}
                             >
-                                <span className="absolute top-1 left-0.5 text-[10px] text-gray-500">{tick.label}</span>
+                                <span className="absolute top-1 left-0.5 text-[10px] text-gray-500">
+                                    {tick.label}
+                                </span>
                             </div>
                         ))}
                     </div>
 
                     {/* Gantt bars */}
-                    <div className="relative ml-[200px] min-w-[800px]">
-                        {slice.map((task, idx) => {
+                    <div className="relative ml-[250px] min-w-[800px]">
+                        {slice.map((row, idx) => {
+                            const task = row.taskData;
+
+                            // Compute padding left based on outline level (cap to avoid overflow)
+                            const padLeft = Math.min(
+                                Math.max(0, row.outlineLevel) * 12,
+                                200,
+                            );
+
+                            // Summary/heading row without task data - show label only
+                            if (!task) {
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800"
+                                    >
+                                        <span
+                                            className="absolute top-1.5 -left-[250px] w-[240px] overflow-hidden text-sm font-bold text-ellipsis whitespace-nowrap text-gray-700 dark:text-gray-300"
+                                            title={`${row.taskId}: ${row.taskName}`}
+                                            style={{
+                                                paddingLeft: `${padLeft}px`,
+                                                display: 'inline-block',
+                                            }}
+                                            onMouseEnter={(e) =>
+                                                handleMouseEnter(e, row)
+                                            }
+                                            onMouseMove={handleMouseMove}
+                                            onMouseLeave={handleMouseLeave}
+                                        >
+                                            {row.taskName}
+                                        </span>
+                                    </div>
+                                );
+                            }
+
+                            // Task row with gantt bar
                             const s = parseDate(task.Start);
                             const e = parseDate(task.Finish);
-                            if (!s || !e || !minStart) return null;
+                            if (!s || !e || !minStart) {
+                                // Task without valid dates - show label only
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800"
+                                    >
+                                        <span
+                                            className="absolute top-1.5 -left-[250px] w-[240px] overflow-hidden text-sm text-ellipsis whitespace-nowrap text-gray-600 dark:text-gray-400"
+                                            title={`${row.taskId}: ${row.taskName}`}
+                                            style={{
+                                                paddingLeft: `${padLeft}px`,
+                                                display: 'inline-block',
+                                            }}
+                                        >
+                                            {row.taskName}
+                                        </span>
+                                    </div>
+                                );
+                            }
 
-                            const left = Math.max(0, Math.round(((s.getTime() - minStart.getTime()) / 36e5) * pxPerHour));
-                            const width = Math.max(2, Math.round(((e.getTime() - s.getTime()) / 36e5) * pxPerHour));
-                            const isElapsed = (task.IsElapsed || '').toString().toUpperCase().startsWith('Y');
+                            const left = Math.max(
+                                0,
+                                Math.round(
+                                    ((s.getTime() - minStart.getTime()) /
+                                        36e5) *
+                                        pxPerHour,
+                                ),
+                            );
+                            const width = Math.max(
+                                2,
+                                Math.round(
+                                    ((e.getTime() - s.getTime()) / 36e5) *
+                                        pxPerHour,
+                                ),
+                            );
+                            const isElapsed = (task.IsElapsed || '')
+                                .toString()
+                                .toUpperCase()
+                                .startsWith('Y');
 
                             return (
-                                <div key={idx} className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800">
+                                <div
+                                    key={idx}
+                                    className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800"
+                                >
                                     <span
-                                        className="absolute w-[190px] -left-[200px] top-1.5 whitespace-nowrap overflow-hidden text-ellipsis text-sm"
-                                        title={task.TaskID}
+                                        className={`absolute top-1.5 -left-[250px] w-[240px] overflow-hidden text-sm text-ellipsis whitespace-nowrap ${
+                                            row.isSummary
+                                                ? 'font-semibold text-gray-800 dark:text-gray-200'
+                                                : 'text-gray-700 dark:text-gray-300'
+                                        }`}
+                                        title={`${row.taskId}: ${row.taskName}`}
+                                        style={{
+                                            paddingLeft: `${padLeft}px`,
+                                            display: 'inline-block',
+                                        }}
                                     >
-                                        {task.TaskName}
+                                        {row.taskName}
                                     </span>
                                     <div
-                                        className={`absolute h-4 top-1.5 rounded cursor-pointer transition-opacity hover:opacity-80 ${
-                                            isElapsed ? 'bg-red-500' : 'bg-blue-500'
+                                        className={`absolute top-1.5 h-4 cursor-pointer rounded transition-opacity hover:opacity-80 ${
+                                            isElapsed
+                                                ? 'bg-red-500'
+                                                : 'bg-blue-500'
                                         }`}
-                                        style={{ left: `${left}px`, width: `${width}px` }}
-                                        onMouseEnter={(e) => handleMouseEnter(e, task)}
+                                        style={{
+                                            left: `${left}px`,
+                                            width: `${width}px`,
+                                        }}
+                                        onMouseEnter={(e) =>
+                                            handleMouseEnter(e, row)
+                                        }
                                         onMouseMove={handleMouseMove}
                                         onMouseLeave={handleMouseLeave}
                                     />
@@ -349,7 +693,7 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
             {tooltip.visible && (
                 <div
                     ref={tooltipRef}
-                    className="fixed z-50 pointer-events-none"
+                    className="pointer-events-none fixed z-50"
                     style={{
                         left: `${tooltip.x}px`,
                         top: `${tooltip.y}px`,
