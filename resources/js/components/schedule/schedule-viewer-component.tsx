@@ -19,10 +19,14 @@ import { Loader2 } from 'lucide-react';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { GanttChart } from './gantt-chart';
+import { GanttChartCompare } from './gantt-chart-compare';
 import { GanttChartFlat } from './gantt-chart-flat';
 import { ResourceLoadChart } from './resource-load-chart';
+import { ResourceLoadChartCompare } from './resource-load-chart-compare';
 import { ResourceTable } from './resource-table';
+import { ResourceTableCompare } from './resource-table-compare';
 import { TaskTable } from './task-table';
+import { TaskTableCompare } from './task-table-compare';
 // import Papa from 'papaparse';
 
 const formatVariantLabel = (variantKey: string): string =>
@@ -64,9 +68,11 @@ export function ScheduleViewerComponent({
     const [currentVariant, setCurrentVariant] = useState(initialVariant);
     const [customStart, setCustomStart] = useState('');
     const [status, setStatus] = useState('');
-    const [ganttViewMode, setGanttViewMode] = useState<'hierarchy' | 'flat'>(
-        'hierarchy',
-    );
+    const [ganttViewMode, setGanttViewMode] = useState<
+        'hierarchy' | 'flat' | 'compare'
+    >('hierarchy');
+    const [compareVariants, setCompareVariants] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState('gantt');
 
     const {
         taskRows,
@@ -392,23 +398,14 @@ export function ScheduleViewerComponent({
                 </div>
             </div>
 
-            {/* Tabs */}
-            <Tabs defaultValue="gantt" className="w-full">
-                <TabsList>
-                    <TabsTrigger value="gantt">Gantt</TabsTrigger>
-                    <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                    <TabsTrigger value="resources">
-                        Resource Tracking
-                    </TabsTrigger>
-                    <TabsTrigger value="resload">Resource Load</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="gantt" className="mt-4">
-                    <div className="space-y-4">
-                        {/* Gantt View Mode Selector */}
-                        <div className="flex items-center gap-4 rounded-lg border bg-muted/50 p-3">
-                            <Label className="font-semibold">View Mode:</Label>
-                            <div className="flex gap-2">
+            {/* View Mode Selector - Always Visible */}
+            <div className="space-y-4">
+                {/* Gantt View Mode Selector */}
+                <div className="flex items-center gap-4 rounded-lg border bg-muted/50 p-3">
+                    <Label className="font-semibold">View Mode:</Label>
+                    <div className="flex gap-2">
+                        {activeTab === 'gantt' && (
+                            <>
                                 <Button
                                     variant={
                                         ganttViewMode === 'hierarchy'
@@ -433,44 +430,148 @@ export function ScheduleViewerComponent({
                                 >
                                     Flat View (Sortable)
                                 </Button>
-                            </div>
-                            <span className="ml-auto text-sm text-muted-foreground">
-                                {ganttViewMode === 'hierarchy'
-                                    ? 'Showing hierarchical structure with headings'
-                                    : 'Showing flat list with sorting options'}
-                            </span>
-                        </div>
-
-                        {/* Render appropriate view */}
-                        {ganttViewMode === 'hierarchy'
-                            ? renderContent(
-                                  <GanttChart
-                                      tasks={shiftedTasks}
-                                      baselineShiftMs={baselineShiftMs}
-                                  />,
-                              )
-                            : renderContent(
-                                  <GanttChartFlat
-                                      tasks={shiftedTasks}
-                                      baselineShiftMs={baselineShiftMs}
-                                  />,
-                              )}
+                            </>
+                        )}
+                        <Button
+                            variant={
+                                ganttViewMode === 'compare'
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            size="sm"
+                            onClick={() => setGanttViewMode('compare')}
+                            disabled={visibleVariants.length < 2}
+                        >
+                            Compare Variants
+                        </Button>
                     </div>
+                    <span className="ml-auto text-sm text-muted-foreground">
+                        {ganttViewMode === 'compare'
+                            ? 'Compare schedules across different variants'
+                            : activeTab === 'gantt'
+                              ? ganttViewMode === 'hierarchy'
+                                  ? 'Showing hierarchical structure with headings'
+                                  : 'Showing flat list with sorting options'
+                              : 'Viewing single variant data'}
+                    </span>
+                </div>
+
+                {/* Variant Comparison Selector - Always Visible When Compare Mode Active */}
+                {ganttViewMode === 'compare' && (
+                    <div className="rounded-lg border bg-muted/50 p-4">
+                        <Label className="mb-3 block font-semibold">
+                            Select Variants to Compare:
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                            {visibleVariants.map((variant) => (
+                                <Button
+                                    key={variant.slug}
+                                    variant={
+                                        compareVariants.includes(variant.slug)
+                                            ? 'default'
+                                            : 'outline'
+                                    }
+                                    size="sm"
+                                    onClick={() => {
+                                        setCompareVariants((prev) =>
+                                            prev.includes(variant.slug)
+                                                ? prev.filter(
+                                                      (v) => v !== variant.slug,
+                                                  )
+                                                : [...prev, variant.slug],
+                                        );
+                                    }}
+                                >
+                                    {variant.name ||
+                                        formatVariantLabel(variant.slug)}
+                                </Button>
+                            ))}
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Selected: {compareVariants.length} variant
+                            {compareVariants.length !== 1 ? 's' : ''}
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            {/* Tabs */}
+            <Tabs
+                defaultValue="gantt"
+                className="w-full"
+                onValueChange={(value) => setActiveTab(value)}
+            >
+                <TabsList>
+                    <TabsTrigger value="gantt">Gantt</TabsTrigger>
+                    <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                    <TabsTrigger value="resources">
+                        Resource Tracking
+                    </TabsTrigger>
+                    <TabsTrigger value="resload">Resource Load</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="gantt" className="mt-4">
+                    {/* Render appropriate view */}
+                    {ganttViewMode === 'hierarchy' ? (
+                        renderContent(
+                            <GanttChart
+                                tasks={shiftedTasks}
+                                baselineShiftMs={baselineShiftMs}
+                            />,
+                        )
+                    ) : ganttViewMode === 'flat' ? (
+                        renderContent(
+                            <GanttChartFlat
+                                tasks={shiftedTasks}
+                                baselineShiftMs={baselineShiftMs}
+                            />,
+                        )
+                    ) : (
+                        <GanttChartCompare
+                            variants={visibleVariants}
+                            compareVariants={compareVariants}
+                            customStart={customStart}
+                        />
+                    )}
                 </TabsContent>
 
                 <TabsContent value="tasks" className="mt-4">
-                    {renderContent(<TaskTable tasks={shiftedTasks} />)}
+                    {ganttViewMode === 'compare' ? (
+                        <TaskTableCompare
+                            variants={visibleVariants}
+                            compareVariants={compareVariants}
+                            customStart={customStart}
+                        />
+                    ) : (
+                        renderContent(<TaskTable tasks={shiftedTasks} />)
+                    )}
                 </TabsContent>
 
                 <TabsContent value="resources" className="mt-4">
-                    {renderContent(
-                        <ResourceTable resources={shiftedResources} />,
+                    {ganttViewMode === 'compare' ? (
+                        <ResourceTableCompare
+                            variants={visibleVariants}
+                            compareVariants={compareVariants}
+                            customStart={customStart}
+                        />
+                    ) : (
+                        renderContent(
+                            <ResourceTable resources={shiftedResources} />,
+                        )
                     )}
                 </TabsContent>
 
                 <TabsContent value="resload" className="mt-4">
-                    {renderContent(
-                        <ResourceLoadChart resources={shiftedResources} />,
+                    {ganttViewMode === 'compare' ? (
+                        <ResourceLoadChartCompare
+                            variants={visibleVariants}
+                            compareVariants={compareVariants}
+                            customStart={customStart}
+                        />
+                    ) : (
+                        renderContent(
+                            <ResourceLoadChart resources={shiftedResources} />,
+                        )
                     )}
                 </TabsContent>
             </Tabs>
