@@ -515,14 +515,14 @@ export function ScheduleViewerComponent({
                     {ganttViewMode === 'hierarchy' ? (
                         renderContent(
                             <GanttChart
-                                tasks={shiftedTasks}
+                                tasks={taskRows}
                                 baselineShiftMs={baselineShiftMs}
                             />,
                         )
                     ) : ganttViewMode === 'flat' ? (
                         renderContent(
                             <GanttChartFlat
-                                tasks={shiftedTasks}
+                                tasks={taskRows}
                                 baselineShiftMs={baselineShiftMs}
                             />,
                         )

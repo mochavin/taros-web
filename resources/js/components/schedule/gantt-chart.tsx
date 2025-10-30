@@ -17,13 +17,176 @@ import {
     sortTaskRows,
     textFilterPredicate,
 } from '@/lib/schedule-utils';
-import type { TaskRow, TaskSortMode } from '@/types/schedule';
+import type { GanttFilters, TaskRow, TaskSortMode } from '@/types/schedule';
 import Papa from 'papaparse';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface GanttChartProps {
     tasks: TaskRow[];
     baselineShiftMs: number;
+    filters?: GanttFilters;
+    onFiltersChange?: (filters: GanttFilters) => void;
+    showControls?: boolean;
+    idPrefix?: string;
+    autoClampPage?: boolean;
+}
+
+interface GanttControlsProps {
+    filters: GanttFilters;
+    onFiltersChange: (patch: Partial<GanttFilters>) => void;
+    total: number;
+    currentPage: number;
+    pages: number;
+    idPrefix?: string;
+}
+
+export function GanttControls({
+    filters,
+    onFiltersChange,
+    total,
+    currentPage,
+    pages,
+    idPrefix,
+}: GanttControlsProps) {
+    const idBase = idPrefix ? `${idPrefix}-` : '';
+
+    return (
+        <>
+            <div className="flex flex-wrap items-end gap-4">
+                <div className="min-w-[200px] flex-1">
+                    <Label htmlFor={`${idBase}taskFilter`}>Filter tasks</Label>
+                    <Input
+                        id={`${idBase}taskFilter`}
+                        type="text"
+                        placeholder="Filter tasks by text..."
+                        value={filters.filter}
+                        onChange={(e) =>
+                            onFiltersChange({
+                                filter: e.target.value,
+                                page: 1,
+                            })
+                        }
+                    />
+                </div>
+                <div>
+                    <Label htmlFor={`${idBase}taskFrom`}>From</Label>
+                    <Input
+                        id={`${idBase}taskFrom`}
+                        type="datetime-local"
+                        value={filters.fromDate}
+                        onChange={(e) =>
+                            onFiltersChange({
+                                fromDate: e.target.value,
+                                page: 1,
+                            })
+                        }
+                    />
+                </div>
+                <div>
+                    <Label htmlFor={`${idBase}taskTo`}>To</Label>
+                    <Input
+                        id={`${idBase}taskTo`}
+                        type="datetime-local"
+                        value={filters.toDate}
+                        onChange={(e) =>
+                            onFiltersChange({
+                                toDate: e.target.value,
+                                page: 1,
+                            })
+                        }
+                    />
+                </div>
+                <div>
+                    <Label htmlFor={`${idBase}taskPageSize`}>Page size</Label>
+                    <Select
+                        value={filters.pageSize.toString()}
+                        onValueChange={(v) =>
+                            onFiltersChange({
+                                pageSize: v === '-1' ? -1 : Number(v),
+                                page: 1,
+                            })
+                        }
+                    >
+                        <SelectTrigger
+                            id={`${idBase}taskPageSize`}
+                            className="w-[100px]"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                            <SelectItem value="200">200</SelectItem>
+                            <SelectItem value="-1">All</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div>
+                    <Label htmlFor={`${idBase}taskSort`}>Sort</Label>
+                    <Select
+                        value={filters.sortMode}
+                        onValueChange={(v) =>
+                            onFiltersChange({
+                                sortMode: v as TaskSortMode,
+                                page: 1,
+                            })
+                        }
+                    >
+                        <SelectTrigger
+                            id={`${idBase}taskSort`}
+                            className="w-[180px]"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="id">Task ID</SelectItem>
+                            <SelectItem value="start">Start time</SelectItem>
+                            <SelectItem value="finish">Finish time</SelectItem>
+                            <SelectItem value="duration">
+                                Duration (longest first)
+                            </SelectItem>
+                            <SelectItem value="duration_asc">
+                                Duration (shortest first)
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                    Rows: {total} | Page {currentPage}/{pages}
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage <= 1}
+                        onClick={() =>
+                            onFiltersChange({
+                                page: Math.max(1, filters.page - 1),
+                            })
+                        }
+                    >
+                        Prev
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage >= pages}
+                        onClick={() =>
+                            onFiltersChange({
+                                page: Math.min(pages, filters.page + 1),
+                            })
+                        }
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
+        </>
+    );
 }
 
 interface HierarchyRow {
@@ -43,13 +206,38 @@ interface DisplayRow {
     taskData?: TaskRow; // undefined for summary rows without schedule data
 }
 
-export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(-1);
-    const [filter, setFilter] = useState('');
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
-    const [sortMode, setSortMode] = useState<TaskSortMode>('id');
+export function GanttChart({
+    tasks,
+    baselineShiftMs,
+    filters,
+    onFiltersChange,
+    showControls = true,
+    idPrefix,
+    autoClampPage = true,
+}: GanttChartProps) {
+    const controlled = filters !== undefined && onFiltersChange !== undefined;
+    const [internalFilters, setInternalFilters] = useState<GanttFilters>({
+        filter: '',
+        fromDate: '',
+        toDate: '',
+        sortMode: 'id',
+        page: 1,
+        pageSize: -1,
+    });
+
+    const activeFilters = controlled ? filters! : internalFilters;
+
+    const updateFilters = useCallback(
+        (patch: Partial<GanttFilters>) => {
+            if (controlled) {
+                onFiltersChange?.({ ...filters!, ...patch });
+            } else {
+                setInternalFilters((prev) => ({ ...prev, ...patch }));
+            }
+        },
+        [controlled, filters, onFiltersChange],
+    );
+
     const [tooltip, setTooltip] = useState<{
         visible: boolean;
         x: number;
@@ -173,15 +361,15 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
     }, [hierarchyList, shiftedTasks, tasksById]);
 
     // Filter display rows
-    const predText = textFilterPredicate(filter);
-    const fromDt = parseLocalDateTimeInput(fromDate);
-    const toDt = parseLocalDateTimeInput(toDate);
+    const predText = textFilterPredicate(activeFilters.filter);
+    const fromDt = parseLocalDateTimeInput(activeFilters.fromDate);
+    const toDt = parseLocalDateTimeInput(activeFilters.toDate);
     const predDate = dateRangeFilterPredicate(fromDt, toDt);
 
     const filtered = useMemo(() => {
         return allDisplayRows.filter((row) => {
             // Text filter on task name or ID
-            if (filter) {
+            if (activeFilters.filter) {
                 const matchText = predText({
                     TaskID: row.taskId,
                     TaskName: row.taskName,
@@ -196,7 +384,7 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
 
             return true;
         });
-    }, [allDisplayRows, filter, fromDt, toDt, predText, predDate]);
+    }, [allDisplayRows, activeFilters.filter, fromDt, toDt, predText, predDate]);
 
     // Sort display rows - when hierarchy is present, maintain hierarchy order
     // When no hierarchy, sort by task data
@@ -210,7 +398,7 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
         const tasksToSort = filtered
             .filter((r) => r.taskData)
             .map((r) => r.taskData!);
-        const sorted = sortTaskRows(tasksToSort, sortMode);
+        const sorted = sortTaskRows(tasksToSort, activeFilters.sortMode);
         return sorted.map((task) => ({
             taskId: String(task.TaskID),
             taskName: task.TaskName,
@@ -218,21 +406,29 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
             isSummary: false,
             taskData: task,
         }));
-    }, [filtered, sortMode, hierarchyList.length]);
+    }, [filtered, activeFilters.sortMode, hierarchyList.length]);
 
     // Paginate
-    const actualPageSize = pageSize === -1 ? ordered.length || 1 : pageSize;
+    const actualPageSize =
+        activeFilters.pageSize === -1
+            ? ordered.length || 1
+            : activeFilters.pageSize;
     const {
         slice,
         page: currentPage,
         pages,
         total,
-    } = paginate(ordered, page, actualPageSize);
+    } = paginate(ordered, activeFilters.page, actualPageSize);
 
     // Ensure page is valid
     useEffect(() => {
-        if (currentPage !== page) setPage(currentPage);
-    }, [currentPage, page]);
+        if (!autoClampPage) {
+            return;
+        }
+        if (currentPage !== activeFilters.page) {
+            updateFilters({ page: currentPage });
+        }
+    }, [autoClampPage, currentPage, activeFilters.page, updateFilters]);
 
     // Calculate date range for gantt (only from rows with task data)
     const { minStart, maxFinish, totalH } = useMemo(() => {
@@ -431,114 +627,16 @@ export function GanttChart({ tasks, baselineShiftMs }: GanttChartProps) {
 
     return (
         <div className="space-y-4">
-            {/* Filters */}
-            <div className="flex flex-wrap items-end gap-4">
-                <div className="min-w-[200px] flex-1">
-                    <Label htmlFor="taskFilter">Filter tasks</Label>
-                    <Input
-                        id="taskFilter"
-                        type="text"
-                        placeholder="Filter tasks by text..."
-                        value={filter}
-                        onChange={(e) => {
-                            setFilter(e.target.value);
-                            setPage(1);
-                        }}
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="taskFrom">From</Label>
-                    <Input
-                        id="taskFrom"
-                        type="datetime-local"
-                        value={fromDate}
-                        onChange={(e) => {
-                            setFromDate(e.target.value);
-                            setPage(1);
-                        }}
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="taskTo">To</Label>
-                    <Input
-                        id="taskTo"
-                        type="datetime-local"
-                        value={toDate}
-                        onChange={(e) => {
-                            setToDate(e.target.value);
-                            setPage(1);
-                        }}
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="taskPageSize">Page size</Label>
-                    <Select
-                        value={pageSize.toString()}
-                        onValueChange={(v) => {
-                            setPageSize(v === 'all' ? -1 : Number(v));
-                            setPage(1);
-                        }}
-                    >
-                        <SelectTrigger id="taskPageSize" className="w-[100px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
-                            <SelectItem value="200">200</SelectItem>
-                            <SelectItem value="-1">All</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div>
-                    <Label htmlFor="taskSort">Sort</Label>
-                    <Select
-                        value={sortMode}
-                        onValueChange={(v) => setSortMode(v as TaskSortMode)}
-                    >
-                        <SelectTrigger id="taskSort" className="w-[180px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="id">Task ID</SelectItem>
-                            <SelectItem value="start">Start time</SelectItem>
-                            <SelectItem value="finish">Finish time</SelectItem>
-                            <SelectItem value="duration">
-                                Duration (longest first)
-                            </SelectItem>
-                            <SelectItem value="duration_asc">
-                                Duration (shortest first)
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-
-            {/* Pagination controls */}
-            <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                    Rows: {total} | Page {currentPage}/{pages}
-                </div>
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentPage <= 1}
-                        onClick={() => setPage(page - 1)}
-                    >
-                        Prev
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentPage >= pages}
-                        onClick={() => setPage(page + 1)}
-                    >
-                        Next
-                    </Button>
-                </div>
-            </div>
+            {showControls && (
+                <GanttControls
+                    filters={activeFilters}
+                    onFiltersChange={updateFilters}
+                    total={total}
+                    currentPage={currentPage}
+                    pages={pages}
+                    idPrefix={idPrefix}
+                />
+            )}
 
             {/* Gantt Chart */}
             {!minStart || !maxFinish ? (

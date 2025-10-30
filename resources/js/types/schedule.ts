@@ -34,6 +34,15 @@ export interface ScheduleVariantOption {
 
 export type TaskSortMode = 'id' | 'start' | 'finish' | 'duration' | 'duration_asc';
 
+export interface GanttFilters {
+    filter: string;
+    fromDate: string;
+    toDate: string;
+    sortMode: TaskSortMode;
+    page: number;
+    pageSize: number;
+}
+
 export interface PaginationResult<T> {
     slice: T[];
     page: number;
