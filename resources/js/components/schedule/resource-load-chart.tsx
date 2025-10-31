@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ResourceRow } from '@/types/schedule';
-import { parseDate, parseLocalDateInput, ymd, addDays, niceMax, makeColor } from '@/lib/schedule-utils';
+import { parseDate, parseLocalDateInput, ymd, niceMax, makeColor } from '@/lib/schedule-utils';
 
 interface ResourceLoadChartProps {
     resources: ResourceRow[];

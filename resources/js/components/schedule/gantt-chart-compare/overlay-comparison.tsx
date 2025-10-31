@@ -23,6 +23,8 @@ import { GanttControls } from '../gantt-chart';
 import { applyBaselineShift, computeBaselineShiftMs } from './utils';
 import type { VariantEntry } from './use-variant-data';
 
+const EMPTY_TASK_ROWS: TaskRow[] = [];
+
 interface OverlayComparisonProps {
     variantA: VariantEntry;
     variantB: VariantEntry;
@@ -55,8 +57,8 @@ export function OverlayComparison({
     const dataA = variantA.data;
     const dataB = variantB.data;
 
-    const tasksA = dataA?.taskRows ?? [];
-    const tasksB = dataB?.taskRows ?? [];
+    const tasksA = dataA?.taskRows ?? EMPTY_TASK_ROWS;
+    const tasksB = dataB?.taskRows ?? EMPTY_TASK_ROWS;
 
     const [tooltip, setTooltip] = useState<TooltipState>({
         visible: false,
@@ -602,17 +604,6 @@ export function OverlayComparison({
                                     const startB = parseDate(row.variantBTask?.Start ?? null);
                                     const finishB = parseDate(row.variantBTask?.Finish ?? null);
 
-                                    let overlapStart: Date | null = null;
-                                    let overlapEnd: Date | null = null;
-                                    if (startA && finishA && startB && finishB) {
-                                        const os = Math.max(startA.getTime(), startB.getTime());
-                                        const oe = Math.min(finishA.getTime(), finishB.getTime());
-                                        if (os < oe) {
-                                            overlapStart = new Date(os);
-                                            overlapEnd = new Date(oe);
-                                        }
-                                    }
-
                                     const makeBar = (
                                         start: Date | null,
                                         finish: Date | null,
@@ -660,37 +651,6 @@ export function OverlayComparison({
                                         );
                                     };
 
-                                    const makeOverlap = (
-                                        start: Date | null,
-                                        finish: Date | null,
-                                    ) => {
-                                        if (!start || !finish) return null;
-                                        const left = Math.max(
-                                            0,
-                                            Math.round(
-                                                ((start.getTime() - minStart!.getTime()) / 36e5) *
-                                                    pxPerHour,
-                                            ),
-                                        );
-                                        const width = Math.max(
-                                            2,
-                                            Math.round(
-                                                ((finish.getTime() - start.getTime()) / 36e5) *
-                                                    pxPerHour,
-                                            ),
-                                        );
-                                        return (
-                                            <div
-                                                className="absolute z-0 h-3 rounded bg-amber-400/60"
-                                                style={{
-                                                    left: `${left}px`,
-                                                    top: '30px',
-                                                    width: `${width}px`,
-                                                }}
-                                            />
-                                        );
-                                    };
-
                                     return (
                                         <div
                                             key={`${row.taskId}`}
@@ -719,8 +679,6 @@ export function OverlayComparison({
                                                 24,
                                                 variantBLabel,
                                             )}
-
-                                            {/* {makeOverlap(overlapStart, overlapEnd)} */}
                                         </div>
                                     );
                                 })}

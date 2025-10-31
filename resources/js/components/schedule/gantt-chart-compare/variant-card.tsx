@@ -1,16 +1,20 @@
 import { Label } from '@/components/ui/label';
-import type { GanttFilters } from '@/types/schedule';
+import type { GanttFilters, TaskRow } from '@/types/schedule';
 import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { GanttChart } from '../gantt-chart';
+import { GanttChartFlat } from '../gantt-chart-flat';
 import { computeBaselineShiftMs } from './utils';
 import type { VariantEntry } from './use-variant-data';
+
+const EMPTY_TASK_ROWS: TaskRow[] = [];
 
 interface VariantCardProps {
     entry: VariantEntry;
     customStart: string;
     filters: GanttFilters;
     onFiltersChange: (filters: GanttFilters) => void;
+    viewMode: 'hierarchy' | 'flat';
 }
 
 export function VariantCard({
@@ -18,8 +22,9 @@ export function VariantCard({
     customStart,
     filters,
     onFiltersChange,
+    viewMode,
 }: VariantCardProps) {
-    const taskRows = entry.data?.taskRows ?? [];
+    const taskRows = entry.data?.taskRows ?? EMPTY_TASK_ROWS;
     const baselineShiftMs = useMemo(
         () => computeBaselineShiftMs(taskRows, customStart),
         [taskRows, customStart],
@@ -97,13 +102,23 @@ export function VariantCard({
                 </div>
             </div>
             <div className="min-h-[500px] flex-1">
-                <GanttChart
-                    tasks={taskRows}
-                    baselineShiftMs={baselineShiftMs}
-                    filters={filters}
-                    onFiltersChange={onFiltersChange}
-                    idPrefix={`compare-${entry.slug}`}
-                />
+                {viewMode === 'hierarchy' ? (
+                    <GanttChart
+                        tasks={taskRows}
+                        baselineShiftMs={baselineShiftMs}
+                        filters={filters}
+                        onFiltersChange={onFiltersChange}
+                        idPrefix={`compare-${entry.slug}`}
+                    />
+                ) : (
+                    <GanttChartFlat
+                        tasks={taskRows}
+                        baselineShiftMs={baselineShiftMs}
+                        filters={filters}
+                        onFiltersChange={onFiltersChange}
+                        idPrefix={`compare-${entry.slug}`}
+                    />
+                )}
             </div>
         </div>
     );

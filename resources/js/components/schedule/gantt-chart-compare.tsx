@@ -1,7 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { GanttFilters, ScheduleVariantOption } from '@/types/schedule';
-import { GitCompare, LayoutGrid, Rows3 } from 'lucide-react';
+import {
+    GitCompare,
+    LayoutGrid,
+    Rows3,
+    ListTree,
+    List,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OverlayComparison } from './gantt-chart-compare/overlay-comparison';
 import { useVariantEntries } from './gantt-chart-compare/use-variant-data';
@@ -29,6 +35,9 @@ export function GanttChartCompare({
         page: 1,
         pageSize: -1,
     });
+    const [detailViewMode, setDetailViewMode] = useState<'hierarchy' | 'flat'>(
+        'hierarchy',
+    );
     const { entries } = useVariantEntries(variants, compareVariants);
 
     useEffect(() => {
@@ -36,6 +45,10 @@ export function GanttChartCompare({
             setLayoutMode('grid');
         }
     }, [layoutMode, compareVariants.length]);
+
+    useEffect(() => {
+        setFilters((prev) => ({ ...prev, page: 1 }));
+    }, [detailViewMode]);
 
     const handleLayoutChange = useCallback(
         (mode: 'grid' | 'stacked' | 'overlay') => {
@@ -83,42 +96,67 @@ export function GanttChartCompare({
             )}
 
             <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-muted/50 p-3">
-                <Label className="font-semibold">Layout</Label>
-                <div className="flex flex-wrap gap-2">
-                    <Button
-                        variant={layoutMode === 'grid' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleLayoutChange('grid')}
-                    >
-                        <LayoutGrid className="mr-2 h-4 w-4" />
-                        Grid
-                    </Button>
-                    <Button
-                        variant={layoutMode === 'stacked' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleLayoutChange('stacked')}
-                    >
-                        <Rows3 className="mr-2 h-4 w-4" />
-                        Stacked
-                    </Button>
-                    <Button
-                        variant={layoutMode === 'overlay' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleLayoutChange('overlay')}
-                        disabled={entries.length !== 2}
-                    >
-                        <GitCompare className="mr-2 h-4 w-4" />
-                        Overlay
-                    </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Label className="font-semibold">Layout</Label>
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            variant={layoutMode === 'grid' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleLayoutChange('grid')}
+                        >
+                            <LayoutGrid className="mr-2 h-4 w-4" />
+                            Grid
+                        </Button>
+                        <Button
+                            variant={layoutMode === 'stacked' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleLayoutChange('stacked')}
+                        >
+                            <Rows3 className="mr-2 h-4 w-4" />
+                            Stacked
+                        </Button>
+                        <Button
+                            variant={layoutMode === 'overlay' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleLayoutChange('overlay')}
+                            disabled={entries.length !== 2}
+                        >
+                            <GitCompare className="mr-2 h-4 w-4" />
+                            Overlay
+                        </Button>
+                    </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Label className="font-semibold">Detail View</Label>
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            variant={detailViewMode === 'hierarchy' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setDetailViewMode('hierarchy')}
+                            disabled={layoutMode === 'overlay'}
+                        >
+                            <ListTree className="mr-2 h-4 w-4" />
+                            Hierarchy
+                        </Button>
+                        <Button
+                            variant={detailViewMode === 'flat' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setDetailViewMode('flat')}
+                            disabled={layoutMode === 'overlay'}
+                        >
+                            <List className="mr-2 h-4 w-4" />
+                            Flat
+                        </Button>
+                    </div>
                 </div>
                 <span className="ml-auto text-sm text-muted-foreground">
-                    {layoutMode === 'grid'
-                        ? 'Compare variants side by side. Filters stay in sync.'
-                        : layoutMode === 'stacked'
-                          ? 'Compare variants vertically with shared filters.'
-                          : entries.length === 2
-                              ? 'Stack two variants to highlight overlaps.'
-                              : 'Select exactly two variants to enable overlay.'}
+                                        {layoutMode === 'grid'
+                                                ? 'Compare variants side by side. Filters stay in sync.'
+                                                : layoutMode === 'stacked'
+                                                    ? 'Compare variants vertically with shared filters.'
+                                                    : entries.length === 2
+                                                            ? 'Stack two variants to highlight overlaps. Hierarchy/flat toggle applies to grid and stacked layouts.'
+                                                            : 'Select exactly two variants to enable overlay.'}
                 </span>
             </div>
 
@@ -139,6 +177,7 @@ export function GanttChartCompare({
                             customStart={customStart}
                             filters={filters}
                             onFiltersChange={handleFiltersChange}
+                            viewMode={detailViewMode}
                         />
                     ))}
                 </div>

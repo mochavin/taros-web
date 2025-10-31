@@ -1,9 +1,22 @@
-import { useState, useRef, useEffect } from 'react';
+import {
+    useState,
+    useRef,
+    useEffect,
+    useMemo,
+    useCallback,
+    type ReactNode,
+} from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import type { TaskRow, TaskSortMode } from '@/types/schedule';
+import type { GanttFilters, TaskRow, TaskSortMode } from '@/types/schedule';
 import {
     parseDate,
     parseLocalDateTimeInput,
@@ -17,91 +30,171 @@ import {
 interface GanttChartFlatProps {
     tasks: TaskRow[];
     baselineShiftMs: number;
+    filters?: GanttFilters;
+    onFiltersChange?: (filters: GanttFilters) => void;
+    idPrefix?: string;
+    autoClampPage?: boolean;
 }
 
-export function GanttChartFlat({ tasks, baselineShiftMs }: GanttChartFlatProps) {
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(-1);
-    const [filter, setFilter] = useState('');
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
-    const [sortMode, setSortMode] = useState<TaskSortMode>('id');
+export function GanttChartFlat({
+    tasks,
+    baselineShiftMs,
+    filters,
+    onFiltersChange,
+    idPrefix,
+    autoClampPage = true,
+}: GanttChartFlatProps) {
+    const controlled = filters !== undefined && onFiltersChange !== undefined;
+    const [internalFilters, setInternalFilters] = useState<GanttFilters>({
+        filter: '',
+        fromDate: '',
+        toDate: '',
+        sortMode: 'id',
+        page: 1,
+        pageSize: -1,
+    });
+
+    const activeFilters = controlled ? filters! : internalFilters;
+
+    const updateFilters = useCallback(
+        (patch: Partial<GanttFilters>) => {
+            if (controlled) {
+                onFiltersChange?.({ ...filters!, ...patch });
+            } else {
+                setInternalFilters((prev) => ({ ...prev, ...patch }));
+            }
+        },
+        [controlled, filters, onFiltersChange],
+    );
+
+    const idBase = idPrefix ? `${idPrefix}-` : '';
     const [tooltip, setTooltip] = useState<{
         visible: boolean;
         x: number;
         y: number;
-        content: React.ReactNode;
+        content: ReactNode;
     }>({ visible: false, x: 0, y: 0, content: null });
 
     const tooltipRef = useRef<HTMLDivElement>(null);
 
-    // Apply baseline shift to tasks
-    const shiftedTasks = tasks.map((r) => {
-        if (!baselineShiftMs) return r;
-        const s = parseDate(r.Start);
-        const e = parseDate(r.Finish);
-        const rr = { ...r };
-        if (s) {
-            const shifted = new Date(s.getTime() + baselineShiftMs);
-            rr.Start = shifted.toISOString().replace('T', ' ').slice(0, 19);
-        }
-        if (e) {
-            const shifted = new Date(e.getTime() + baselineShiftMs);
-            rr.Finish = shifted.toISOString().replace('T', ' ').slice(0, 19);
-        }
-        return rr;
-    });
+    const shiftedTasks = useMemo(() => {
+        return tasks.map((task) => {
+            if (!baselineShiftMs) {
+                return task;
+            }
+            const start = parseDate(task.Start);
+            const finish = parseDate(task.Finish);
+            const clone = { ...task };
+            if (start) {
+                const shifted = new Date(start.getTime() + baselineShiftMs);
+                clone.Start = shifted.toISOString().replace('T', ' ').slice(0, 19);
+            }
+            if (finish) {
+                const shifted = new Date(finish.getTime() + baselineShiftMs);
+                clone.Finish = shifted.toISOString().replace('T', ' ').slice(0, 19);
+            }
+            return clone;
+        });
+    }, [tasks, baselineShiftMs]);
 
-    // Filter tasks
-    const predText = textFilterPredicate(filter);
-    const fromDt = parseLocalDateTimeInput(fromDate);
-    const toDt = parseLocalDateTimeInput(toDate);
-    const predDate = dateRangeFilterPredicate(fromDt, toDt);
-    const filtered = shiftedTasks.filter((row) => predText(row as unknown as Record<string, unknown>) && (!fromDt && !toDt ? true : predDate(row)));
+    const predText = useMemo(
+        () => textFilterPredicate(activeFilters.filter),
+        [activeFilters.filter],
+    );
+    const fromDt = useMemo(
+        () => parseLocalDateTimeInput(activeFilters.fromDate),
+        [activeFilters.fromDate],
+    );
+    const toDt = useMemo(
+        () => parseLocalDateTimeInput(activeFilters.toDate),
+        [activeFilters.toDate],
+    );
+    const predDate = useMemo(
+        () => dateRangeFilterPredicate(fromDt, toDt),
+        [fromDt, toDt],
+    );
 
-    // Sort tasks
-    const ordered = sortTaskRows(filtered, sortMode);
+    const filtered = useMemo(() => {
+        return shiftedTasks.filter((row) => {
+            const matchesText = predText(row as unknown as Record<string, unknown>);
+            if (!matchesText) {
+                return false;
+            }
+            if (!fromDt && !toDt) {
+                return true;
+            }
+            return predDate(row);
+        });
+    }, [shiftedTasks, predText, fromDt, toDt, predDate]);
 
-    // Paginate
-    const actualPageSize = pageSize === -1 ? ordered.length || 1 : pageSize;
-    const { slice, page: currentPage, pages, total } = paginate(ordered, page, actualPageSize);
+    const ordered = useMemo(
+        () => sortTaskRows(filtered, activeFilters.sortMode),
+        [filtered, activeFilters.sortMode],
+    );
 
-    // Ensure page is valid
+    const actualPageSize =
+        activeFilters.pageSize === -1
+            ? ordered.length || 1
+            : activeFilters.pageSize;
+
+    const { slice, page: currentPage, pages, total } = useMemo(() => {
+        return paginate(ordered, activeFilters.page, actualPageSize);
+    }, [ordered, activeFilters.page, actualPageSize]);
+
     useEffect(() => {
-        if (currentPage !== page) setPage(currentPage);
-    }, [currentPage, page]);
+        if (!autoClampPage) {
+            return;
+        }
+        if (currentPage !== activeFilters.page) {
+            updateFilters({ page: currentPage });
+        }
+    }, [autoClampPage, currentPage, activeFilters.page, updateFilters]);
 
-    // Calculate date range for gantt
-    let minStart: Date | null = null;
-    let maxFinish: Date | null = null;
-    for (const r of filtered) {
-        const s = parseDate(r.Start);
-        const e = parseDate(r.Finish);
-        if (!s || !e) continue;
-        if (!minStart || s < minStart) minStart = s;
-        if (!maxFinish || e > maxFinish) maxFinish = e;
-    }
+    const { minStart, maxFinish, totalH } = useMemo(() => {
+        let minStart: Date | null = null;
+        let maxFinish: Date | null = null;
 
-    let totalH = 1;
-    if (minStart && maxFinish) {
-        totalH = (maxFinish.getTime() - minStart.getTime()) / 36e5;
-        if (!isFinite(totalH) || totalH <= 0) totalH = 1;
-    }
+        for (const row of filtered) {
+            const start = parseDate(row.Start);
+            const finish = parseDate(row.Finish);
+            if (!start || !finish) {
+                continue;
+            }
+            if (!minStart || start < minStart) {
+                minStart = start;
+            }
+            if (!maxFinish || finish > maxFinish) {
+                maxFinish = finish;
+            }
+        }
+
+        let totalHours = 1;
+        if (minStart && maxFinish) {
+            totalHours = (maxFinish.getTime() - minStart.getTime()) / 36e5;
+            if (!Number.isFinite(totalHours) || totalHours <= 0) {
+                totalHours = 1;
+            }
+        }
+
+        return { minStart, maxFinish, totalH: totalHours };
+    }, [filtered]);
 
     const maxWidthPx = 1200;
     const pxPerHour = maxWidthPx / totalH;
 
-    // Generate scale ticks
-    const step = Math.max(1, Math.floor(totalH / 10));
-    const ticks: Array<{ left: number; label: string }> = [];
-    if (minStart) {
-        for (let h = 0; h <= totalH; h += step) {
-            const left = Math.round(h * pxPerHour);
-            const dt = new Date(minStart.getTime() + h * 36e5);
-            const lbl = dt.toISOString().replace('T', ' ').slice(0, 16);
-            ticks.push({ left, label: lbl });
+    const ticks = useMemo(() => {
+        const step = Math.max(1, Math.floor(totalH / 10));
+        const list: Array<{ left: number; label: string }> = [];
+        if (minStart) {
+            for (let h = 0; h <= totalH; h += step) {
+                const left = Math.round(h * pxPerHour);
+                const dt = new Date(minStart.getTime() + h * 36e5);
+                const label = dt.toISOString().replace('T', ' ').slice(0, 16);
+                list.push({ left, label });
+            }
         }
-    }
+        return list;
+    }, [minStart, totalH, pxPerHour]);
 
     const calculateTooltipPosition = (mouseX: number, mouseY: number) => {
         const pad = 12;
@@ -133,40 +226,41 @@ export function GanttChartFlat({ tasks, baselineShiftMs }: GanttChartFlatProps) 
     };
 
     const handleMouseEnter = (e: React.MouseEvent, task: TaskRow) => {
-        const duration = task.DurationHours && !isNaN(Number(task.DurationHours))
-            ? Number(task.DurationHours).toFixed(1)
-            : '';
+        const duration =
+            task.DurationHours && !Number.isNaN(Number(task.DurationHours))
+                ? Number(task.DurationHours).toFixed(1)
+                : '';
 
         const content = (
-            <div className="bg-gray-900 text-white text-xs p-2 rounded-md shadow-lg max-w-md">
+            <div className="max-w-md rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
                 <table className="w-full">
                     <tbody>
                         <tr>
-                            <td className="text-gray-400 pr-2">TaskID</td>
+                            <td className="pr-2 text-gray-400">TaskID</td>
                             <td>{task.TaskID}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Task Name</td>
+                            <td className="pr-2 text-gray-400">Task Name</td>
                             <td>{task.TaskName}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Start</td>
+                            <td className="pr-2 text-gray-400">Start</td>
                             <td>{formatIndoDateTime(task.Start)}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Finish</td>
+                            <td className="pr-2 text-gray-400">Finish</td>
                             <td>{formatIndoDateTime(task.Finish)}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Duration Hours</td>
+                            <td className="pr-2 text-gray-400">Duration Hours</td>
                             <td>{duration}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Is Elapsed</td>
+                            <td className="pr-2 text-gray-400">Is Elapsed</td>
                             <td>{task.IsElapsed}</td>
                         </tr>
                         <tr>
-                            <td className="text-gray-400 pr-2">Assignments</td>
+                            <td className="pr-2 text-gray-400">Assignments</td>
                             <td>{task.Assignments}</td>
                         </tr>
                     </tbody>
@@ -194,52 +288,63 @@ export function GanttChartFlat({ tasks, baselineShiftMs }: GanttChartFlatProps) 
             {/* Filters */}
             <div className="flex flex-wrap items-end gap-4">
                 <div className="flex-1 min-w-[200px]">
-                    <Label htmlFor="taskFilterFlat">Filter tasks</Label>
+                    <Label htmlFor={`${idBase}taskFilterFlat`}>Filter tasks</Label>
                     <Input
-                        id="taskFilterFlat"
+                        id={`${idBase}taskFilterFlat`}
                         type="text"
                         placeholder="Filter tasks by text..."
-                        value={filter}
-                        onChange={(e) => {
-                            setFilter(e.target.value);
-                            setPage(1);
-                        }}
+                        value={activeFilters.filter}
+                        onChange={(e) =>
+                            updateFilters({
+                                filter: e.target.value,
+                                page: 1,
+                            })
+                        }
                     />
                 </div>
                 <div>
-                    <Label htmlFor="taskFromFlat">From</Label>
+                    <Label htmlFor={`${idBase}taskFromFlat`}>From</Label>
                     <Input
-                        id="taskFromFlat"
+                        id={`${idBase}taskFromFlat`}
                         type="datetime-local"
-                        value={fromDate}
-                        onChange={(e) => {
-                            setFromDate(e.target.value);
-                            setPage(1);
-                        }}
+                        value={activeFilters.fromDate}
+                        onChange={(e) =>
+                            updateFilters({
+                                fromDate: e.target.value,
+                                page: 1,
+                            })
+                        }
                     />
                 </div>
                 <div>
-                    <Label htmlFor="taskToFlat">To</Label>
+                    <Label htmlFor={`${idBase}taskToFlat`}>To</Label>
                     <Input
-                        id="taskToFlat"
+                        id={`${idBase}taskToFlat`}
                         type="datetime-local"
-                        value={toDate}
-                        onChange={(e) => {
-                            setToDate(e.target.value);
-                            setPage(1);
-                        }}
+                        value={activeFilters.toDate}
+                        onChange={(e) =>
+                            updateFilters({
+                                toDate: e.target.value,
+                                page: 1,
+                            })
+                        }
                     />
                 </div>
                 <div>
-                    <Label htmlFor="taskPageSizeFlat">Page size</Label>
+                    <Label htmlFor={`${idBase}taskPageSizeFlat`}>Page size</Label>
                     <Select
-                        value={pageSize.toString()}
-                        onValueChange={(v) => {
-                            setPageSize(v === 'all' ? -1 : Number(v));
-                            setPage(1);
-                        }}
+                        value={activeFilters.pageSize.toString()}
+                        onValueChange={(v) =>
+                            updateFilters({
+                                pageSize: v === '-1' ? -1 : Number(v),
+                                page: 1,
+                            })
+                        }
                     >
-                        <SelectTrigger id="taskPageSizeFlat" className="w-[100px]">
+                        <SelectTrigger
+                            id={`${idBase}taskPageSizeFlat`}
+                            className="w-[100px]"
+                        >
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -252,9 +357,20 @@ export function GanttChartFlat({ tasks, baselineShiftMs }: GanttChartFlatProps) 
                     </Select>
                 </div>
                 <div>
-                    <Label htmlFor="taskSortFlat">Sort</Label>
-                    <Select value={sortMode} onValueChange={(v) => setSortMode(v as TaskSortMode)}>
-                        <SelectTrigger id="taskSortFlat" className="w-[180px]">
+                    <Label htmlFor={`${idBase}taskSortFlat`}>Sort</Label>
+                    <Select
+                        value={activeFilters.sortMode}
+                        onValueChange={(v) =>
+                            updateFilters({
+                                sortMode: v as TaskSortMode,
+                                page: 1,
+                            })
+                        }
+                    >
+                        <SelectTrigger
+                            id={`${idBase}taskSortFlat`}
+                            className="w-[180px]"
+                        >
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -274,10 +390,28 @@ export function GanttChartFlat({ tasks, baselineShiftMs }: GanttChartFlatProps) 
                     Rows: {total} | Page {currentPage}/{pages}
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(page - 1)}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage <= 1}
+                        onClick={() =>
+                            updateFilters({
+                                page: Math.max(1, activeFilters.page - 1),
+                            })
+                        }
+                    >
                         Prev
                     </Button>
-                    <Button variant="outline" size="sm" disabled={currentPage >= pages} onClick={() => setPage(page + 1)}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage >= pages}
+                        onClick={() =>
+                            updateFilters({
+                                page: Math.min(pages, activeFilters.page + 1),
+                            })
+                        }
+                    >
                         Next
                     </Button>
                 </div>
