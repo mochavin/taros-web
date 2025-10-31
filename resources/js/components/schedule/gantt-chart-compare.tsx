@@ -107,14 +107,14 @@ export function GanttChartCompare({
                             <LayoutGrid className="mr-2 h-4 w-4" />
                             Grid
                         </Button>
-                        <Button
+                        {/* <Button
                             variant={layoutMode === 'stacked' ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => handleLayoutChange('stacked')}
                         >
                             <Rows3 className="mr-2 h-4 w-4" />
                             Stacked
-                        </Button>
+                        </Button> */}
                         <Button
                             variant={layoutMode === 'overlay' ? 'default' : 'outline'}
                             size="sm"
@@ -133,7 +133,6 @@ export function GanttChartCompare({
                             variant={detailViewMode === 'hierarchy' ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => setDetailViewMode('hierarchy')}
-                            disabled={layoutMode === 'overlay'}
                         >
                             <ListTree className="mr-2 h-4 w-4" />
                             Hierarchy
@@ -142,7 +141,6 @@ export function GanttChartCompare({
                             variant={detailViewMode === 'flat' ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => setDetailViewMode('flat')}
-                            disabled={layoutMode === 'overlay'}
                         >
                             <List className="mr-2 h-4 w-4" />
                             Flat
@@ -150,13 +148,13 @@ export function GanttChartCompare({
                     </div>
                 </div>
                 <span className="ml-auto text-sm text-muted-foreground">
-                                        {layoutMode === 'grid'
-                                                ? 'Compare variants side by side. Filters stay in sync.'
-                                                : layoutMode === 'stacked'
-                                                    ? 'Compare variants vertically with shared filters.'
-                                                    : entries.length === 2
-                                                            ? 'Stack two variants to highlight overlaps. Hierarchy/flat toggle applies to grid and stacked layouts.'
-                                                            : 'Select exactly two variants to enable overlay.'}
+                    {layoutMode === 'grid'
+                        ? 'Compare variants side by side. Filters stay in sync.'
+                        : layoutMode === 'stacked'
+                            ? 'Compare variants vertically with shared filters.'
+                            : entries.length === 2
+                                ? 'Stack two variants to highlight overlaps. Detail view toggle applies to all layouts.'
+                                : 'Select exactly two variants to enable overlay.'}
                 </span>
             </div>
 
@@ -167,6 +165,7 @@ export function GanttChartCompare({
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
                     customStart={customStart}
+                    viewMode={detailViewMode}
                 />
             ) : (
                 <div className={`grid gap-4 ${gridColsClass}`}>

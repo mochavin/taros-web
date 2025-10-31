@@ -10,6 +10,7 @@ import {
     useRef,
     useState,
 } from 'react';
+import Papa from 'papaparse';
 import {
     dateRangeFilterPredicate,
     formatIndoDateTime,
@@ -31,6 +32,7 @@ interface OverlayComparisonProps {
     filters: GanttFilters;
     onFiltersChange: (filters: GanttFilters) => void;
     customStart: string;
+    viewMode: 'hierarchy' | 'flat';
 }
 
 interface OverlayRow {
@@ -38,6 +40,15 @@ interface OverlayRow {
     taskName: string;
     variantATask?: TaskRow;
     variantBTask?: TaskRow;
+    outlineLevel: number;
+    isSummary: boolean;
+}
+
+interface HierarchyRow {
+    TaskID?: string | number;
+    TaskName?: string;
+    OutlineLevel?: string | number;
+    IsSummary?: string | boolean;
 }
 
 interface TooltipState {
@@ -53,6 +64,7 @@ export function OverlayComparison({
     filters,
     onFiltersChange,
     customStart,
+    viewMode,
 }: OverlayComparisonProps) {
     const dataA = variantA.data;
     const dataB = variantB.data;
@@ -120,13 +132,13 @@ export function OverlayComparison({
             task.DurationHours && !Number.isNaN(Number(task.DurationHours))
                 ? Number(task.DurationHours).toFixed(1)
                 : (() => {
-                      const start = parseDate(task.Start);
-                      const finish = parseDate(task.Finish);
-                      if (!start || !finish) {
-                          return '';
-                      }
-                      return ((finish.getTime() - start.getTime()) / 36e5).toFixed(1);
-                  })();
+                    const start = parseDate(task.Start);
+                    const finish = parseDate(task.Finish);
+                    if (!start || !finish) {
+                        return '';
+                    }
+                    return ((finish.getTime() - start.getTime()) / 36e5).toFixed(1);
+                })();
 
         const isElapsed = (task.IsElapsed ?? '').toString().toUpperCase().startsWith('Y');
 
@@ -203,6 +215,47 @@ export function OverlayComparison({
         setTooltip({ visible: false, x: 0, y: 0, content: null });
     }, []);
 
+    const [hierarchyList, setHierarchyList] = useState<HierarchyRow[]>([]);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const response = await fetch('/hierarchy/tasks_hierarchy.csv', {
+                    cache: 'no-store',
+                });
+                if (!response.ok) {
+                    return;
+                }
+                const text = await response.text();
+                const parsed = Papa.parse<HierarchyRow>(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                });
+                const list: HierarchyRow[] = [];
+                for (const row of parsed.data ?? []) {
+                    if (!row) {
+                        continue;
+                    }
+                    const id = String(row.TaskID ?? '').trim();
+                    if (!id) {
+                        continue;
+                    }
+                    list.push(row);
+                }
+                if (!cancelled) {
+                    setHierarchyList(list);
+                }
+            } catch (error) {
+                console.warn('Failed to load hierarchy CSV', error);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     const overlayRows = useMemo<OverlayRow[]>(() => {
         const mapA = new Map<string, TaskRow>();
         const mapB = new Map<string, TaskRow>();
@@ -215,21 +268,84 @@ export function OverlayComparison({
             mapB.set(String(task.TaskID), task);
         }
 
-        const ids = new Set<string>([...mapA.keys(), ...mapB.keys()]);
+        const hasHierarchy = viewMode === 'hierarchy' && hierarchyList.length > 0;
         const rows: OverlayRow[] = [];
-        ids.forEach((id) => {
-            const taskA = mapA.get(id);
-            const taskB = mapB.get(id);
-            rows.push({
-                taskId: id,
-                taskName: taskA?.TaskName ?? taskB?.TaskName ?? id,
-                variantATask: taskA,
-                variantBTask: taskB,
-            });
-        });
+        const seen = new Set<string>();
+
+        if (hasHierarchy) {
+            for (const hier of hierarchyList) {
+                if (!hier) {
+                    continue;
+                }
+                const id = String(hier.TaskID ?? '').trim();
+                if (!id) {
+                    continue;
+                }
+                const taskA = mapA.get(id);
+                const taskB = mapB.get(id);
+                rows.push({
+                    taskId: id,
+                    taskName:
+                        hier.TaskName ?? taskA?.TaskName ?? taskB?.TaskName ?? id,
+                    variantATask: taskA,
+                    variantBTask: taskB,
+                    outlineLevel: Number(hier.OutlineLevel ?? 0) || 0,
+                    isSummary:
+                        String(hier.IsSummary).toLowerCase() === 'true' ||
+                        hier.IsSummary === true,
+                });
+                seen.add(id);
+            }
+        } else {
+            const ids = new Set<string>([...mapA.keys(), ...mapB.keys()]);
+            for (const id of ids) {
+                const taskA = mapA.get(id);
+                const taskB = mapB.get(id);
+                rows.push({
+                    taskId: id,
+                    taskName: taskA?.TaskName ?? taskB?.TaskName ?? id,
+                    variantATask: taskA,
+                    variantBTask: taskB,
+                    outlineLevel: 0,
+                    isSummary: false,
+                });
+                seen.add(id);
+            }
+        }
+
+        if (hasHierarchy) {
+            const appendIfMissing = (id: string) => {
+                if (seen.has(id)) {
+                    return;
+                }
+                const taskA = mapA.get(id);
+                const taskB = mapB.get(id);
+                if (!taskA && !taskB) {
+                    return;
+                }
+                rows.push({
+                    taskId: id,
+                    taskName: taskA?.TaskName ?? taskB?.TaskName ?? id,
+                    variantATask: taskA,
+                    variantBTask: taskB,
+                    outlineLevel: 0,
+                    isSummary: false,
+                });
+                seen.add(id);
+            };
+
+            for (const id of mapA.keys()) {
+                appendIfMissing(id);
+            }
+            for (const id of mapB.keys()) {
+                appendIfMissing(id);
+            }
+        }
 
         return rows;
-    }, [shiftedTasksA, shiftedTasksB]);
+    }, [shiftedTasksA, shiftedTasksB, hierarchyList, viewMode]);
+
+    const hasHierarchy = viewMode === 'hierarchy' && hierarchyList.length > 0;
 
     const predText = useMemo(
         () => textFilterPredicate(filters.filter),
@@ -322,6 +438,10 @@ export function OverlayComparison({
     }, []);
 
     const sortedRows = useMemo(() => {
+        if (hasHierarchy) {
+            return filteredRows;
+        }
+
         const rows = filteredRows.slice();
         rows.sort((a, b) => {
             switch (filters.sortMode) {
@@ -386,7 +506,7 @@ export function OverlayComparison({
             return getTaskIdNum(a.taskId) - getTaskIdNum(b.taskId);
         });
         return rows;
-    }, [filteredRows, filters.sortMode, getRowStart, getRowFinish, getTaskDuration, getTaskIdNum]);
+    }, [filteredRows, filters.sortMode, getRowStart, getRowFinish, getTaskDuration, getTaskIdNum, hasHierarchy]);
 
     const actualPageSize =
         filters.pageSize === -1 ? sortedRows.length || 1 : filters.pageSize;
@@ -603,6 +723,14 @@ export function OverlayComparison({
                                     const finishA = parseDate(row.variantATask?.Finish ?? null);
                                     const startB = parseDate(row.variantBTask?.Start ?? null);
                                     const finishB = parseDate(row.variantBTask?.Finish ?? null);
+                                    const indentPx =
+                                        viewMode === 'hierarchy'
+                                            ? Math.min(Math.max(row.outlineLevel, 0) * 12, 200)
+                                            : 0;
+                                    const labelClass =
+                                        viewMode === 'hierarchy' && row.isSummary
+                                            ? 'text-sm font-semibold text-gray-900 dark:text-gray-100'
+                                            : 'text-sm font-medium text-gray-800 dark:text-gray-200';
 
                                     const makeBar = (
                                         start: Date | null,
@@ -619,14 +747,14 @@ export function OverlayComparison({
                                             0,
                                             Math.round(
                                                 ((start.getTime() - minStart!.getTime()) / 36e5) *
-                                                    pxPerHour,
+                                                pxPerHour,
                                             ),
                                         );
                                         const width = Math.max(
                                             2,
                                             Math.round(
                                                 ((finish.getTime() - start.getTime()) / 36e5) *
-                                                    pxPerHour,
+                                                pxPerHour,
                                             ),
                                         );
                                         const isElapsed = (task.IsElapsed ?? '')
@@ -654,11 +782,15 @@ export function OverlayComparison({
                                     return (
                                         <div
                                             key={`${row.taskId}`}
-                                            className="relative h-12 border-b border-dashed border-gray-200 dark:border-gray-800"
+                                            className={`relative border-b border-dashed border-gray-200 dark:border-gray-800` + (row.isSummary ? ' h-8' : ' h-12')}
                                         >
                                             <span
-                                                className="absolute -left-[250px] top-3 w-[240px] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200"
+                                                className={`absolute -left-[250px] top-3 w-[240px] overflow-hidden text-ellipsis whitespace-nowrap ${labelClass}`}
                                                 title={`${row.taskId}: ${row.taskName}`}
+                                                style={{
+                                                    paddingLeft: indentPx ? `${indentPx}px` : undefined,
+                                                    display: 'inline-block',
+                                                }}
                                             >
                                                 {row.taskName}
                                             </span>
