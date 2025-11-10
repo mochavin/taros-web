@@ -13,6 +13,7 @@ import {
 import Papa from 'papaparse';
 import {
     dateRangeFilterPredicate,
+    formatDateLocal,
     formatIndoDateTime,
     paginate,
     parseDate,
@@ -58,6 +59,17 @@ interface TooltipState {
     content: ReactNode;
 }
 
+interface HoverGuideState {
+    visible: boolean;
+    leftPx: number;
+    viewportLeft: number;
+    topPx: number;
+    timeLabel: string;
+    globalHours: number;
+    variantAHours: number;
+    variantBHours: number;
+}
+
 export function OverlayComparison({
     variantA,
     variantB,
@@ -79,6 +91,8 @@ export function OverlayComparison({
         content: null,
     });
     const tooltipRef = useRef<HTMLDivElement>(null);
+    const chartBodyRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const baselineShiftA = useMemo(
         () => computeBaselineShiftMs(tasksA, customStart),
@@ -562,6 +576,145 @@ export function OverlayComparison({
     const maxWidthPx = 1200;
     const pxPerHour = maxWidthPx / totalHours;
 
+    const [hoverGuide, setHoverGuide] = useState<HoverGuideState>({
+        visible: false,
+        leftPx: 0,
+        viewportLeft: 0,
+        topPx: 0,
+        timeLabel: '',
+        globalHours: 0,
+        variantAHours: 0,
+        variantBHours: 0,
+    });
+
+    const computeTooltipPosition = useCallback((leftPxValue: number) => {
+        const chartRect = chartBodyRef.current?.getBoundingClientRect();
+        const containerRect = scrollContainerRef.current?.getBoundingClientRect();
+        const halfWidth = 140;
+
+        let viewportLeft = chartRect ? chartRect.left + leftPxValue : leftPxValue;
+
+        if (containerRect) {
+            const minLeft = containerRect.left + halfWidth;
+            const maxLeft = containerRect.right - halfWidth;
+            viewportLeft = Math.max(minLeft, Math.min(maxLeft, viewportLeft));
+            const topPx = Math.max(8, containerRect.top + 8);
+            return { left: viewportLeft, top: topPx };
+        }
+
+        const minLeft = halfWidth;
+        const maxLeft = window.innerWidth - halfWidth;
+        viewportLeft = Math.max(minLeft, Math.min(maxLeft, viewportLeft));
+        const topPx = chartRect ? Math.max(8, chartRect.top + 8) : 8;
+        return { left: viewportLeft, top: topPx };
+    }, []);
+
+    const variantTasksA = useMemo(() => {
+        return filteredRows
+            .filter((row) => !row.isSummary && row.variantATask)
+            .map((row) => row.variantATask!) as TaskRow[];
+    }, [filteredRows]);
+
+    const variantTasksB = useMemo(() => {
+        return filteredRows
+            .filter((row) => !row.isSummary && row.variantBTask)
+            .map((row) => row.variantBTask!) as TaskRow[];
+    }, [filteredRows]);
+
+    const computeAccumulatedHours = useCallback((tasks: TaskRow[], hovered: Date): number => {
+        let total = 0;
+        for (const task of tasks) {
+            const start = parseDate(task.Start);
+            const finish = parseDate(task.Finish);
+            if (!start || !finish) {
+                continue;
+            }
+            if (hovered <= start) {
+                continue;
+            }
+            const effectiveFinish = finish < hovered ? finish : hovered;
+            const diff = (effectiveFinish.getTime() - start.getTime()) / 36e5;
+            if (diff > 0) {
+                total += diff;
+            }
+        }
+        return total;
+    }, []);
+
+    const handleChartMouseMove = useCallback(
+        (event: ReactMouseEvent<HTMLDivElement>) => {
+            if (!minStart || pxPerHour <= 0 || !chartBodyRef.current) {
+                return;
+            }
+            const rect = chartBodyRef.current.getBoundingClientRect();
+            const rawX = event.clientX - rect.left;
+            if (rawX < 0 || rawX > rect.width) {
+                setHoverGuide((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+                return;
+            }
+            const timelineWidthPx = pxPerHour * totalHours;
+            const clampedX = Math.max(0, Math.min(timelineWidthPx, rawX));
+            const hoursFromMin = clampedX / pxPerHour;
+            const hoveredTime = new Date(minStart.getTime() + hoursFromMin * 36e5);
+            const { left: viewportLeft, top: topPx } = computeTooltipPosition(clampedX);
+
+            const variantAccumA = computeAccumulatedHours(variantTasksA, hoveredTime);
+            const variantAccumB = computeAccumulatedHours(variantTasksB, hoveredTime);
+
+            setHoverGuide({
+                visible: true,
+                leftPx: clampedX,
+                viewportLeft,
+                topPx,
+                timeLabel: formatDateLocal(hoveredTime),
+                globalHours: hoursFromMin,
+                variantAHours: Number.isFinite(variantAccumA) ? variantAccumA : 0,
+                variantBHours: Number.isFinite(variantAccumB) ? variantAccumB : 0,
+            });
+        },
+        [chartBodyRef, minStart, pxPerHour, totalHours, computeAccumulatedHours, variantTasksA, variantTasksB, computeTooltipPosition],
+    );
+
+    const handleChartMouseLeave = useCallback(() => {
+        setHoverGuide((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+    }, []);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) {
+            return undefined;
+        }
+        const handleScroll = () => {
+            setHoverGuide((prev) => {
+                if (!prev.visible) {
+                    return prev;
+                }
+                const pos = computeTooltipPosition(prev.leftPx);
+                return { ...prev, viewportLeft: pos.left, topPx: pos.top };
+            });
+        };
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        return () => {
+            container.removeEventListener('scroll', handleScroll);
+        };
+    }, [computeTooltipPosition]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setHoverGuide((prev) => {
+                if (!prev.visible) {
+                    return prev;
+                }
+                const pos = computeTooltipPosition(prev.leftPx);
+                return { ...prev, viewportLeft: pos.left, topPx: pos.top };
+            });
+        };
+        window.addEventListener('resize', handleResize, { passive: true });
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [computeTooltipPosition]);
+
     const ticks = useMemo(() => {
         const step = Math.max(1, Math.floor(totalHours / 10));
         const list: Array<{ left: number; label: string }> = [];
@@ -698,12 +851,15 @@ export function OverlayComparison({
                     hasAnyTasks &&
                     minStart &&
                     maxFinish && (
-                        <div className="overflow-x-auto rounded-lg border bg-white p-4 dark:bg-gray-950">
+                        <div
+                            ref={scrollContainerRef}
+                            className="overflow-x-auto rounded-lg border bg-white p-4 dark:bg-gray-950"
+                        >
                             <div className="text-xs text-muted-foreground">
                                 Span {totalHours.toFixed(1)} h
                             </div>
 
-                            <div className="relative mb-4 ml-[250px] h-6">
+                            <div className="relative mb-4 ml-[250px] h-6 w-full">
                                 {ticks.map((tick, idx) => (
                                     <div
                                         key={idx}
@@ -717,7 +873,18 @@ export function OverlayComparison({
                                 ))}
                             </div>
 
-                            <div className="relative ml-[250px] min-w-[800px]">
+                            <div
+                                ref={chartBodyRef}
+                                className="relative ml-[250px] min-w-full pt-12"
+                                onMouseMove={handleChartMouseMove}
+                                onMouseLeave={handleChartMouseLeave}
+                            >
+                                {hoverGuide.visible && (
+                                    <div
+                                        className="pointer-events-none absolute inset-y-0 z-30 w-px bg-primary/70"
+                                        style={{ left: `${hoverGuide.leftPx}px` }}
+                                    />
+                                )}
                                 {pageRows.map((row) => {
                                     const startA = parseDate(row.variantATask?.Start ?? null);
                                     const finishA = parseDate(row.variantATask?.Finish ?? null);
@@ -818,6 +985,26 @@ export function OverlayComparison({
                         </div>
                     )}
             </div>
+
+            {hoverGuide.visible && (
+                <div
+                    className="pointer-events-none fixed z-40 flex min-w-[240px] -translate-x-1/2 flex-col gap-1 rounded-md bg-gray-900/95 px-3 py-2 text-[12px] text-white shadow-xl"
+                    style={{ left: `${hoverGuide.viewportLeft}px`, top: `${hoverGuide.topPx}px` }}
+                >
+                    <span className="text-[11px] font-semibold">{hoverGuide.timeLabel}</span>
+                    <div className="flex flex-col">
+                        <span className="flex items-center gap-1">
+                            <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                            {variantALabel}: {new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(hoverGuide.variantAHours)} h
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                            {variantBLabel}: {new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(hoverGuide.variantBHours)} h
+                        </span>
+                    </div>
+                    {/* <span className="text-white/70">Baseline +{hoverGuide.globalHours.toFixed(1)} h</span> */}
+                </div>
+            )}
 
             {tooltip.visible && (
                 <div

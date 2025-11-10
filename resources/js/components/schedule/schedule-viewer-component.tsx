@@ -449,10 +449,10 @@ export function ScheduleViewerComponent({
                         {ganttViewMode === 'compare'
                             ? 'Compare schedules across different variants'
                             : activeTab === 'gantt'
-                              ? ganttViewMode === 'hierarchy'
-                                  ? 'Showing hierarchical structure with headings'
-                                  : 'Showing flat list with sorting options'
-                              : 'Viewing single variant data'}
+                                ? ganttViewMode === 'hierarchy'
+                                    ? 'Showing hierarchical structure with headings'
+                                    : 'Showing flat list with sorting options'
+                                : 'Viewing single variant data'}
                     </span>
                 </div>
 
@@ -476,8 +476,8 @@ export function ScheduleViewerComponent({
                                         setCompareVariants((prev) =>
                                             prev.includes(variant.slug)
                                                 ? prev.filter(
-                                                      (v) => v !== variant.slug,
-                                                  )
+                                                    (v) => v !== variant.slug,
+                                                )
                                                 : [...prev, variant.slug],
                                         );
                                     }}
