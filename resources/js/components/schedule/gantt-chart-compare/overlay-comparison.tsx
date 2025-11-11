@@ -635,7 +635,7 @@ export function OverlayComparison({
             const effectiveFinish = finish < hovered ? finish : hovered;
             const diff = (effectiveFinish.getTime() - start.getTime()) / 36e5;
             if (diff > 0) {
-                total += diff;
+                total += task.DurationHours ? Number(task.DurationHours) : diff;
             }
         }
         return total;
