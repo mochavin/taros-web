@@ -29,7 +29,7 @@ export default function ProjectEdit({ project }: ProjectFormData) {
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Edit Project</h1>
                 </div>
-                <Form action={`/projects/${project.id}`} method="post" className="space-y-6" data-test="edit-project-form">
+                <Form action={`/projects/${project.id}`} method="post" encType="multipart/form-data" className="space-y-6" data-test="edit-project-form">
                     {({ processing, errors }) => (
                         <>
                             <input type="hidden" name="_method" value="put" />
@@ -49,6 +49,12 @@ export default function ProjectEdit({ project }: ProjectFormData) {
                                     <Input id="end_date" name="end_date" type="date" defaultValue={project.end_date ?? ''} />
                                     <InputError message={errors.end_date} />
                                 </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="hierarchy_file">Hierarchy CSV</Label>
+                                <Input id="hierarchy_file" name="hierarchy_file" type="file" accept=".csv,text/csv" />
+                                <p className="text-xs text-muted-foreground">Kosongkan jika tidak ingin mengganti file hierarchy. Unggah CSV terbaru untuk memperbarui struktur Gantt.</p>
+                                <InputError message={errors.hierarchy_file} />
                             </div>
                             <div className="flex gap-4">
                                 <Button disabled={processing}>Update</Button>

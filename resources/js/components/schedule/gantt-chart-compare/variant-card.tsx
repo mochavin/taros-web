@@ -15,6 +15,7 @@ interface VariantCardProps {
     filters: GanttFilters;
     onFiltersChange: (filters: GanttFilters) => void;
     viewMode: 'hierarchy' | 'flat';
+    hierarchyCandidates?: string[];
 }
 
 export function VariantCard({
@@ -23,6 +24,7 @@ export function VariantCard({
     filters,
     onFiltersChange,
     viewMode,
+    hierarchyCandidates,
 }: VariantCardProps) {
     const taskRows = entry.data?.taskRows ?? EMPTY_TASK_ROWS;
     const baselineShiftMs = useMemo(
@@ -109,6 +111,7 @@ export function VariantCard({
                         filters={filters}
                         onFiltersChange={onFiltersChange}
                         idPrefix={`compare-${entry.slug}`}
+                        hierarchyCandidates={hierarchyCandidates}
                     />
                 ) : (
                     <GanttChartFlat

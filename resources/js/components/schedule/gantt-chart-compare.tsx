@@ -17,12 +17,14 @@ interface GanttChartCompareProps {
     variants: ScheduleVariantOption[];
     compareVariants: string[];
     customStart: string;
+    hierarchyCandidates?: string[];
 }
 
 export function GanttChartCompare({
     variants,
     compareVariants,
     customStart,
+    hierarchyCandidates,
 }: GanttChartCompareProps) {
     const [layoutMode, setLayoutMode] = useState<'grid' | 'stacked' | 'overlay'>(
         'grid',
@@ -166,6 +168,7 @@ export function GanttChartCompare({
                     onFiltersChange={handleFiltersChange}
                     customStart={customStart}
                     viewMode={detailViewMode}
+                    hierarchyCandidates={hierarchyCandidates}
                 />
             ) : (
                 <div className={`grid gap-4 ${gridColsClass}`}>
@@ -177,6 +180,7 @@ export function GanttChartCompare({
                             filters={filters}
                             onFiltersChange={handleFiltersChange}
                             viewMode={detailViewMode}
+                            hierarchyCandidates={hierarchyCandidates}
                         />
                     ))}
                 </div>

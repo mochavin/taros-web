@@ -34,6 +34,7 @@ interface OverlayComparisonProps {
     onFiltersChange: (filters: GanttFilters) => void;
     customStart: string;
     viewMode: 'hierarchy' | 'flat';
+    hierarchyCandidates?: string[];
 }
 
 interface OverlayRow {
@@ -77,6 +78,7 @@ export function OverlayComparison({
     onFiltersChange,
     customStart,
     viewMode,
+    hierarchyCandidates,
 }: OverlayComparisonProps) {
     const dataA = variantA.data;
     const dataB = variantB.data;
@@ -231,44 +233,65 @@ export function OverlayComparison({
 
     const [hierarchyList, setHierarchyList] = useState<HierarchyRow[]>([]);
 
+    const hierarchySources = useMemo(
+        () =>
+            hierarchyCandidates && hierarchyCandidates.length > 0
+                ? hierarchyCandidates
+                : ['/hierarchy/tasks_hierarchy.csv'],
+        [hierarchyCandidates],
+    );
+
     useEffect(() => {
         let cancelled = false;
-        (async () => {
-            try {
-                const response = await fetch('/hierarchy/tasks_hierarchy.csv', {
-                    cache: 'no-store',
-                });
-                if (!response.ok) {
+
+        const loadHierarchy = async () => {
+            for (const source of hierarchySources) {
+                try {
+                    const response = await fetch(source, {
+                        cache: 'no-store',
+                    });
+                    if (!response.ok) {
+                        continue;
+                    }
+                    const text = await response.text();
+                    if (!text) {
+                        continue;
+                    }
+                    const parsed = Papa.parse<HierarchyRow>(text, {
+                        header: true,
+                        skipEmptyLines: true,
+                    });
+                    const list: HierarchyRow[] = [];
+                    for (const row of parsed.data ?? []) {
+                        if (!row) {
+                            continue;
+                        }
+                        const id = String(row.TaskID ?? '').trim();
+                        if (!id) {
+                            continue;
+                        }
+                        list.push(row);
+                    }
+                    if (!cancelled) {
+                        setHierarchyList(list);
+                    }
                     return;
+                } catch (error) {
+                    console.warn('Failed to load hierarchy CSV', error);
                 }
-                const text = await response.text();
-                const parsed = Papa.parse<HierarchyRow>(text, {
-                    header: true,
-                    skipEmptyLines: true,
-                });
-                const list: HierarchyRow[] = [];
-                for (const row of parsed.data ?? []) {
-                    if (!row) {
-                        continue;
-                    }
-                    const id = String(row.TaskID ?? '').trim();
-                    if (!id) {
-                        continue;
-                    }
-                    list.push(row);
-                }
-                if (!cancelled) {
-                    setHierarchyList(list);
-                }
-            } catch (error) {
-                console.warn('Failed to load hierarchy CSV', error);
             }
-        })();
+
+            if (!cancelled) {
+                setHierarchyList([]);
+            }
+        };
+
+        loadHierarchy();
 
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [hierarchySources]);
 
     const overlayRows = useMemo<OverlayRow[]>(() => {
         const mapA = new Map<string, TaskRow>();

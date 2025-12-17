@@ -29,6 +29,7 @@ interface GanttChartProps {
     showControls?: boolean;
     idPrefix?: string;
     autoClampPage?: boolean;
+    hierarchyCandidates?: string[];
 }
 
 interface GanttControlsProps {
@@ -214,6 +215,7 @@ export function GanttChart({
     showControls = true,
     idPrefix,
     autoClampPage = true,
+    hierarchyCandidates,
 }: GanttChartProps) {
     const controlled = filters !== undefined && onFiltersChange !== undefined;
     const [internalFilters, setInternalFilters] = useState<GanttFilters>({
@@ -245,50 +247,76 @@ export function GanttChart({
         content: React.ReactNode;
     }>({ visible: false, x: 0, y: 0, content: null });
 
-    // hierarchy loaded from public/hierarchy/tasks_hierarchy.csv
     const [hierarchyById, setHierarchyById] = useState<
         Record<string, HierarchyRow>
     >({});
     const [hierarchyList, setHierarchyList] = useState<HierarchyRow[]>([]);
     const tooltipRef = useRef<HTMLDivElement>(null);
 
-    // Load hierarchy CSV on mount
+    const hierarchySources = useMemo(
+        () =>
+            hierarchyCandidates && hierarchyCandidates.length > 0
+                ? hierarchyCandidates
+                : ['/hierarchy/tasks_hierarchy.csv'],
+        [hierarchyCandidates],
+    );
+
+    // Load hierarchy CSV when sources change
     useEffect(() => {
         let cancelled = false;
-        (async () => {
-            try {
-                const resp = await fetch('/hierarchy/tasks_hierarchy.csv', {
-                    cache: 'no-store',
-                });
-                if (!resp.ok) return;
-                const text = await resp.text();
-                const parsed = Papa.parse<HierarchyRow>(text, {
-                    header: true,
-                    skipEmptyLines: true,
-                });
-                const data = (parsed.data || []) as HierarchyRow[];
-                const map: Record<string, HierarchyRow> = {};
-                const list: HierarchyRow[] = [];
-                for (const r of data) {
-                    if (!r) continue;
-                    const idStr = String(r.TaskID ?? '').trim();
-                    if (!idStr) continue;
-                    map[idStr] = r;
-                    list.push(r);
+
+        const loadHierarchy = async () => {
+            for (const source of hierarchySources) {
+                try {
+                    const resp = await fetch(source, { cache: 'no-store' });
+                    if (!resp.ok) {
+                        continue;
+                    }
+
+                    const text = await resp.text();
+                    if (!text || cancelled) {
+                        continue;
+                    }
+
+                    const parsed = Papa.parse<HierarchyRow>(text, {
+                        header: true,
+                        skipEmptyLines: true,
+                    });
+                    const data = (parsed.data || []) as HierarchyRow[];
+                    const map: Record<string, HierarchyRow> = {};
+                    const list: HierarchyRow[] = [];
+                    for (const r of data) {
+                        if (!r) continue;
+                        const idStr = String(r.TaskID ?? '').trim();
+                        if (!idStr) continue;
+                        map[idStr] = r;
+                        list.push(r);
+                    }
+
+                    if (!cancelled) {
+                        setHierarchyById(map);
+                        setHierarchyList(list);
+                    }
+
+                    return;
+                } catch (err) {
+                    // ignore failures to keep chart usable
+                    console.warn('Failed to load hierarchy CSV', err);
                 }
-                if (!cancelled) {
-                    setHierarchyById(map);
-                    setHierarchyList(list);
-                }
-            } catch (err) {
-                // ignore failures to keep chart usable
-                console.warn('Failed to load hierarchy CSV', err);
             }
-        })();
+
+            if (!cancelled) {
+                setHierarchyById({});
+                setHierarchyList([]);
+            }
+        };
+
+        loadHierarchy();
+
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [hierarchySources]);
 
     // Apply baseline shift to tasks
     const shiftedTasks = useMemo(() => {

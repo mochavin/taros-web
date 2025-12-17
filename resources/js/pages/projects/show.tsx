@@ -17,9 +17,10 @@ interface ProjectShowData {
     };
     scheduleVariants: ScheduleVariantOption[];
     defaultVariant?: string | null;
+    hierarchyCandidates: string[];
 }
 
-export default function ProjectShow({ project, scheduleVariants, defaultVariant }: ProjectShowData) {
+export default function ProjectShow({ project, scheduleVariants, defaultVariant, hierarchyCandidates }: ProjectShowData) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
@@ -79,6 +80,7 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant 
                         projectId={project.id}
                         variants={scheduleVariants}
                         defaultVariant={defaultVariant}
+                        hierarchyCandidates={hierarchyCandidates}
                     />
                 </div>
             </div>

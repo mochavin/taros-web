@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Projects;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\File;
 
 /**
  * @method \App\Models\User user()
@@ -20,6 +21,10 @@ class UpdateProjectRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'hierarchy_file' => [
+                'nullable',
+                File::types(['csv', 'txt'])->max(10_240),
+            ],
         ];
     }
 }

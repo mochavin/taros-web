@@ -39,11 +39,13 @@ interface ScheduleViewerComponentProps {
     projectId?: number;
     variants?: ScheduleVariantOption[];
     defaultVariant?: string | null;
+    hierarchyCandidates?: string[];
 }
 
 export function ScheduleViewerComponent({
     variants = [],
     defaultVariant,
+    hierarchyCandidates = [],
 }: ScheduleViewerComponentProps) {
     const visibleVariants = useMemo(
         () => variants.filter((variant) => !variant.isHidden),
@@ -83,6 +85,14 @@ export function ScheduleViewerComponent({
         loadVariant,
         clearData,
     } = useCSVParser();
+
+    const hierarchySources = useMemo(
+        () =>
+            hierarchyCandidates.length > 0
+                ? hierarchyCandidates
+                : ['/hierarchy/tasks_hierarchy.csv'],
+        [hierarchyCandidates],
+    );
 
     // Ensure current variant tracks available options
     useEffect(() => {
@@ -517,6 +527,7 @@ export function ScheduleViewerComponent({
                             <GanttChart
                                 tasks={taskRows}
                                 baselineShiftMs={baselineShiftMs}
+                                hierarchyCandidates={hierarchySources}
                             />,
                         )
                     ) : ganttViewMode === 'flat' ? (
@@ -531,6 +542,7 @@ export function ScheduleViewerComponent({
                             variants={visibleVariants}
                             compareVariants={compareVariants}
                             customStart={customStart}
+                            hierarchyCandidates={hierarchySources}
                         />
                     )}
                 </TabsContent>

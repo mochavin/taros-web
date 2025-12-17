@@ -4,6 +4,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ScheduleVariantController;
 use App\Models\Project;
 use App\Models\ScheduleVariant;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -54,6 +55,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         return response()->file(Storage::disk('local')->path($path), ['Content-Type' => 'text/csv']);
     })->name('projects.schedule-variants.resources');
+
+    Route::get('projects/{project}/hierarchy.csv', function (Project $project) {
+        abort_if($project->user_id !== Auth::id(), 403);
+
+        if (! $project->hierarchy_path) {
+            abort(404);
+        }
+
+        $path = 'private/'.$project->hierarchy_path;
+
+        if (! Storage::disk('local')->exists($path)) {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('local')->path($path), ['Content-Type' => 'text/csv']);
+    })->name('projects.hierarchy');
 
     Route::resource('projects', ProjectController::class);
     Route::patch('projects/{project}/schedule-variants/{scheduleVariant}/visibility', [

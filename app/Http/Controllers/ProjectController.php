@@ -7,11 +7,13 @@ use App\Http\Requests\Projects\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\ScheduleVariant;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProjectController
+class ProjectController extends Controller
 {
     public function index(): Response
     {
@@ -33,8 +35,19 @@ class ProjectController
     public function store(StoreProjectRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        /** @var UploadedFile|null $hierarchyFile */
+        $hierarchyFile = $request->file('hierarchy_file');
+
+        unset($data['hierarchy_file']);
+
         $data['user_id'] = $request->user()->getKey();
+
         $project = Project::create($data);
+
+        if ($hierarchyFile instanceof UploadedFile) {
+            $path = $this->storeHierarchyFile($project, $hierarchyFile);
+            $project->forceFill(['hierarchy_path' => $path])->save();
+        }
 
         return redirect()->route('projects.show', $project);
     }
@@ -66,6 +79,10 @@ class ProjectController
             'scheduleVariants' => $visibleVariants
                 ->map(fn (ScheduleVariant $variant) => $this->formatScheduleVariant($variant)),
             'defaultVariant' => $defaultVariant,
+            'hierarchyCandidates' => $this->buildCandidateUrls(
+                [$project->hierarchy_path],
+                route('projects.hierarchy', $project),
+            ),
         ]);
     }
 
@@ -86,7 +103,24 @@ class ProjectController
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
         $this->authorizeProject($project);
-        $project->update($request->validated());
+
+        $data = $request->validated();
+        /** @var UploadedFile|null $hierarchyFile */
+        $hierarchyFile = $request->file('hierarchy_file');
+
+        unset($data['hierarchy_file']);
+
+        $project->fill($data);
+
+        if ($hierarchyFile instanceof UploadedFile) {
+            if ($project->hierarchy_path) {
+                $this->deleteHierarchyFile($project->hierarchy_path);
+            }
+
+            $project->hierarchy_path = $this->storeHierarchyFile($project, $hierarchyFile);
+        }
+
+        $project->save();
 
         return redirect()->route('projects.show', $project);
     }
@@ -94,6 +128,11 @@ class ProjectController
     public function destroy(Project $project): RedirectResponse
     {
         $this->authorizeProject($project);
+        if ($project->hierarchy_path) {
+            $this->deleteHierarchyFile($project->hierarchy_path);
+        }
+
+        $this->deleteHierarchyDirectory($project);
         $project->delete();
 
         return redirect()->route('projects.index');
@@ -152,5 +191,30 @@ class ProjectController
             $prefixed,
             $filtered,
         )));
+    }
+
+    protected function storeHierarchyFile(Project $project, UploadedFile $file): string
+    {
+        $relativeDirectory = $this->hierarchyDirectory($project);
+        $disk = Storage::disk('local');
+        $disk->makeDirectory('private/'.$relativeDirectory);
+        $disk->putFileAs('private/'.$relativeDirectory, $file, 'tasks_hierarchy.csv');
+
+        return $relativeDirectory.'/tasks_hierarchy.csv';
+    }
+
+    protected function hierarchyDirectory(Project $project): string
+    {
+        return sprintf('projects/%s/hierarchy', $project->getKey());
+    }
+
+    protected function deleteHierarchyFile(string $path): void
+    {
+        Storage::disk('local')->delete('private/'.$path);
+    }
+
+    protected function deleteHierarchyDirectory(Project $project): void
+    {
+        Storage::disk('local')->deleteDirectory('private/'.$this->hierarchyDirectory($project));
     }
 }

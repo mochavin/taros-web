@@ -19,7 +19,7 @@ export default function ProjectCreate() {
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Tambah Project</h1>
                 </div>
-                <Form action="/projects" method="post" className="space-y-6">
+                <Form action="/projects" method="post" encType="multipart/form-data" className="space-y-6">
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
@@ -38,6 +38,12 @@ export default function ProjectCreate() {
                                     <Input id="end_date" name="end_date" type="date" />
                                     <InputError message={errors.end_date} />
                                 </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="hierarchy_file">Hierarchy CSV</Label>
+                                <Input id="hierarchy_file" name="hierarchy_file" type="file" required accept=".csv,text/csv" />
+                                <p className="text-xs text-muted-foreground">Unggah file CSV hierarchy (mis. tasks_hierarchy.csv) untuk struktur Gantt.</p>
+                                <InputError message={errors.hierarchy_file} />
                             </div>
                             <div className="flex gap-4">
                                 <Button disabled={processing}>Simpan</Button>
