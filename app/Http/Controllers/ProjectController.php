@@ -20,7 +20,7 @@ class ProjectController extends Controller
         $projects = Project::query()
             ->where('user_id', Auth::id())
             ->latest('start_date')
-            ->get(['id', 'name', 'start_date', 'end_date']);
+            ->get(['id', 'name', 'start_date', 'end_date', 'start_baseline']);
 
         return Inertia::render('projects/index', [
             'projects' => $projects,

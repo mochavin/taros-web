@@ -10,6 +10,7 @@ interface ProjectListItem {
     name: string;
     start_date: string;
     end_date: string | null;
+    start_baseline: string | null;
 }
 
 export default function ProjectsIndex({ projects }: { projects: ProjectListItem[] }) {
@@ -32,8 +33,8 @@ export default function ProjectsIndex({ projects }: { projects: ProjectListItem[
                         <thead className="bg-neutral-100 dark:bg-neutral-800/50">
                             <tr className="text-left">
                                 <th className="px-4 py-2">Nama Project</th>
-                                <th className="px-4 py-2">Tanggal Mulai</th>
-                                <th className="px-4 py-2">Tanggal Selesai</th>
+                                <th className="px-4 py-2">Periode</th>
+                                <th className="px-4 py-2">Start Baseline</th>
                                 <th className="px-4 py-2 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -47,9 +48,19 @@ export default function ProjectsIndex({ projects }: { projects: ProjectListItem[
                             )}
                             {projects.map(p => (
                                 <tr key={p.id} className="border-t border-neutral-200 dark:border-neutral-700">
-                                    <td className="px-4 py-2 font-medium">{p.name}</td>
-                                    <td className="px-4 py-2">{new Date(p.start_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                                    <td className="px-4 py-2">{p.end_date ? new Date(p.end_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}</td>
+                                    <td className="px-4 py-2 font-medium">
+                                        <Link href={`/projects/${p.id}`} className="hover:underline text-primary">
+                                            {p.name}
+                                        </Link>
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        {new Date(p.start_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        {' - '}
+                                        {p.end_date ? new Date(p.end_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        {p.start_baseline ? new Date(p.start_baseline).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                                    </td>
                                     <td className="px-4 py-2 text-right space-x-2">
                                         <Button variant="secondary" size="sm" asChild>
                                             <Link href={`/projects/${p.id}`}>
