@@ -5,6 +5,7 @@ import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { type BreadcrumbItem } from '@/types';
 import { ScheduleViewerComponent } from '@/components/schedule/schedule-viewer-component';
 import type { ScheduleVariantOption } from '@/types/schedule';
+import { formatIndoDateTime } from '@/lib/schedule-utils';
 
 interface ProjectShowData {
     project: {
@@ -12,6 +13,7 @@ interface ProjectShowData {
         name: string;
         start_date: string;
         end_date: string | null;
+        start_baseline: string | null;
         created_at: string;
         updated_at: string;
     };
@@ -52,28 +54,18 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant,
                         />
                     </div>
                 </div>
-                {/* <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-                    <dl className="grid gap-4 md:grid-cols-2 text-sm">
-                        <div>
-                            <dt className="font-medium">Tanggal Mulai</dt>
-                            <dd>{project.start_date}</dd>
+
+                {project.start_baseline && (
+                    <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border bg-muted/30">
+                        <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">Project Baseline:</span>
+                            <span>{formatIndoDateTime(project.start_baseline)}</span>
                         </div>
-                        <div>
-                            <dt className="font-medium">Tanggal Selesai</dt>
-                            <dd>{project.end_date ?? '-'}</dd>
-                        </div>
-                        <div>
-                            <dt className="font-medium">Dibuat</dt>
-                            <dd>{project.created_at}</dd>
-                        </div>
-                        <div>
-                            <dt className="font-medium">Diperbarui</dt>
-                            <dd>{project.updated_at}</dd>
-                        </div>
-                    </dl>
-                </div> */}
+                    </div>
+                )}
+
                 {/* Schedule viewer component */}
-                <div className="rounded-lg p-4 dark:border-sidebar-border">
+                <div className="rounded-lg dark:border-sidebar-border">
                     {/* <h2 className="text-lg font-medium mb-2">Schedule Viewer</h2>
                     <p className="text-sm text-muted-foreground mb-4">Upload task_schedule.csv and resource_tracking.csv or drop them into the viewer.</p> */}
                     <ScheduleViewerComponent
@@ -81,6 +73,7 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant,
                         variants={scheduleVariants}
                         defaultVariant={defaultVariant}
                         hierarchyCandidates={hierarchyCandidates}
+                        startBaseline={project.start_baseline}
                     />
                 </div>
             </div>

@@ -31,6 +31,7 @@ it('creates a project', function () {
             'name' => 'New Project',
             'start_date' => now()->format('Y-m-d'),
             'end_date' => now()->addDay()->format('Y-m-d'),
+            'start_baseline' => now()->format('Y-m-d\TH:i'),
             'hierarchy_file' => $hierarchy,
         ])
         ->assertRedirect();
@@ -40,6 +41,7 @@ it('creates a project', function () {
         ->first();
 
     expect($project)->not->toBeNull();
+    expect($project?->start_baseline)->not->toBeNull();
     expect($project?->hierarchy_path)->toBe(
         sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project?->id),
     );
@@ -55,10 +57,12 @@ it('updates a project', function () {
             'name' => 'Updated Name',
             'start_date' => $project->start_date->format('Y-m-d'),
             'end_date' => $project->end_date?->format('Y-m-d'),
+            'start_baseline' => '2025-12-30T10:00',
         ])
         ->assertRedirect();
 
     expect($project->refresh()->name)->toBe('Updated Name');
+    expect($project->start_baseline?->format('Y-m-d H:i'))->toBe('2025-12-30 10:00');
 });
 
 it('replaces hierarchy file when updating a project', function () {

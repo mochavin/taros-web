@@ -33,6 +33,12 @@ export function formatDateLocal(dt: Date | null): string {
     return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
 }
 
+export function formatToDateTimeLocal(dt: Date | null): string {
+    if (!dt) return '';
+    const pad = (n: number) => (n < 10 ? '0' : '') + n;
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+}
+
 export function formatIndoDateTime(dtStr: string | null | undefined): string {
     if (!dtStr) return '';
     const dt = new Date(dtStr);

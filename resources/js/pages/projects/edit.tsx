@@ -12,6 +12,7 @@ interface ProjectFormData {
         name: string;
         start_date: string;
         end_date: string | null;
+        start_baseline: string | null;
     };
 }
 
@@ -49,6 +50,12 @@ export default function ProjectEdit({ project }: ProjectFormData) {
                                     <Input id="end_date" name="end_date" type="date" defaultValue={project.end_date ?? ''} />
                                     <InputError message={errors.end_date} />
                                 </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="start_baseline">Start Baseline (Optional)</Label>
+                                <Input id="start_baseline" name="start_baseline" type="datetime-local" defaultValue={project.start_baseline ?? ''} />
+                                <p className="text-xs text-muted-foreground">Baseline awal untuk Gantt Chart.</p>
+                                <InputError message={errors.start_baseline} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="hierarchy_file">Hierarchy CSV</Label>

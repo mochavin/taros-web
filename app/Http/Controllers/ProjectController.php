@@ -73,6 +73,7 @@ class ProjectController extends Controller
                 'name' => $project->name,
                 'start_date' => $project->start_date?->format('Y-m-d'),
                 'end_date' => $project->end_date?->format('Y-m-d'),
+                'start_baseline' => $project->start_baseline?->toDateTimeString(),
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
             ],
@@ -96,6 +97,7 @@ class ProjectController extends Controller
                 'name' => $project->name,
                 'start_date' => $project->start_date?->format('Y-m-d'),
                 'end_date' => $project->end_date?->format('Y-m-d'),
+                'start_baseline' => $project->start_baseline?->format('Y-m-d\TH:i'),
             ],
         ]);
     }

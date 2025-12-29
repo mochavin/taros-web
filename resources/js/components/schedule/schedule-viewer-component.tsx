@@ -11,6 +11,7 @@ import {
 import { useCSVParser } from '@/hooks/use-csv-parser';
 import {
     formatDateLocal,
+    formatToDateTimeLocal,
     parseDate,
     parseLocalDateTimeInput,
 } from '@/lib/schedule-utils';
@@ -40,12 +41,14 @@ interface ScheduleViewerComponentProps {
     variants?: ScheduleVariantOption[];
     defaultVariant?: string | null;
     hierarchyCandidates?: string[];
+    startBaseline?: string | null;
 }
 
 export function ScheduleViewerComponent({
     variants = [],
     defaultVariant,
     hierarchyCandidates = [],
+    startBaseline,
 }: ScheduleViewerComponentProps) {
     const visibleVariants = useMemo(
         () => variants.filter((variant) => !variant.isHidden),
@@ -68,7 +71,9 @@ export function ScheduleViewerComponent({
     }, [defaultVariant, variantMap, visibleVariants]);
 
     const [currentVariant, setCurrentVariant] = useState(initialVariant);
-    const [customStart, setCustomStart] = useState('');
+    const [customStart, setCustomStart] = useState(
+        startBaseline ? formatToDateTimeLocal(new Date(startBaseline)) : '',
+    );
     const [status, setStatus] = useState('');
     const [ganttViewMode, setGanttViewMode] = useState<
         'hierarchy' | 'flat' | 'compare'
@@ -183,7 +188,9 @@ export function ScheduleViewerComponent({
 
     const handleClear = () => {
         clearData();
-        setCustomStart('');
+        setCustomStart(
+            startBaseline ? formatToDateTimeLocal(new Date(startBaseline)) : '',
+        );
         setStatus('');
     };
 
@@ -370,7 +377,7 @@ export function ScheduleViewerComponent({
                             />
                         </div>
 
-                        <div>
+                        {/* <div>
                             <Label htmlFor="customStart">Start baseline</Label>
                             <Input
                                 id="customStart"
@@ -378,7 +385,7 @@ export function ScheduleViewerComponent({
                                 value={customStart}
                                 onChange={(e) => setCustomStart(e.target.value)}
                             />
-                        </div>
+                        </div> */}
 
                         <Button variant="outline" onClick={handleClear}>
                             Clear

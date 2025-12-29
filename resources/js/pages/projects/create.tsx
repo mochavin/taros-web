@@ -40,6 +40,12 @@ export default function ProjectCreate() {
                                 </div>
                             </div>
                             <div className="grid gap-2">
+                                <Label htmlFor="start_baseline">Start Baseline (Optional)</Label>
+                                <Input id="start_baseline" name="start_baseline" type="datetime-local" />
+                                <p className="text-xs text-muted-foreground">Baseline awal untuk Gantt Chart.</p>
+                                <InputError message={errors.start_baseline} />
+                            </div>
+                            <div className="grid gap-2">
                                 <Label htmlFor="hierarchy_file">Hierarchy CSV</Label>
                                 <Input id="hierarchy_file" name="hierarchy_file" type="file" required accept=".csv,text/csv" />
                                 <p className="text-xs text-muted-foreground">Unggah file CSV hierarchy (mis. tasks_hierarchy.csv) untuk struktur Gantt.</p>

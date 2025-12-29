@@ -15,6 +15,7 @@ class Project extends Model
         'name',
         'start_date',
         'end_date',
+        'start_baseline',
         'user_id',
         'hierarchy_path',
     ];
@@ -27,6 +28,7 @@ class Project extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'start_baseline' => 'datetime',
         ];
     }
 
