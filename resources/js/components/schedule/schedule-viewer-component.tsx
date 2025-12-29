@@ -16,7 +16,13 @@ import {
     parseLocalDateTimeInput,
 } from '@/lib/schedule-utils';
 import type { ScheduleVariantOption } from '@/types/schedule';
-import { Loader2 } from 'lucide-react';
+import {
+    Calendar,
+    FileUp,
+    Loader2,
+    Settings2,
+    Upload,
+} from 'lucide-react';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { GanttChart } from './gantt-chart';
@@ -28,6 +34,7 @@ import { ResourceTable } from './resource-table';
 import { ResourceTableCompare } from './resource-table-compare';
 import { TaskTable } from './task-table';
 import { TaskTableCompare } from './task-table-compare';
+import { UploadScheduleDialog } from './upload-schedule-dialog';
 // import Papa from 'papaparse';
 
 const formatVariantLabel = (variantKey: string): string =>
@@ -306,24 +313,14 @@ export function ScheduleViewerComponent({
     );
 
     return (
-        <div className="relative min-h-[400px] space-y-4">
-            {/* Upload and Controls */}
-            <div className="rounded-lg border bg-gray-50 p-4 dark:bg-gray-900">
-                <div className="space-y-4">
-                    {/* <div>
-                        <div className="text-sm text-muted-foreground mb-2">Upload or drop these CSVs:</div>
-                        <ul className="text-sm text-muted-foreground list-disc ml-6">
-                            <li>task_schedule.csv (TaskID, TaskName, Start, Finish, DurationHours, IsElapsed, Assignments)</li>
-                            <li>
-                                resource_tracking.csv (ResourceID, ResourceName, TaskID, TaskName, SegmentStart, SegmentEnd,
-                                SegmentHours, Units)
-                            </li>
-                        </ul>
-                    </div> */}
-
-                    <div className="flex flex-wrap items-end gap-4">
-                        <div>
-                            <Label htmlFor="variantSelect">Variant</Label>
+        <div className="relative min-h-[400px] space-y-6">
+            {/* Main Control Bar */}
+            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center gap-6">
+                        {/* Variant Selection */}
+                        <div className="flex flex-col gap-1.5">
+                            <Label htmlFor="variantSelect" className="text-xs font-medium text-muted-foreground">Variant</Label>
                             <Select
                                 value={currentVariant || undefined}
                                 onValueChange={handleVariantChange}
@@ -331,7 +328,7 @@ export function ScheduleViewerComponent({
                             >
                                 <SelectTrigger
                                     id="variantSelect"
-                                    className="w-[200px]"
+                                    className="w-[220px] h-9"
                                 >
                                     <SelectValue
                                         placeholder={
@@ -357,160 +354,103 @@ export function ScheduleViewerComponent({
                             </Select>
                         </div>
 
-                        <div>
-                            <Label htmlFor="fileTasks">Tasks CSV</Label>
-                            <Input
-                                id="fileTasks"
-                                type="file"
-                                accept=".csv"
-                                onChange={handleTaskFileChange}
-                            />
+                        {/* View Mode Selector */}
+                        <div className="flex flex-col gap-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">View Mode</Label>
+                            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-md border h-9">
+                                {activeTab === 'gantt' && (
+                                    <>
+                                        <Button
+                                            variant={ganttViewMode === 'hierarchy' ? 'default' : 'ghost'}
+                                            size="sm"
+                                            className="h-7 px-3 text-xs"
+                                            onClick={() => setGanttViewMode('hierarchy')}
+                                        >
+                                            Hierarchy
+                                        </Button>
+                                        <Button
+                                            variant={ganttViewMode === 'flat' ? 'default' : 'ghost'}
+                                            size="sm"
+                                            className="h-7 px-3 text-xs"
+                                            onClick={() => setGanttViewMode('flat')}
+                                        >
+                                            Flat
+                                        </Button>
+                                    </>
+                                )}
+                                <Button
+                                    variant={ganttViewMode === 'compare' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    className="h-7 px-3 text-xs"
+                                    onClick={() => setGanttViewMode('compare')}
+                                    disabled={visibleVariants.length < 2}
+                                >
+                                    Compare
+                                </Button>
+                            </div>
                         </div>
+                    </div>
 
-                        <div>
-                            <Label htmlFor="fileRes">Resources CSV</Label>
-                            <Input
-                                id="fileRes"
-                                type="file"
-                                accept=".csv"
-                                onChange={handleResourceFileChange}
-                            />
-                        </div>
+                    <div className="flex items-center gap-2 self-end">
+                        {/* Upload Button & Dialog */}
+                        <UploadScheduleDialog
+                            onTaskFileChange={handleTaskFileChange}
+                            onResourceFileChange={handleResourceFileChange}
+                        />
 
-                        {/* <div>
-                            <Label htmlFor="customStart">Start baseline</Label>
-                            <Input
-                                id="customStart"
-                                type="datetime-local"
-                                value={customStart}
-                                onChange={(e) => setCustomStart(e.target.value)}
-                            />
-                        </div> */}
-
-                        <Button variant="outline" onClick={handleClear}>
+                        <Button variant="ghost" size="sm" onClick={handleClear} className="h-9">
                             Clear
                         </Button>
-
-                        {status && (
-                            <span className="text-sm text-muted-foreground">
-                                {status}
-                            </span>
-                        )}
-                        {!hasVariants && (
-                            <span className="text-sm text-muted-foreground">
-                                Belum ada varian jadwal yang ditampilkan.
-                                Silakan unggah CSV manual atau tampilkan varian
-                                dari halaman pengelolaan.
-                            </span>
-                        )}
                     </div>
-
-                    {/* <div
-                        className="border-2 border-dashed rounded-lg p-8 text-center text-muted-foreground hover:border-primary/50 transition-colors"
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                    >
-                        Drop CSV files here
-                    </div> */}
-                </div>
-            </div>
-
-            {/* View Mode Selector - Always Visible */}
-            <div className="space-y-4">
-                {/* Gantt View Mode Selector */}
-                <div className="flex items-center gap-4 rounded-lg border bg-muted/50 p-3">
-                    <Label className="font-semibold">View Mode:</Label>
-                    <div className="flex gap-2">
-                        {activeTab === 'gantt' && (
-                            <>
-                                <Button
-                                    variant={
-                                        ganttViewMode === 'hierarchy'
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    size="sm"
-                                    onClick={() =>
-                                        setGanttViewMode('hierarchy')
-                                    }
-                                >
-                                    Hierarchy View
-                                </Button>
-                                <Button
-                                    variant={
-                                        ganttViewMode === 'flat'
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    size="sm"
-                                    onClick={() => setGanttViewMode('flat')}
-                                >
-                                    Flat View (Sortable)
-                                </Button>
-                            </>
-                        )}
-                        <Button
-                            variant={
-                                ganttViewMode === 'compare'
-                                    ? 'default'
-                                    : 'outline'
-                            }
-                            size="sm"
-                            onClick={() => setGanttViewMode('compare')}
-                            disabled={visibleVariants.length < 2}
-                        >
-                            Compare Variants
-                        </Button>
-                    </div>
-                    <span className="ml-auto text-sm text-muted-foreground">
-                        {ganttViewMode === 'compare'
-                            ? 'Compare schedules across different variants'
-                            : activeTab === 'gantt'
-                                ? ganttViewMode === 'hierarchy'
-                                    ? 'Showing hierarchical structure with headings'
-                                    : 'Showing flat list with sorting options'
-                                : 'Viewing single variant data'}
-                    </span>
                 </div>
 
-                {/* Variant Comparison Selector - Always Visible When Compare Mode Active */}
-                {ganttViewMode === 'compare' && (
-                    <div className="rounded-lg border bg-muted/50 p-4">
-                        <Label className="mb-3 block font-semibold">
-                            Select Variants to Compare:
-                        </Label>
-                        <div className="flex flex-wrap gap-2">
-                            {visibleVariants.map((variant) => (
-                                <Button
-                                    key={variant.slug}
-                                    variant={
-                                        compareVariants.includes(variant.slug)
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    size="sm"
-                                    onClick={() => {
-                                        setCompareVariants((prev) =>
-                                            prev.includes(variant.slug)
-                                                ? prev.filter(
-                                                    (v) => v !== variant.slug,
-                                                )
-                                                : [...prev, variant.slug],
-                                        );
-                                    }}
-                                >
-                                    {variant.name ||
-                                        formatVariantLabel(variant.slug)}
-                                </Button>
-                            ))}
-                        </div>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            Selected: {compareVariants.length} variant
-                            {compareVariants.length !== 1 ? 's' : ''}
-                        </p>
+                {status && (
+                    <div className="flex items-center gap-2 px-1">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                        <span className="text-xs text-muted-foreground font-medium">
+                            {status}
+                        </span>
                     </div>
                 )}
             </div>
+
+            {/* Variant Comparison Selector - Only when Compare Mode Active */}
+            {ganttViewMode === 'compare' && (
+                <div className="rounded-xl border bg-muted/30 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between mb-3">
+                        <Label className="text-sm font-semibold flex items-center gap-2">
+                            <Settings2 className="h-4 w-4" />
+                            Select Variants to Compare
+                        </Label>
+                        <span className="text-xs text-muted-foreground">
+                            {compareVariants.length} selected
+                        </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {visibleVariants.map((variant) => (
+                            <Button
+                                key={variant.slug}
+                                variant={
+                                    compareVariants.includes(variant.slug)
+                                        ? 'default'
+                                        : 'outline'
+                                }
+                                size="sm"
+                                className="h-8 text-xs"
+                                onClick={() => {
+                                    setCompareVariants((prev) =>
+                                        prev.includes(variant.slug)
+                                            ? prev.filter((v) => v !== variant.slug)
+                                            : [...prev, variant.slug],
+                                    );
+                                }}
+                            >
+                                {variant.name || formatVariantLabel(variant.slug)}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Tabs */}
             <Tabs

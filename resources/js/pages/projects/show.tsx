@@ -6,6 +6,7 @@ import { type BreadcrumbItem } from '@/types';
 import { ScheduleViewerComponent } from '@/components/schedule/schedule-viewer-component';
 import type { ScheduleVariantOption } from '@/types/schedule';
 import { formatIndoDateTime } from '@/lib/schedule-utils';
+import { Calendar, Pencil } from 'lucide-react';
 
 interface ProjectShowData {
     project: {
@@ -33,18 +34,24 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant,
             <Head title={project.name} />
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold">{project.name}</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+                        <Button asChild variant="outline" size="icon" className="h-8 w-8">
+                            <Link href={`/projects/${project.id}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    </div>
                     <div className="flex flex-wrap items-center gap-2 justify-end">
                         <Button asChild variant="secondary">
-                            <Link href={`/projects/${project.id}/schedule-variants`}>Schedule Variants</Link>
-                        </Button>
-                        <Button asChild variant="outline">
-                            <Link href={`/projects/${project.id}/edit`}>Edit</Link>
+                            <Link href={`/projects/${project.id}/schedule-variants`}>
+                                Schedule Variants
+                            </Link>
                         </Button>
                         <ConfirmDeleteDialog
                             trigger={(
-                                <Button asChild variant="destructive">
-                                    <button type="button">Delete</button>
+                                <Button variant="destructive">
+                                    Delete
                                 </Button>
                             )}
                             href={`/projects/${project.id}`}
@@ -56,11 +63,12 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant,
                 </div>
 
                 {project.start_baseline && (
-                    <div className="rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border bg-muted/30">
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className="font-medium">Project Baseline:</span>
-                            <span>{formatIndoDateTime(project.start_baseline)}</span>
-                        </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground px-1">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <span className="font-medium">Project Baseline:</span>
+                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-semibold">
+                            {formatIndoDateTime(project.start_baseline)}
+                        </span>
                     </div>
                 )}
 
