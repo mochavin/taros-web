@@ -325,10 +325,7 @@ it('serves task schedule csv through public endpoint', function (): void {
 
     $response->assertOk();
     expect($response->headers->get('content-type'))->toContain('text/csv');
-    /** @var BinaryFileResponse $binary */
-    $binary = $response->baseResponse;
-    expect($binary)->toBeInstanceOf(BinaryFileResponse::class);
-    expect($binary->getFile()->getFilename())->toBe('task_schedule.csv');
+    expect($response->streamedContent())->toBe("TaskID,TaskName\n");
 });
 
 it('returns 404 when file is missing', function (): void {
@@ -339,4 +336,52 @@ it('returns 404 when file is missing', function (): void {
     ]);
 
     get(route('schedule-variants.tasks', ['scheduleVariant' => $variant->slug]))->assertNotFound();
+});
+
+it('shifts dates in task schedule csv based on project baseline', function (): void {
+    Storage::fake('local');
+
+    /** @var Project $project */
+    $project = Project::factory()->create([
+        'start_baseline' => '2025-01-01 08:00:00',
+    ]);
+
+    $variant = ScheduleVariant::factory()->for($project)->create();
+
+    $csvContent = "TaskID,TaskName,Start,Finish\n1,Task 1,2024-01-01 08:00:00,2024-01-01 17:00:00";
+    Storage::disk('local')->put('private/'.$variant->task_path, $csvContent);
+
+    $response = get(route('projects.schedule-variants.tasks', [$project, $variant]));
+
+    $response->assertOk();
+    $content = $response->streamedContent();
+
+    expect($content)->toContain('2025-01-01 08:00:00');
+    expect($content)->toContain('2025-01-01 17:00:00');
+});
+
+it('shifts dates in resource tracking csv based on project baseline', function (): void {
+    Storage::fake('local');
+
+    /** @var Project $project */
+    $project = Project::factory()->create([
+        'start_baseline' => '2025-01-01 08:00:00',
+    ]);
+
+    $variant = ScheduleVariant::factory()->for($project)->create();
+
+    // We need task_schedule.csv to calculate the shift
+    $taskCsvContent = "TaskID,TaskName,Start,Finish\n1,Task 1,2024-01-01 08:00:00,2024-01-01 17:00:00";
+    Storage::disk('local')->put('private/'.$variant->task_path, $taskCsvContent);
+
+    $resCsvContent = "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd\n1,Res 1,1,Task 1,2024-01-01 09:00:00,2024-01-01 12:00:00";
+    Storage::disk('local')->put('private/'.$variant->resource_path, $resCsvContent);
+
+    $response = get(route('projects.schedule-variants.resources', [$project, $variant]));
+
+    $response->assertOk();
+    $content = $response->streamedContent();
+
+    expect($content)->toContain('2025-01-01 09:00:00');
+    expect($content)->toContain('2025-01-01 12:00:00');
 });

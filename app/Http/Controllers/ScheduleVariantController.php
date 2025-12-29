@@ -7,6 +7,7 @@ use App\Http\Requests\ScheduleVariants\UpdateScheduleVariantRequest;
 use App\Http\Requests\ScheduleVariants\UpdateScheduleVariantVisibilityRequest;
 use App\Models\Project;
 use App\Models\ScheduleVariant;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ScheduleVariantController extends Controller
 {
@@ -134,6 +136,146 @@ class ScheduleVariantController extends Controller
         ])->save();
 
         return redirect()->back();
+    }
+
+    public function taskScheduleCsv(Project $project, ScheduleVariant $scheduleVariant): StreamedResponse
+    {
+        $this->assertOwnership($project, $scheduleVariant);
+        abort_if(! $scheduleVariant->task_path, 404);
+
+        $path = 'private/'.$scheduleVariant->task_path;
+        abort_if(! Storage::disk('local')->exists($path), 404);
+
+        $projectBaseline = $project->start_baseline;
+        $shift = $this->calculateBaselineShift($scheduleVariant, $projectBaseline);
+
+        return response()->streamDownload(function () use ($path, $shift) {
+            $handle = fopen(Storage::disk('local')->path($path), 'r');
+            $output = fopen('php://output', 'w');
+
+            if ($handle !== false) {
+                $header = fgetcsv($handle);
+                if ($header !== false) {
+                    fputcsv($output, $header);
+
+                    $startIndex = array_search('Start', $header);
+                    $finishIndex = array_search('Finish', $header);
+
+                    while (($data = fgetcsv($handle)) !== false) {
+                        if ($shift !== 0) {
+                            if ($startIndex !== false && isset($data[$startIndex])) {
+                                $data[$startIndex] = $this->shiftDate($data[$startIndex], $shift);
+                            }
+                            if ($finishIndex !== false && isset($data[$finishIndex])) {
+                                $data[$finishIndex] = $this->shiftDate($data[$finishIndex], $shift);
+                            }
+                        }
+                        fputcsv($output, $data);
+                    }
+                }
+                fclose($handle);
+            }
+            fclose($output);
+        }, 'task_schedule.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    public function resourceTrackingCsv(Project $project, ScheduleVariant $scheduleVariant): StreamedResponse
+    {
+        $this->assertOwnership($project, $scheduleVariant);
+        abort_if(! $scheduleVariant->resource_path, 404);
+
+        $path = 'private/'.$scheduleVariant->resource_path;
+        abort_if(! Storage::disk('local')->exists($path), 404);
+
+        $projectBaseline = $project->start_baseline;
+        $shift = $this->calculateBaselineShift($scheduleVariant, $projectBaseline);
+
+        return response()->streamDownload(function () use ($path, $shift) {
+            $handle = fopen(Storage::disk('local')->path($path), 'r');
+            $output = fopen('php://output', 'w');
+
+            if ($handle !== false) {
+                $header = fgetcsv($handle);
+                if ($header !== false) {
+                    fputcsv($output, $header);
+
+                    $startIndex = array_search('SegmentStart', $header);
+                    $finishIndex = array_search('SegmentEnd', $header);
+
+                    while (($data = fgetcsv($handle)) !== false) {
+                        if ($shift !== 0) {
+                            if ($startIndex !== false && isset($data[$startIndex])) {
+                                $data[$startIndex] = $this->shiftDate($data[$startIndex], $shift);
+                            }
+                            if ($finishIndex !== false && isset($data[$finishIndex])) {
+                                $data[$finishIndex] = $this->shiftDate($data[$finishIndex], $shift);
+                            }
+                        }
+                        fputcsv($output, $data);
+                    }
+                }
+                fclose($handle);
+            }
+            fclose($output);
+        }, 'resource_tracking.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    protected function calculateBaselineShift(ScheduleVariant $variant, ?Carbon $projectBaseline): int
+    {
+        if (! $projectBaseline || ! $variant->task_path) {
+            return 0;
+        }
+
+        $path = 'private/'.$variant->task_path;
+        if (! Storage::disk('local')->exists($path)) {
+            return 0;
+        }
+
+        $earliest = null;
+        $handle = fopen(Storage::disk('local')->path($path), 'r');
+        if ($handle !== false) {
+            $header = fgetcsv($handle);
+            if ($header !== false) {
+                $startIndex = array_search('Start', $header);
+
+                if ($startIndex !== false) {
+                    while (($data = fgetcsv($handle)) !== false) {
+                        if (isset($data[$startIndex]) && trim($data[$startIndex]) !== '') {
+                            try {
+                                $date = Carbon::parse($data[$startIndex]);
+                                if ($earliest === null || $date->lt($earliest)) {
+                                    $earliest = $date;
+                                }
+                            } catch (\Exception $e) {
+                                // Skip invalid dates
+                            }
+                        }
+                    }
+                }
+            }
+            fclose($handle);
+        }
+
+        if (! $earliest) {
+            return 0;
+        }
+
+        return $projectBaseline->timestamp - $earliest->timestamp;
+    }
+
+    protected function shiftDate(string $dateStr, int $shiftSeconds): string
+    {
+        if (trim($dateStr) === '') {
+            return $dateStr;
+        }
+
+        try {
+            $date = Carbon::parse($dateStr);
+
+            return $date->addSeconds($shiftSeconds)->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            return $dateStr;
+        }
     }
 
     /**
