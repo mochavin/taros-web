@@ -176,7 +176,7 @@ class ScheduleVariantController extends Controller
                 fclose($handle);
             }
             fclose($output);
-        }, 'task_schedule.csv', ['Content-Type' => 'text/csv']);
+        }, sprintf('task_schedule_%s.csv', $scheduleVariant->name), ['Content-Type' => 'text/csv']);
     }
 
     public function resourceTrackingCsv(Project $project, ScheduleVariant $scheduleVariant): StreamedResponse
@@ -217,7 +217,7 @@ class ScheduleVariantController extends Controller
                 fclose($handle);
             }
             fclose($output);
-        }, 'resource_tracking.csv', ['Content-Type' => 'text/csv']);
+        }, sprintf('resource_tracking_%s.csv', $scheduleVariant->name), ['Content-Type' => 'text/csv']);
     }
 
     protected function calculateBaselineShift(ScheduleVariant $variant, ?Carbon $projectBaseline): int
