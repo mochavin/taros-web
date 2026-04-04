@@ -4,8 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { GanttChart } from '../gantt-chart';
 import { GanttChartFlat } from '../gantt-chart-flat';
-import { computeBaselineShiftMs } from './utils';
 import type { VariantEntry } from './use-variant-data';
+import { computeBaselineShiftMs } from './utils';
 
 const EMPTY_TASK_ROWS: TaskRow[] = [];
 
@@ -16,6 +16,10 @@ interface VariantCardProps {
     onFiltersChange: (filters: GanttFilters) => void;
     viewMode: 'hierarchy' | 'flat';
     hierarchyCandidates?: string[];
+    taskRows?: TaskRow[];
+    totalTaskCount?: number;
+    showOnlyDifferentSchedule?: boolean;
+    visibleTaskIds?: Set<string>;
 }
 
 export function VariantCard({
@@ -25,8 +29,13 @@ export function VariantCard({
     onFiltersChange,
     viewMode,
     hierarchyCandidates,
+    taskRows: providedTaskRows,
+    totalTaskCount,
+    showOnlyDifferentSchedule = false,
+    visibleTaskIds,
 }: VariantCardProps) {
-    const taskRows = entry.data?.taskRows ?? EMPTY_TASK_ROWS;
+    const taskRows =
+        providedTaskRows ?? entry.data?.taskRows ?? EMPTY_TASK_ROWS;
     const baselineShiftMs = useMemo(
         () => computeBaselineShiftMs(taskRows, customStart),
         [taskRows, customStart],
@@ -35,6 +44,17 @@ export function VariantCard({
     const isLoading = entry.data?.isLoading ?? true;
     const error = entry.data?.error;
     const displayName = entry.variant.name || entry.slug;
+    const displayedTaskCount = taskRows.length;
+    const labelTaskCount =
+        showOnlyDifferentSchedule &&
+        typeof totalTaskCount === 'number' &&
+        totalTaskCount !== displayedTaskCount
+            ? `${displayedTaskCount} of ${totalTaskCount}`
+            : displayedTaskCount;
+    const emptyMessage =
+        showOnlyDifferentSchedule && typeof totalTaskCount === 'number'
+            ? 'No tasks with different schedule time found for this variant.'
+            : 'No tasks found for this variant.';
 
     if (isLoading) {
         return (
@@ -50,8 +70,12 @@ export function VariantCard({
                         <div className="flex flex-col items-center gap-4 rounded-xl border bg-white p-8 shadow-2xl dark:bg-gray-800">
                             <Loader2 className="h-10 w-10 animate-spin text-primary" />
                             <div className="text-center">
-                                <p className="font-semibold">Loading {displayName}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">Please wait...</p>
+                                <p className="font-semibold">
+                                    Loading {displayName}
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    Please wait...
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -71,8 +95,12 @@ export function VariantCard({
                 </div>
                 <div className="flex min-h-[500px] flex-1 items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 p-8">
                     <div className="text-center">
-                        <p className="font-semibold text-destructive">Error Loading Variant</p>
-                        <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+                        <p className="font-semibold text-destructive">
+                            Error Loading Variant
+                        </p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            {error}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -85,11 +113,13 @@ export function VariantCard({
                 <div className="min-h-20 flex-shrink-0 rounded-lg border bg-primary/5 p-3">
                     <div className="flex h-full items-center justify-between">
                         <h3 className="text-lg font-semibold">{displayName}</h3>
-                        <Label className="text-sm">Tasks: 0</Label>
+                        <Label className="text-sm">
+                            Tasks: {labelTaskCount}
+                        </Label>
                     </div>
                 </div>
                 <div className="flex min-h-[500px] flex-1 items-center justify-center rounded-lg border bg-muted/30 p-8">
-                    <p className="text-muted-foreground">No tasks found for this variant.</p>
+                    <p className="text-muted-foreground">{emptyMessage}</p>
                 </div>
             </div>
         );
@@ -100,7 +130,7 @@ export function VariantCard({
             <div className="min-h-20 flex-shrink-0 rounded-lg border bg-primary/5 p-3">
                 <div className="flex h-full items-center justify-between">
                     <h3 className="text-lg font-semibold">{displayName}</h3>
-                    <Label className="text-sm">Tasks: {taskRows.length}</Label>
+                    <Label className="text-sm">Tasks: {labelTaskCount}</Label>
                 </div>
             </div>
             <div className="min-h-[500px] flex-1">
@@ -112,6 +142,8 @@ export function VariantCard({
                         onFiltersChange={onFiltersChange}
                         idPrefix={`compare-${entry.slug}`}
                         hierarchyCandidates={hierarchyCandidates}
+                        visibleTaskIds={visibleTaskIds}
+                        emptyStateMessage={emptyMessage}
                     />
                 ) : (
                     <GanttChartFlat
@@ -120,6 +152,7 @@ export function VariantCard({
                         filters={filters}
                         onFiltersChange={onFiltersChange}
                         idPrefix={`compare-${entry.slug}`}
+                        emptyStateMessage={emptyMessage}
                     />
                 )}
             </div>

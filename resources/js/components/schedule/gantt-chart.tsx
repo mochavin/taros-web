@@ -20,6 +20,7 @@ import {
 import type { GanttFilters, TaskRow, TaskSortMode } from '@/types/schedule';
 import Papa from 'papaparse';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { expandVisibleTaskIdsWithAncestors } from './gantt-chart-compare/utils';
 
 interface GanttChartProps {
     tasks: TaskRow[];
@@ -30,6 +31,8 @@ interface GanttChartProps {
     idPrefix?: string;
     autoClampPage?: boolean;
     hierarchyCandidates?: string[];
+    visibleTaskIds?: Set<string>;
+    emptyStateMessage?: string;
 }
 
 interface GanttControlsProps {
@@ -216,6 +219,8 @@ export function GanttChart({
     idPrefix,
     autoClampPage = true,
     hierarchyCandidates,
+    visibleTaskIds,
+    emptyStateMessage = 'No valid dates in data',
 }: GanttChartProps) {
     const controlled = filters !== undefined && onFiltersChange !== undefined;
     const [internalFilters, setInternalFilters] = useState<GanttFilters>({
@@ -349,15 +354,33 @@ export function GanttChart({
         return map;
     }, [shiftedTasks]);
 
+    const visibleHierarchyTaskIds = useMemo(() => {
+        if (!visibleTaskIds || visibleTaskIds.size === 0) {
+            return null;
+        }
+
+        return expandVisibleTaskIdsWithAncestors(visibleTaskIds, hierarchyById);
+    }, [visibleTaskIds, hierarchyById]);
+
     // Build display rows combining hierarchy and task data
     const allDisplayRows = useMemo(() => {
         const rows: DisplayRow[] = [];
+        const seen = new Set<string>();
 
         // If no hierarchy loaded, fallback to showing tasks only
         if (hierarchyList.length === 0) {
             for (const task of shiftedTasks) {
+                const taskId = String(task.TaskID);
+                if (
+                    visibleTaskIds &&
+                    visibleTaskIds.size > 0 &&
+                    !visibleTaskIds.has(taskId.trim())
+                ) {
+                    continue;
+                }
+
                 rows.push({
-                    taskId: String(task.TaskID),
+                    taskId,
                     taskName: task.TaskName,
                     outlineLevel: 0,
                     isSummary: false,
@@ -370,6 +393,12 @@ export function GanttChart({
         // Build display rows from hierarchy, enriching with task data when available
         for (const hier of hierarchyList) {
             const taskId = String(hier.TaskID);
+            if (
+                visibleHierarchyTaskIds &&
+                !visibleHierarchyTaskIds.has(taskId.trim())
+            ) {
+                continue;
+            }
             const outlineLevel = Number(hier.OutlineLevel ?? 0);
             const isSummary =
                 String(hier.IsSummary).toLowerCase() === 'true' ||
@@ -383,10 +412,38 @@ export function GanttChart({
                 isSummary,
                 taskData,
             });
+            seen.add(taskId.trim());
+        }
+
+        for (const task of shiftedTasks) {
+            const taskId = String(task.TaskID).trim();
+            if (!taskId || seen.has(taskId)) {
+                continue;
+            }
+            if (
+                visibleHierarchyTaskIds &&
+                !visibleHierarchyTaskIds.has(taskId)
+            ) {
+                continue;
+            }
+
+            rows.push({
+                taskId,
+                taskName: task.TaskName,
+                outlineLevel: 0,
+                isSummary: false,
+                taskData: task,
+            });
         }
 
         return rows;
-    }, [hierarchyList, shiftedTasks, tasksById]);
+    }, [
+        hierarchyList,
+        shiftedTasks,
+        tasksById,
+        visibleTaskIds,
+        visibleHierarchyTaskIds,
+    ]);
 
     // Filter display rows
     const predText = textFilterPredicate(activeFilters.filter);
@@ -412,7 +469,14 @@ export function GanttChart({
 
             return true;
         });
-    }, [allDisplayRows, activeFilters.filter, fromDt, toDt, predText, predDate]);
+    }, [
+        allDisplayRows,
+        activeFilters.filter,
+        fromDt,
+        toDt,
+        predText,
+        predDate,
+    ]);
 
     // Sort display rows - when hierarchy is present, maintain hierarchy order
     // When no hierarchy, sort by task data
@@ -669,7 +733,7 @@ export function GanttChart({
             {/* Gantt Chart */}
             {!minStart || !maxFinish ? (
                 <div className="rounded-lg border p-8 text-center text-muted-foreground">
-                    No valid dates in data
+                    {emptyStateMessage}
                 </div>
             ) : (
                 <div className="overflow-x-auto rounded-lg border bg-white p-4 dark:bg-gray-950">

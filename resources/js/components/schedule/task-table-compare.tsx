@@ -7,7 +7,8 @@ import {
 import type { ScheduleVariantOption, TaskRow } from '@/types/schedule';
 import { Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { CompareFilterSwitch } from './compare-filter-switch';
 import { TaskTable } from './task-table';
 
 interface TaskTableCompareProps {
@@ -23,6 +24,91 @@ interface VariantData {
     isLoading: boolean;
     error?: string;
 }
+
+const computeBaselineShiftMs = (
+    taskRows: TaskRow[],
+    customStart: string,
+): number => {
+    const custom = parseLocalDateTimeInput(customStart);
+    if (!custom) return 0;
+
+    let earliest: Date | null = null;
+    for (const row of taskRows) {
+        const start = parseDate(row.Start);
+        if (!start) continue;
+        if (!earliest || start < earliest) {
+            earliest = start;
+        }
+    }
+
+    if (!earliest) return 0;
+
+    return custom.getTime() - earliest.getTime();
+};
+
+const applyBaselineShift = (
+    taskRows: TaskRow[],
+    baselineShiftMs: number,
+): TaskRow[] => {
+    if (!baselineShiftMs) return taskRows;
+
+    return taskRows.map((row) => {
+        const start = parseDate(row.Start);
+        const finish = parseDate(row.Finish);
+        const shiftedRow = { ...row };
+
+        if (start) {
+            shiftedRow.Start = formatDateLocal(
+                new Date(start.getTime() + baselineShiftMs),
+            );
+        }
+
+        if (finish) {
+            shiftedRow.Finish = formatDateLocal(
+                new Date(finish.getTime() + baselineShiftMs),
+            );
+        }
+
+        return shiftedRow;
+    });
+};
+
+const normalizeScheduleValue = (value: string | null | undefined): string => {
+    const parsed = parseDate(value);
+    if (parsed) {
+        return String(parsed.getTime());
+    }
+
+    return String(value ?? '').trim();
+};
+
+const buildTaskIndex = (taskRows: TaskRow[]): Map<string, TaskRow> => {
+    const taskIndex = new Map<string, TaskRow>();
+
+    for (const taskRow of taskRows) {
+        const taskId = String(taskRow.TaskID ?? '').trim();
+        if (!taskId || taskIndex.has(taskId)) continue;
+        taskIndex.set(taskId, taskRow);
+    }
+
+    return taskIndex;
+};
+
+const hasDifferentScheduleTime = (
+    leftTask: TaskRow | undefined,
+    rightTask: TaskRow | undefined,
+): boolean => {
+    if (!leftTask || !rightTask) {
+        return false;
+    }
+
+    return (
+        normalizeScheduleValue(leftTask.Start) !==
+            normalizeScheduleValue(rightTask.Start) ||
+        normalizeScheduleValue(leftTask.Finish) !==
+            normalizeScheduleValue(rightTask.Finish)
+    );
+};
 
 const parseCSVFromURL = async (url: string): Promise<TaskRow[]> => {
     try {
@@ -62,6 +148,8 @@ export function TaskTableCompare({
     const [variantDataMap, setVariantDataMap] = useState<
         Map<string, VariantData>
     >(new Map());
+    const [showOnlyDifferentSchedule, setShowOnlyDifferentSchedule] =
+        useState(false);
 
     // Load data for each variant
     useEffect(() => {
@@ -138,43 +226,52 @@ export function TaskTableCompare({
         }
     }, [compareVariants, variants]);
 
-    // Calculate baseline shift
-    const computeBaselineShiftMs = (taskRows: TaskRow[]): number => {
-        const custom = parseLocalDateTimeInput(customStart);
-        if (!custom) return 0;
-
-        let earliest: Date | null = null;
-        for (const r of taskRows) {
-            const s = parseDate(r.Start);
-            if (!s) continue;
-            if (!earliest || s < earliest) earliest = s;
+    useEffect(() => {
+        if (compareVariants.length !== 2) {
+            setShowOnlyDifferentSchedule(false);
         }
-        if (!earliest) return 0;
-        return custom.getTime() - earliest.getTime();
-    };
+    }, [compareVariants.length]);
 
-    // Apply baseline shift to tasks
-    const applyBaselineShift = (
-        taskRows: TaskRow[],
-        baselineShiftMs: number,
-    ): TaskRow[] => {
-        if (!baselineShiftMs) return taskRows;
+    const shiftedTaskRowsMap = useMemo(() => {
+        const nextMap = new Map<string, TaskRow[]>();
 
-        return taskRows.map((r) => {
-            const s = parseDate(r.Start);
-            const e = parseDate(r.Finish);
-            const rr = { ...r };
-            if (s)
-                rr.Start = formatDateLocal(
-                    new Date(s.getTime() + baselineShiftMs),
-                );
-            if (e)
-                rr.Finish = formatDateLocal(
-                    new Date(e.getTime() + baselineShiftMs),
-                );
-            return rr;
-        });
-    };
+        for (const slug of compareVariants) {
+            const taskRows = variantDataMap.get(slug)?.taskRows ?? [];
+            const baselineShiftMs = computeBaselineShiftMs(
+                taskRows,
+                customStart,
+            );
+
+            nextMap.set(slug, applyBaselineShift(taskRows, baselineShiftMs));
+        }
+
+        return nextMap;
+    }, [compareVariants, customStart, variantDataMap]);
+
+    const differentScheduleTaskIds = useMemo(() => {
+        if (compareVariants.length !== 2) {
+            return new Set<string>();
+        }
+
+        const [leftSlug, rightSlug] = compareVariants;
+        const leftTasks = shiftedTaskRowsMap.get(leftSlug) ?? [];
+        const rightTasks = shiftedTaskRowsMap.get(rightSlug) ?? [];
+        const leftTaskIndex = buildTaskIndex(leftTasks);
+        const rightTaskIndex = buildTaskIndex(rightTasks);
+        const differentTaskIds = new Set<string>();
+
+        for (const [taskId, leftTask] of leftTaskIndex) {
+            const rightTask = rightTaskIndex.get(taskId);
+
+            if (hasDifferentScheduleTime(leftTask, rightTask)) {
+                differentTaskIds.add(taskId);
+            }
+        }
+
+        return differentTaskIds;
+    }, [compareVariants, shiftedTaskRowsMap]);
+
+    const canFilterDifferentSchedule = compareVariants.length === 2;
 
     if (compareVariants.length === 0) {
         return (
@@ -198,6 +295,14 @@ export function TaskTableCompare({
 
     return (
         <div className="space-y-4">
+            {canFilterDifferentSchedule && (
+                <CompareFilterSwitch
+                    checked={showOnlyDifferentSchedule}
+                    onCheckedChange={setShowOnlyDifferentSchedule}
+                    differenceCount={differentScheduleTaskIds.size}
+                />
+            )}
+
             <div className={`grid gap-4 ${gridColsClass}`}>
                 {compareVariants.map((slug) => {
                     const variantData = variantDataMap.get(slug);
@@ -207,14 +312,16 @@ export function TaskTableCompare({
 
                     const displayName = variant.name || slug;
                     const isLoading = variantData?.isLoading ?? true;
-                    const taskRows = variantData?.taskRows ?? [];
                     const error = variantData?.error;
-
-                    const baselineShiftMs = computeBaselineShiftMs(taskRows);
-                    const shiftedTasks = applyBaselineShift(
-                        taskRows,
-                        baselineShiftMs,
-                    );
+                    const shiftedTasks = shiftedTaskRowsMap.get(slug) ?? [];
+                    const filteredTasks =
+                        showOnlyDifferentSchedule && canFilterDifferentSchedule
+                            ? shiftedTasks.filter((task) =>
+                                  differentScheduleTaskIds.has(
+                                      String(task.TaskID ?? '').trim(),
+                                  ),
+                              )
+                            : shiftedTasks;
 
                     return (
                         <div
@@ -231,7 +338,11 @@ export function TaskTableCompare({
                                     </div>
                                     <div className="text-right">
                                         <Label className="text-sm">
-                                            Tasks: {taskRows.length}
+                                            Tasks:{' '}
+                                            {showOnlyDifferentSchedule &&
+                                            canFilterDifferentSchedule
+                                                ? `${filteredTasks.length} of ${shiftedTasks.length}`
+                                                : shiftedTasks.length}
                                         </Label>
                                     </div>
                                 </div>
@@ -270,19 +381,22 @@ export function TaskTableCompare({
 
                                 {!isLoading &&
                                     !error &&
-                                    taskRows.length === 0 && (
+                                    filteredTasks.length === 0 && (
                                         <div className="flex h-full min-h-[300px] items-center justify-center rounded-lg border bg-muted/30 p-8">
                                             <p className="text-muted-foreground">
-                                                No tasks found for this variant.
+                                                {showOnlyDifferentSchedule &&
+                                                canFilterDifferentSchedule
+                                                    ? 'No tasks with different schedule time found for this variant.'
+                                                    : 'No tasks found for this variant.'}
                                             </p>
                                         </div>
                                     )}
 
                                 {!isLoading &&
                                     !error &&
-                                    taskRows.length > 0 && (
+                                    filteredTasks.length > 0 && (
                                         <div className="h-full">
-                                            <TaskTable tasks={shiftedTasks} />
+                                            <TaskTable tasks={filteredTasks} />
                                         </div>
                                     )}
                             </div>

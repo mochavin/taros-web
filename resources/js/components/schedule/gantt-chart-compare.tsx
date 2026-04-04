@@ -1,16 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { GanttFilters, ScheduleVariantOption } from '@/types/schedule';
-import {
-    GitCompare,
-    LayoutGrid,
-    Rows3,
-    ListTree,
-    List,
-} from 'lucide-react';
+import { GitCompare, LayoutGrid, List, ListTree } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CompareFilterSwitch } from './compare-filter-switch';
 import { OverlayComparison } from './gantt-chart-compare/overlay-comparison';
 import { useVariantEntries } from './gantt-chart-compare/use-variant-data';
+import {
+    filterTaskRowsByIds,
+    getDifferentScheduleTaskIds,
+} from './gantt-chart-compare/utils';
 import { VariantCard } from './gantt-chart-compare/variant-card';
 
 interface GanttChartCompareProps {
@@ -26,9 +25,9 @@ export function GanttChartCompare({
     customStart,
     hierarchyCandidates,
 }: GanttChartCompareProps) {
-    const [layoutMode, setLayoutMode] = useState<'grid' | 'stacked' | 'overlay'>(
-        'grid',
-    );
+    const [layoutMode, setLayoutMode] = useState<
+        'grid' | 'stacked' | 'overlay'
+    >('grid');
     const [filters, setFilters] = useState<GanttFilters>({
         filter: '',
         fromDate: '',
@@ -40,6 +39,8 @@ export function GanttChartCompare({
     const [detailViewMode, setDetailViewMode] = useState<'hierarchy' | 'flat'>(
         'hierarchy',
     );
+    const [showOnlyDifferentSchedule, setShowOnlyDifferentSchedule] =
+        useState(false);
     const { entries } = useVariantEntries(variants, compareVariants);
 
     useEffect(() => {
@@ -52,6 +53,12 @@ export function GanttChartCompare({
         setFilters((prev) => ({ ...prev, page: 1 }));
     }, [detailViewMode]);
 
+    useEffect(() => {
+        if (entries.length !== 2) {
+            setShowOnlyDifferentSchedule(false);
+        }
+    }, [entries.length]);
+
     const handleLayoutChange = useCallback(
         (mode: 'grid' | 'stacked' | 'overlay') => {
             setLayoutMode(mode);
@@ -60,12 +67,9 @@ export function GanttChartCompare({
         [],
     );
 
-    const handleFiltersChange = useCallback(
-        (nextFilters: GanttFilters) => {
-            setFilters(nextFilters);
-        },
-        [],
-    );
+    const handleFiltersChange = useCallback((nextFilters: GanttFilters) => {
+        setFilters(nextFilters);
+    }, []);
 
     const gridColsClass = useMemo(() => {
         if (layoutMode !== 'grid') {
@@ -86,6 +90,46 @@ export function GanttChartCompare({
 
     const hasSelection = entries.length > 0;
     const overlayReady = layoutMode === 'overlay' && entries.length === 2;
+    const canFilterDifferentSchedule = entries.length === 2;
+    const differentScheduleTaskIds = useMemo(() => {
+        if (entries.length !== 2) {
+            return new Set<string>();
+        }
+
+        const leftTaskRows = entries[0].data?.taskRows ?? [];
+        const rightTaskRows = entries[1].data?.taskRows ?? [];
+
+        return getDifferentScheduleTaskIds(
+            leftTaskRows,
+            rightTaskRows,
+            customStart,
+        );
+    }, [entries, customStart]);
+    const comparedEntries = useMemo(
+        () =>
+            entries.map((entry) => {
+                const allTaskRows = entry.data?.taskRows ?? [];
+                const filteredTaskRows =
+                    showOnlyDifferentSchedule && canFilterDifferentSchedule
+                        ? filterTaskRowsByIds(
+                              allTaskRows,
+                              differentScheduleTaskIds,
+                          )
+                        : allTaskRows;
+
+                return {
+                    ...entry,
+                    totalTaskCount: allTaskRows.length,
+                    displayTaskRows: filteredTaskRows,
+                };
+            }),
+        [
+            entries,
+            showOnlyDifferentSchedule,
+            canFilterDifferentSchedule,
+            differentScheduleTaskIds,
+        ],
+    );
 
     return (
         <div className="space-y-4">
@@ -102,7 +146,9 @@ export function GanttChartCompare({
                     <Label className="font-semibold">Layout</Label>
                     <div className="flex flex-wrap gap-2">
                         <Button
-                            variant={layoutMode === 'grid' ? 'default' : 'outline'}
+                            variant={
+                                layoutMode === 'grid' ? 'default' : 'outline'
+                            }
                             size="sm"
                             onClick={() => handleLayoutChange('grid')}
                         >
@@ -118,7 +164,9 @@ export function GanttChartCompare({
                             Stacked
                         </Button> */}
                         <Button
-                            variant={layoutMode === 'overlay' ? 'default' : 'outline'}
+                            variant={
+                                layoutMode === 'overlay' ? 'default' : 'outline'
+                            }
                             size="sm"
                             onClick={() => handleLayoutChange('overlay')}
                             disabled={entries.length !== 2}
@@ -132,7 +180,11 @@ export function GanttChartCompare({
                     <Label className="font-semibold">Detail View</Label>
                     <div className="flex flex-wrap gap-2">
                         <Button
-                            variant={detailViewMode === 'hierarchy' ? 'default' : 'outline'}
+                            variant={
+                                detailViewMode === 'hierarchy'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDetailViewMode('hierarchy')}
                         >
@@ -140,7 +192,11 @@ export function GanttChartCompare({
                             Hierarchy
                         </Button>
                         <Button
-                            variant={detailViewMode === 'flat' ? 'default' : 'outline'}
+                            variant={
+                                detailViewMode === 'flat'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDetailViewMode('flat')}
                         >
@@ -153,26 +209,42 @@ export function GanttChartCompare({
                     {layoutMode === 'grid'
                         ? 'Compare variants side by side. Filters stay in sync.'
                         : layoutMode === 'stacked'
-                            ? 'Compare variants vertically with shared filters.'
-                            : entries.length === 2
-                                ? 'Stack two variants to highlight overlaps. Detail view toggle applies to all layouts.'
-                                : 'Select exactly two variants to enable overlay.'}
+                          ? 'Compare variants vertically with shared filters.'
+                          : entries.length === 2
+                            ? 'Stack two variants to highlight overlaps. Detail view toggle applies to all layouts.'
+                            : 'Select exactly two variants to enable overlay.'}
                 </span>
             </div>
 
+            {canFilterDifferentSchedule && (
+                <CompareFilterSwitch
+                    checked={showOnlyDifferentSchedule}
+                    onCheckedChange={setShowOnlyDifferentSchedule}
+                    differenceCount={differentScheduleTaskIds.size}
+                />
+            )}
+
             {overlayReady ? (
                 <OverlayComparison
-                    variantA={entries[0]}
-                    variantB={entries[1]}
+                    variantA={comparedEntries[0]}
+                    variantB={comparedEntries[1]}
+                    taskRowsA={comparedEntries[0].displayTaskRows}
+                    taskRowsB={comparedEntries[1].displayTaskRows}
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
                     customStart={customStart}
                     viewMode={detailViewMode}
                     hierarchyCandidates={hierarchyCandidates}
+                    visibleTaskIds={
+                        showOnlyDifferentSchedule && canFilterDifferentSchedule
+                            ? differentScheduleTaskIds
+                            : undefined
+                    }
+                    showOnlyDifferentSchedule={showOnlyDifferentSchedule}
                 />
             ) : (
                 <div className={`grid gap-4 ${gridColsClass}`}>
-                    {entries.map((entry) => (
+                    {comparedEntries.map((entry) => (
                         <VariantCard
                             key={entry.slug}
                             entry={entry}
@@ -181,6 +253,17 @@ export function GanttChartCompare({
                             onFiltersChange={handleFiltersChange}
                             viewMode={detailViewMode}
                             hierarchyCandidates={hierarchyCandidates}
+                            taskRows={entry.displayTaskRows}
+                            totalTaskCount={entry.totalTaskCount}
+                            showOnlyDifferentSchedule={
+                                showOnlyDifferentSchedule
+                            }
+                            visibleTaskIds={
+                                showOnlyDifferentSchedule &&
+                                canFilterDifferentSchedule
+                                    ? differentScheduleTaskIds
+                                    : undefined
+                            }
                         />
                     ))}
                 </div>

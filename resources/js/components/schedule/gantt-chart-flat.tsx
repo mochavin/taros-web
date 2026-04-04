@@ -1,13 +1,6 @@
-import {
-    useState,
-    useRef,
-    useEffect,
-    useMemo,
-    useCallback,
-    type ReactNode,
-} from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -15,17 +8,24 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import type { GanttFilters, TaskRow, TaskSortMode } from '@/types/schedule';
 import {
+    dateRangeFilterPredicate,
+    formatIndoDateTime,
+    paginate,
     parseDate,
     parseLocalDateTimeInput,
-    paginate,
-    textFilterPredicate,
-    dateRangeFilterPredicate,
     sortTaskRows,
-    formatIndoDateTime,
+    textFilterPredicate,
 } from '@/lib/schedule-utils';
+import type { GanttFilters, TaskRow, TaskSortMode } from '@/types/schedule';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+} from 'react';
 
 interface GanttChartFlatProps {
     tasks: TaskRow[];
@@ -34,6 +34,7 @@ interface GanttChartFlatProps {
     onFiltersChange?: (filters: GanttFilters) => void;
     idPrefix?: string;
     autoClampPage?: boolean;
+    emptyStateMessage?: string;
 }
 
 export function GanttChartFlat({
@@ -43,6 +44,7 @@ export function GanttChartFlat({
     onFiltersChange,
     idPrefix,
     autoClampPage = true,
+    emptyStateMessage = 'No valid dates in data',
 }: GanttChartFlatProps) {
     const controlled = filters !== undefined && onFiltersChange !== undefined;
     const [internalFilters, setInternalFilters] = useState<GanttFilters>({
@@ -87,11 +89,17 @@ export function GanttChartFlat({
             const clone = { ...task };
             if (start) {
                 const shifted = new Date(start.getTime() + baselineShiftMs);
-                clone.Start = shifted.toISOString().replace('T', ' ').slice(0, 19);
+                clone.Start = shifted
+                    .toISOString()
+                    .replace('T', ' ')
+                    .slice(0, 19);
             }
             if (finish) {
                 const shifted = new Date(finish.getTime() + baselineShiftMs);
-                clone.Finish = shifted.toISOString().replace('T', ' ').slice(0, 19);
+                clone.Finish = shifted
+                    .toISOString()
+                    .replace('T', ' ')
+                    .slice(0, 19);
             }
             return clone;
         });
@@ -116,7 +124,9 @@ export function GanttChartFlat({
 
     const filtered = useMemo(() => {
         return shiftedTasks.filter((row) => {
-            const matchesText = predText(row as unknown as Record<string, unknown>);
+            const matchesText = predText(
+                row as unknown as Record<string, unknown>,
+            );
             if (!matchesText) {
                 return false;
             }
@@ -137,7 +147,12 @@ export function GanttChartFlat({
             ? ordered.length || 1
             : activeFilters.pageSize;
 
-    const { slice, page: currentPage, pages, total } = useMemo(() => {
+    const {
+        slice,
+        page: currentPage,
+        pages,
+        total,
+    } = useMemo(() => {
         return paginate(ordered, activeFilters.page, actualPageSize);
     }, [ordered, activeFilters.page, actualPageSize]);
 
@@ -252,7 +267,9 @@ export function GanttChartFlat({
                             <td>{formatIndoDateTime(task.Finish)}</td>
                         </tr>
                         <tr>
-                            <td className="pr-2 text-gray-400">Duration Hours</td>
+                            <td className="pr-2 text-gray-400">
+                                Duration Hours
+                            </td>
                             <td>{duration}</td>
                         </tr>
                         <tr>
@@ -287,8 +304,10 @@ export function GanttChartFlat({
         <div className="space-y-4">
             {/* Filters */}
             <div className="flex flex-wrap items-end gap-4">
-                <div className="flex-1 min-w-[200px]">
-                    <Label htmlFor={`${idBase}taskFilterFlat`}>Filter tasks</Label>
+                <div className="min-w-[200px] flex-1">
+                    <Label htmlFor={`${idBase}taskFilterFlat`}>
+                        Filter tasks
+                    </Label>
                     <Input
                         id={`${idBase}taskFilterFlat`}
                         type="text"
@@ -331,7 +350,9 @@ export function GanttChartFlat({
                     />
                 </div>
                 <div>
-                    <Label htmlFor={`${idBase}taskPageSizeFlat`}>Page size</Label>
+                    <Label htmlFor={`${idBase}taskPageSizeFlat`}>
+                        Page size
+                    </Label>
                     <Select
                         value={activeFilters.pageSize.toString()}
                         onValueChange={(v) =>
@@ -377,8 +398,12 @@ export function GanttChartFlat({
                             <SelectItem value="id">Task ID</SelectItem>
                             <SelectItem value="start">Start time</SelectItem>
                             <SelectItem value="finish">Finish time</SelectItem>
-                            <SelectItem value="duration">Duration (longest first)</SelectItem>
-                            <SelectItem value="duration_asc">Duration (shortest first)</SelectItem>
+                            <SelectItem value="duration">
+                                Duration (longest first)
+                            </SelectItem>
+                            <SelectItem value="duration_asc">
+                                Duration (shortest first)
+                            </SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -419,22 +444,26 @@ export function GanttChartFlat({
 
             {/* Gantt Chart */}
             {!minStart || !maxFinish ? (
-                <div className="border rounded-lg p-8 text-center text-muted-foreground">No valid dates in data</div>
+                <div className="rounded-lg border p-8 text-center text-muted-foreground">
+                    {emptyStateMessage}
+                </div>
             ) : (
-                <div className="border rounded-lg p-4 bg-white dark:bg-gray-950 overflow-x-auto">
-                    <div className="text-xs text-muted-foreground mb-2">
+                <div className="overflow-x-auto rounded-lg border bg-white p-4 dark:bg-gray-950">
+                    <div className="mb-2 text-xs text-muted-foreground">
                         Span {totalH.toFixed(1)} h
                     </div>
 
                     {/* Scale */}
-                    <div className="relative h-6 ml-[200px] mb-2">
+                    <div className="relative mb-2 ml-[200px] h-6">
                         {ticks.map((tick, i) => (
                             <div
                                 key={i}
                                 className="absolute h-full border-l border-gray-200 dark:border-gray-800"
                                 style={{ left: `${tick.left}px` }}
                             >
-                                <span className="absolute top-1 left-0.5 text-[10px] text-gray-500">{tick.label}</span>
+                                <span className="absolute top-1 left-0.5 text-[10px] text-gray-500">
+                                    {tick.label}
+                                </span>
                             </div>
                         ))}
                     </div>
@@ -446,24 +475,50 @@ export function GanttChartFlat({
                             const e = parseDate(task.Finish);
                             if (!s || !e || !minStart) return null;
 
-                            const left = Math.max(0, Math.round(((s.getTime() - minStart.getTime()) / 36e5) * pxPerHour));
-                            const width = Math.max(2, Math.round(((e.getTime() - s.getTime()) / 36e5) * pxPerHour));
-                            const isElapsed = (task.IsElapsed || '').toString().toUpperCase().startsWith('Y');
+                            const left = Math.max(
+                                0,
+                                Math.round(
+                                    ((s.getTime() - minStart.getTime()) /
+                                        36e5) *
+                                        pxPerHour,
+                                ),
+                            );
+                            const width = Math.max(
+                                2,
+                                Math.round(
+                                    ((e.getTime() - s.getTime()) / 36e5) *
+                                        pxPerHour,
+                                ),
+                            );
+                            const isElapsed = (task.IsElapsed || '')
+                                .toString()
+                                .toUpperCase()
+                                .startsWith('Y');
 
                             return (
-                                <div key={idx} className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800">
+                                <div
+                                    key={idx}
+                                    className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800"
+                                >
                                     <span
-                                        className="absolute w-[190px] -left-[200px] top-1.5 whitespace-nowrap overflow-hidden text-ellipsis text-sm"
+                                        className="absolute top-1.5 -left-[200px] w-[190px] overflow-hidden text-sm text-ellipsis whitespace-nowrap"
                                         title={`${task.TaskID}: ${task.TaskName}`}
                                     >
                                         {task.TaskName}
                                     </span>
                                     <div
-                                        className={`absolute h-4 top-1.5 rounded cursor-pointer transition-opacity hover:opacity-80 ${
-                                            isElapsed ? 'bg-red-500' : 'bg-blue-500'
+                                        className={`absolute top-1.5 h-4 cursor-pointer rounded transition-opacity hover:opacity-80 ${
+                                            isElapsed
+                                                ? 'bg-red-500'
+                                                : 'bg-blue-500'
                                         }`}
-                                        style={{ left: `${left}px`, width: `${width}px` }}
-                                        onMouseEnter={(e) => handleMouseEnter(e, task)}
+                                        style={{
+                                            left: `${left}px`,
+                                            width: `${width}px`,
+                                        }}
+                                        onMouseEnter={(e) =>
+                                            handleMouseEnter(e, task)
+                                        }
                                         onMouseMove={handleMouseMove}
                                         onMouseLeave={handleMouseLeave}
                                     />
@@ -478,7 +533,7 @@ export function GanttChartFlat({
             {tooltip.visible && (
                 <div
                     ref={tooltipRef}
-                    className="fixed z-50 pointer-events-none"
+                    className="pointer-events-none fixed z-50"
                     style={{
                         left: `${tooltip.x}px`,
                         top: `${tooltip.y}px`,

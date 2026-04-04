@@ -1,16 +1,3 @@
-import { Loader2 } from 'lucide-react';
-import type {
-    MouseEvent as ReactMouseEvent,
-    ReactNode,
-} from 'react';
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
-import Papa from 'papaparse';
 import {
     dateRangeFilterPredicate,
     formatDateLocal,
@@ -21,9 +8,17 @@ import {
     textFilterPredicate,
 } from '@/lib/schedule-utils';
 import type { GanttFilters, TaskRow } from '@/types/schedule';
+import { Loader2 } from 'lucide-react';
+import Papa from 'papaparse';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GanttControls } from '../gantt-chart';
-import { applyBaselineShift, computeBaselineShiftMs } from './utils';
 import type { VariantEntry } from './use-variant-data';
+import {
+    applyBaselineShift,
+    computeBaselineShiftMs,
+    expandVisibleTaskIdsWithAncestors,
+} from './utils';
 
 const EMPTY_TASK_ROWS: TaskRow[] = [];
 
@@ -35,6 +30,10 @@ interface OverlayComparisonProps {
     customStart: string;
     viewMode: 'hierarchy' | 'flat';
     hierarchyCandidates?: string[];
+    taskRowsA?: TaskRow[];
+    taskRowsB?: TaskRow[];
+    visibleTaskIds?: Set<string>;
+    showOnlyDifferentSchedule?: boolean;
 }
 
 interface OverlayRow {
@@ -51,6 +50,7 @@ interface HierarchyRow {
     TaskName?: string;
     OutlineLevel?: string | number;
     IsSummary?: string | boolean;
+    ParentID?: string | number;
 }
 
 interface TooltipState {
@@ -79,12 +79,16 @@ export function OverlayComparison({
     customStart,
     viewMode,
     hierarchyCandidates,
+    taskRowsA: providedTaskRowsA,
+    taskRowsB: providedTaskRowsB,
+    visibleTaskIds,
+    showOnlyDifferentSchedule = false,
 }: OverlayComparisonProps) {
     const dataA = variantA.data;
     const dataB = variantB.data;
 
-    const tasksA = dataA?.taskRows ?? EMPTY_TASK_ROWS;
-    const tasksB = dataB?.taskRows ?? EMPTY_TASK_ROWS;
+    const tasksA = providedTaskRowsA ?? dataA?.taskRows ?? EMPTY_TASK_ROWS;
+    const tasksB = providedTaskRowsB ?? dataB?.taskRows ?? EMPTY_TASK_ROWS;
 
     const [tooltip, setTooltip] = useState<TooltipState>({
         visible: false,
@@ -114,94 +118,118 @@ export function OverlayComparison({
         [tasksB, baselineShiftB],
     );
 
-    const calculateTooltipPosition = useCallback((mouseX: number, mouseY: number) => {
-        const pad = 12;
-        const tooltipWidth = 420;
-        const tooltipHeight = 200;
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
+    const calculateTooltipPosition = useCallback(
+        (mouseX: number, mouseY: number) => {
+            const pad = 12;
+            const tooltipWidth = 420;
+            const tooltipHeight = 200;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
 
-        let x = mouseX + pad;
-        let y = mouseY + pad;
+            let x = mouseX + pad;
+            let y = mouseY + pad;
 
-        if (x + tooltipWidth > viewportWidth) {
-            x = mouseX - tooltipWidth - pad;
-        }
+            if (x + tooltipWidth > viewportWidth) {
+                x = mouseX - tooltipWidth - pad;
+            }
 
-        if (y + tooltipHeight > viewportHeight) {
-            y = mouseY - tooltipHeight - pad;
-        }
+            if (y + tooltipHeight > viewportHeight) {
+                y = mouseY - tooltipHeight - pad;
+            }
 
-        if (x < 4) {
-            x = 4;
-        }
+            if (x < 4) {
+                x = 4;
+            }
 
-        if (y < 4) {
-            y = 4;
-        }
+            if (y < 4) {
+                y = 4;
+            }
 
-        return { x, y };
-    }, []);
+            return { x, y };
+        },
+        [],
+    );
 
-    const buildTooltipContent = useCallback((task: TaskRow, variantLabel: string) => {
-        const duration =
-            task.DurationHours && !Number.isNaN(Number(task.DurationHours))
-                ? Number(task.DurationHours).toFixed(1)
-                : (() => {
-                    const start = parseDate(task.Start);
-                    const finish = parseDate(task.Finish);
-                    if (!start || !finish) {
-                        return '';
-                    }
-                    return ((finish.getTime() - start.getTime()) / 36e5).toFixed(1);
-                })();
+    const buildTooltipContent = useCallback(
+        (task: TaskRow, variantLabel: string) => {
+            const duration =
+                task.DurationHours && !Number.isNaN(Number(task.DurationHours))
+                    ? Number(task.DurationHours).toFixed(1)
+                    : (() => {
+                          const start = parseDate(task.Start);
+                          const finish = parseDate(task.Finish);
+                          if (!start || !finish) {
+                              return '';
+                          }
+                          return (
+                              (finish.getTime() - start.getTime()) /
+                              36e5
+                          ).toFixed(1);
+                      })();
 
-        const isElapsed = (task.IsElapsed ?? '').toString().toUpperCase().startsWith('Y');
+            const isElapsed = (task.IsElapsed ?? '')
+                .toString()
+                .toUpperCase()
+                .startsWith('Y');
 
-        return (
-            <div className="max-w-md rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
-                <table className="w-full">
-                    <tbody>
-                        <tr>
-                            <td className="pr-2 text-gray-400">Variant</td>
-                            <td>{variantLabel}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-2 text-gray-400">TaskID</td>
-                            <td>{task.TaskID}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-2 text-gray-400">Task Name</td>
-                            <td>{task.TaskName}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-2 text-gray-400">Start</td>
-                            <td>{formatIndoDateTime(task.Start)}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-2 text-gray-400">Finish</td>
-                            <td>{formatIndoDateTime(task.Finish)}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-2 text-gray-400">Duration Hours</td>
-                            <td>{duration}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-2 text-gray-400">Is Elapsed</td>
-                            <td>{isElapsed ? 'Yes' : 'No'}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-2 text-gray-400">Assignments</td>
-                            <td>{task.Assignments}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        );
-    }, []);
+            return (
+                <div className="max-w-md rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
+                    <table className="w-full">
+                        <tbody>
+                            <tr>
+                                <td className="pr-2 text-gray-400">Variant</td>
+                                <td>{variantLabel}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">TaskID</td>
+                                <td>{task.TaskID}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">
+                                    Task Name
+                                </td>
+                                <td>{task.TaskName}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">Start</td>
+                                <td>{formatIndoDateTime(task.Start)}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">Finish</td>
+                                <td>{formatIndoDateTime(task.Finish)}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">
+                                    Duration Hours
+                                </td>
+                                <td>{duration}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">
+                                    Is Elapsed
+                                </td>
+                                <td>{isElapsed ? 'Yes' : 'No'}</td>
+                            </tr>
+                            <tr>
+                                <td className="pr-2 text-gray-400">
+                                    Assignments
+                                </td>
+                                <td>{task.Assignments}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            );
+        },
+        [],
+    );
 
     const handleBarMouseEnter = useCallback(
-        (event: ReactMouseEvent<HTMLDivElement>, task: TaskRow | undefined, variantLabel: string) => {
+        (
+            event: ReactMouseEvent<HTMLDivElement>,
+            task: TaskRow | undefined,
+            variantLabel: string,
+        ) => {
             if (!task) {
                 return;
             }
@@ -293,6 +321,29 @@ export function OverlayComparison({
         };
     }, [hierarchySources]);
 
+    const hierarchyById = useMemo(() => {
+        const map: Record<string, HierarchyRow> = {};
+
+        for (const row of hierarchyList) {
+            const taskId = String(row.TaskID ?? '').trim();
+            if (!taskId) {
+                continue;
+            }
+
+            map[taskId] = row;
+        }
+
+        return map;
+    }, [hierarchyList]);
+
+    const visibleHierarchyTaskIds = useMemo(() => {
+        if (!visibleTaskIds || visibleTaskIds.size === 0) {
+            return null;
+        }
+
+        return expandVisibleTaskIdsWithAncestors(visibleTaskIds, hierarchyById);
+    }, [visibleTaskIds, hierarchyById]);
+
     const overlayRows = useMemo<OverlayRow[]>(() => {
         const mapA = new Map<string, TaskRow>();
         const mapB = new Map<string, TaskRow>();
@@ -305,7 +356,8 @@ export function OverlayComparison({
             mapB.set(String(task.TaskID), task);
         }
 
-        const hasHierarchy = viewMode === 'hierarchy' && hierarchyList.length > 0;
+        const hasHierarchy =
+            viewMode === 'hierarchy' && hierarchyList.length > 0;
         const rows: OverlayRow[] = [];
         const seen = new Set<string>();
 
@@ -318,12 +370,21 @@ export function OverlayComparison({
                 if (!id) {
                     continue;
                 }
+                if (
+                    visibleHierarchyTaskIds &&
+                    !visibleHierarchyTaskIds.has(id)
+                ) {
+                    continue;
+                }
                 const taskA = mapA.get(id);
                 const taskB = mapB.get(id);
                 rows.push({
                     taskId: id,
                     taskName:
-                        hier.TaskName ?? taskA?.TaskName ?? taskB?.TaskName ?? id,
+                        hier.TaskName ??
+                        taskA?.TaskName ??
+                        taskB?.TaskName ??
+                        id,
                     variantATask: taskA,
                     variantBTask: taskB,
                     outlineLevel: Number(hier.OutlineLevel ?? 0) || 0,
@@ -355,6 +416,13 @@ export function OverlayComparison({
                 if (seen.has(id)) {
                     return;
                 }
+                if (
+                    visibleTaskIds &&
+                    visibleTaskIds.size > 0 &&
+                    !visibleTaskIds.has(id)
+                ) {
+                    return;
+                }
                 const taskA = mapA.get(id);
                 const taskB = mapB.get(id);
                 if (!taskA && !taskB) {
@@ -380,7 +448,14 @@ export function OverlayComparison({
         }
 
         return rows;
-    }, [shiftedTasksA, shiftedTasksB, hierarchyList, viewMode]);
+    }, [
+        shiftedTasksA,
+        shiftedTasksB,
+        hierarchyList,
+        viewMode,
+        visibleTaskIds,
+        visibleHierarchyTaskIds,
+    ]);
 
     const hasHierarchy = viewMode === 'hierarchy' && hierarchyList.length > 0;
 
@@ -431,10 +506,13 @@ export function OverlayComparison({
         return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
     }, []);
 
-    const parseTaskDate = useCallback((task: TaskRow | undefined, field: 'Start' | 'Finish') => {
-        if (!task) return null;
-        return parseDate(task[field]);
-    }, []);
+    const parseTaskDate = useCallback(
+        (task: TaskRow | undefined, field: 'Start' | 'Finish') => {
+            if (!task) return null;
+            return parseDate(task[field]);
+        },
+        [],
+    );
 
     const getRowStart = useCallback(
         (row: OverlayRow): Date | null => {
@@ -543,12 +621,25 @@ export function OverlayComparison({
             return getTaskIdNum(a.taskId) - getTaskIdNum(b.taskId);
         });
         return rows;
-    }, [filteredRows, filters.sortMode, getRowStart, getRowFinish, getTaskDuration, getTaskIdNum, hasHierarchy]);
+    }, [
+        filteredRows,
+        filters.sortMode,
+        getRowStart,
+        getRowFinish,
+        getTaskDuration,
+        getTaskIdNum,
+        hasHierarchy,
+    ]);
 
     const actualPageSize =
         filters.pageSize === -1 ? sortedRows.length || 1 : filters.pageSize;
 
-    const { slice: pageRows, page: currentPage, pages, total } = useMemo(
+    const {
+        slice: pageRows,
+        page: currentPage,
+        pages,
+        total,
+    } = useMemo(
         () => paginate(sortedRows, filters.page, actualPageSize),
         [sortedRows, filters.page, actualPageSize],
     );
@@ -612,10 +703,13 @@ export function OverlayComparison({
 
     const computeTooltipPosition = useCallback((leftPxValue: number) => {
         const chartRect = chartBodyRef.current?.getBoundingClientRect();
-        const containerRect = scrollContainerRef.current?.getBoundingClientRect();
+        const containerRect =
+            scrollContainerRef.current?.getBoundingClientRect();
         const halfWidth = 140;
 
-        let viewportLeft = chartRect ? chartRect.left + leftPxValue : leftPxValue;
+        let viewportLeft = chartRect
+            ? chartRect.left + leftPxValue
+            : leftPxValue;
 
         if (containerRect) {
             const minLeft = containerRect.left + halfWidth;
@@ -644,25 +738,31 @@ export function OverlayComparison({
             .map((row) => row.variantBTask!) as TaskRow[];
     }, [filteredRows]);
 
-    const computeAccumulatedHours = useCallback((tasks: TaskRow[], hovered: Date): number => {
-        let total = 0;
-        for (const task of tasks) {
-            const start = parseDate(task.Start);
-            const finish = parseDate(task.Finish);
-            if (!start || !finish) {
-                continue;
+    const computeAccumulatedHours = useCallback(
+        (tasks: TaskRow[], hovered: Date): number => {
+            let total = 0;
+            for (const task of tasks) {
+                const start = parseDate(task.Start);
+                const finish = parseDate(task.Finish);
+                if (!start || !finish) {
+                    continue;
+                }
+                if (hovered <= start) {
+                    continue;
+                }
+                const effectiveFinish = finish < hovered ? finish : hovered;
+                const diff =
+                    (effectiveFinish.getTime() - start.getTime()) / 36e5;
+                if (diff > 0) {
+                    total += task.DurationHours
+                        ? Number(task.DurationHours)
+                        : diff;
+                }
             }
-            if (hovered <= start) {
-                continue;
-            }
-            const effectiveFinish = finish < hovered ? finish : hovered;
-            const diff = (effectiveFinish.getTime() - start.getTime()) / 36e5;
-            if (diff > 0) {
-                total += task.DurationHours ? Number(task.DurationHours) : diff;
-            }
-        }
-        return total;
-    }, []);
+            return total;
+        },
+        [],
+    );
 
     const handleChartMouseMove = useCallback(
         (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -672,17 +772,28 @@ export function OverlayComparison({
             const rect = chartBodyRef.current.getBoundingClientRect();
             const rawX = event.clientX - rect.left;
             if (rawX < 0 || rawX > rect.width) {
-                setHoverGuide((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+                setHoverGuide((prev) =>
+                    prev.visible ? { ...prev, visible: false } : prev,
+                );
                 return;
             }
             const timelineWidthPx = pxPerHour * totalHours;
             const clampedX = Math.max(0, Math.min(timelineWidthPx, rawX));
             const hoursFromMin = clampedX / pxPerHour;
-            const hoveredTime = new Date(minStart.getTime() + hoursFromMin * 36e5);
-            const { left: viewportLeft, top: topPx } = computeTooltipPosition(clampedX);
+            const hoveredTime = new Date(
+                minStart.getTime() + hoursFromMin * 36e5,
+            );
+            const { left: viewportLeft, top: topPx } =
+                computeTooltipPosition(clampedX);
 
-            const variantAccumA = computeAccumulatedHours(variantTasksA, hoveredTime);
-            const variantAccumB = computeAccumulatedHours(variantTasksB, hoveredTime);
+            const variantAccumA = computeAccumulatedHours(
+                variantTasksA,
+                hoveredTime,
+            );
+            const variantAccumB = computeAccumulatedHours(
+                variantTasksB,
+                hoveredTime,
+            );
 
             setHoverGuide({
                 visible: true,
@@ -691,15 +802,30 @@ export function OverlayComparison({
                 topPx,
                 timeLabel: formatDateLocal(hoveredTime),
                 globalHours: hoursFromMin,
-                variantAHours: Number.isFinite(variantAccumA) ? variantAccumA : 0,
-                variantBHours: Number.isFinite(variantAccumB) ? variantAccumB : 0,
+                variantAHours: Number.isFinite(variantAccumA)
+                    ? variantAccumA
+                    : 0,
+                variantBHours: Number.isFinite(variantAccumB)
+                    ? variantAccumB
+                    : 0,
             });
         },
-        [chartBodyRef, minStart, pxPerHour, totalHours, computeAccumulatedHours, variantTasksA, variantTasksB, computeTooltipPosition],
+        [
+            chartBodyRef,
+            minStart,
+            pxPerHour,
+            totalHours,
+            computeAccumulatedHours,
+            variantTasksA,
+            variantTasksB,
+            computeTooltipPosition,
+        ],
     );
 
     const handleChartMouseLeave = useCallback(() => {
-        setHoverGuide((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+        setHoverGuide((prev) =>
+            prev.visible ? { ...prev, visible: false } : prev,
+        );
     }, []);
 
     useEffect(() => {
@@ -772,19 +898,32 @@ export function OverlayComparison({
     }, [filteredRows]);
 
     const isLoading =
-        (dataA === undefined || dataA.isLoading) ||
-        (dataB === undefined || dataB.isLoading);
+        dataA === undefined ||
+        dataA.isLoading ||
+        dataB === undefined ||
+        dataB.isLoading;
 
     const errorMessages = useMemo(() => {
         const errors: string[] = [];
         if (dataA?.error) {
-            errors.push(`${variantA.variant.name ?? variantA.variant.slug}: ${dataA.error}`);
+            errors.push(
+                `${variantA.variant.name ?? variantA.variant.slug}: ${dataA.error}`,
+            );
         }
         if (dataB?.error) {
-            errors.push(`${variantB.variant.name ?? variantB.variant.slug}: ${dataB.error}`);
+            errors.push(
+                `${variantB.variant.name ?? variantB.variant.slug}: ${dataB.error}`,
+            );
         }
         return errors;
-    }, [dataA?.error, dataB?.error, variantA.variant.name, variantA.variant.slug, variantB.variant.name, variantB.variant.slug]);
+    }, [
+        dataA?.error,
+        dataB?.error,
+        variantA.variant.name,
+        variantA.variant.slug,
+        variantB.variant.name,
+        variantB.variant.slug,
+    ]);
 
     const hasAnyTasks = tasksA.length > 0 || tasksB.length > 0;
 
@@ -799,7 +938,9 @@ export function OverlayComparison({
                         {variantALabel} vs {variantBLabel}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                        Overlay compares timelines with shared filters. Overlaps detected: {overlapCount}
+                        {showOnlyDifferentSchedule
+                            ? `Showing ${tasksA.length} tasks with different schedule time. Overlaps detected: ${overlapCount}`
+                            : `Overlay compares timelines with shared filters. Overlaps detected: ${overlapCount}`}
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
@@ -837,8 +978,12 @@ export function OverlayComparison({
                         <div className="flex flex-col items-center gap-4 rounded-xl border bg-white p-8 shadow-2xl dark:bg-gray-800">
                             <Loader2 className="h-10 w-10 animate-spin text-primary" />
                             <div className="text-center">
-                                <p className="font-semibold">Loading overlay comparison</p>
-                                <p className="mt-1 text-xs text-muted-foreground">Preparing gantt data...</p>
+                                <p className="font-semibold">
+                                    Loading overlay comparison
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    Preparing gantt data...
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -847,9 +992,14 @@ export function OverlayComparison({
                 {!isLoading && errorMessages.length > 0 && (
                     <div className="flex h-full min-h-[500px] items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 p-8">
                         <div className="space-y-2 text-center">
-                            <p className="font-semibold text-destructive">Unable to load all variants</p>
+                            <p className="font-semibold text-destructive">
+                                Unable to load all variants
+                            </p>
                             {errorMessages.map((msg, idx) => (
-                                <p key={idx} className="text-sm text-muted-foreground">
+                                <p
+                                    key={idx}
+                                    className="text-sm text-muted-foreground"
+                                >
                                     {msg}
                                 </p>
                             ))}
@@ -859,15 +1009,26 @@ export function OverlayComparison({
 
                 {!isLoading && errorMessages.length === 0 && !hasAnyTasks && (
                     <div className="flex h-full min-h-[500px] items-center justify-center rounded-lg border bg-muted/30 p-8">
-                        <p className="text-muted-foreground">No tasks available for either variant.</p>
+                        <p className="text-muted-foreground">
+                            {showOnlyDifferentSchedule
+                                ? 'No tasks with different schedule time found for the selected variants.'
+                                : 'No tasks available for either variant.'}
+                        </p>
                     </div>
                 )}
 
-                {!isLoading && errorMessages.length === 0 && hasAnyTasks && (!minStart || !maxFinish) && (
-                    <div className="flex h-full min-h-[500px] items-center justify-center rounded-lg border bg-muted/30 p-8">
-                        <p className="text-muted-foreground">No valid date ranges found in the filtered data.</p>
-                    </div>
-                )}
+                {!isLoading &&
+                    errorMessages.length === 0 &&
+                    hasAnyTasks &&
+                    (!minStart || !maxFinish) && (
+                        <div className="flex h-full min-h-[500px] items-center justify-center rounded-lg border bg-muted/30 p-8">
+                            <p className="text-muted-foreground">
+                                {showOnlyDifferentSchedule
+                                    ? 'No valid date ranges found for tasks with different schedule time.'
+                                    : 'No valid date ranges found in the filtered data.'}
+                            </p>
+                        </div>
+                    )}
 
                 {!isLoading &&
                     errorMessages.length === 0 &&
@@ -905,20 +1066,37 @@ export function OverlayComparison({
                                 {hoverGuide.visible && (
                                     <div
                                         className="pointer-events-none absolute inset-y-0 z-30 w-px bg-primary/70"
-                                        style={{ left: `${hoverGuide.leftPx}px` }}
+                                        style={{
+                                            left: `${hoverGuide.leftPx}px`,
+                                        }}
                                     />
                                 )}
                                 {pageRows.map((row) => {
-                                    const startA = parseDate(row.variantATask?.Start ?? null);
-                                    const finishA = parseDate(row.variantATask?.Finish ?? null);
-                                    const startB = parseDate(row.variantBTask?.Start ?? null);
-                                    const finishB = parseDate(row.variantBTask?.Finish ?? null);
+                                    const startA = parseDate(
+                                        row.variantATask?.Start ?? null,
+                                    );
+                                    const finishA = parseDate(
+                                        row.variantATask?.Finish ?? null,
+                                    );
+                                    const startB = parseDate(
+                                        row.variantBTask?.Start ?? null,
+                                    );
+                                    const finishB = parseDate(
+                                        row.variantBTask?.Finish ?? null,
+                                    );
                                     const indentPx =
                                         viewMode === 'hierarchy'
-                                            ? Math.min(Math.max(row.outlineLevel, 0) * 12, 200)
+                                            ? Math.min(
+                                                  Math.max(
+                                                      row.outlineLevel,
+                                                      0,
+                                                  ) * 12,
+                                                  200,
+                                              )
                                             : 0;
                                     const labelClass =
-                                        viewMode === 'hierarchy' && row.isSummary
+                                        viewMode === 'hierarchy' &&
+                                        row.isSummary
                                             ? 'text-sm font-semibold text-gray-900 dark:text-gray-100'
                                             : 'text-sm font-medium text-gray-800 dark:text-gray-200';
 
@@ -936,22 +1114,28 @@ export function OverlayComparison({
                                         const left = Math.max(
                                             0,
                                             Math.round(
-                                                ((start.getTime() - minStart!.getTime()) / 36e5) *
-                                                pxPerHour,
+                                                ((start.getTime() -
+                                                    minStart!.getTime()) /
+                                                    36e5) *
+                                                    pxPerHour,
                                             ),
                                         );
                                         const width = Math.max(
                                             2,
                                             Math.round(
-                                                ((finish.getTime() - start.getTime()) / 36e5) *
-                                                pxPerHour,
+                                                ((finish.getTime() -
+                                                    start.getTime()) /
+                                                    36e5) *
+                                                    pxPerHour,
                                             ),
                                         );
                                         const isElapsed = (task.IsElapsed ?? '')
                                             .toString()
                                             .toUpperCase()
                                             .startsWith('Y');
-                                        const colorClass = isElapsed ? 'bg-red-500' : baseColor;
+                                        const colorClass = isElapsed
+                                            ? 'bg-red-500'
+                                            : baseColor;
                                         return (
                                             <div
                                                 className={`absolute z-10 h-4 cursor-pointer rounded border border-black/20 shadow-sm transition-opacity hover:opacity-85 ${colorClass}`}
@@ -961,10 +1145,16 @@ export function OverlayComparison({
                                                     width: `${width}px`,
                                                 }}
                                                 onMouseEnter={(event) =>
-                                                    handleBarMouseEnter(event, task, variantLabel)
+                                                    handleBarMouseEnter(
+                                                        event,
+                                                        task,
+                                                        variantLabel,
+                                                    )
                                                 }
                                                 onMouseMove={handleBarMouseMove}
-                                                onMouseLeave={handleBarMouseLeave}
+                                                onMouseLeave={
+                                                    handleBarMouseLeave
+                                                }
                                             />
                                         );
                                     };
@@ -972,13 +1162,20 @@ export function OverlayComparison({
                                     return (
                                         <div
                                             key={`${row.taskId}`}
-                                            className={`relative border-b border-dashed border-gray-200 dark:border-gray-800` + (row.isSummary ? ' h-8' : ' h-12')}
+                                            className={
+                                                `relative border-b border-dashed border-gray-200 dark:border-gray-800` +
+                                                (row.isSummary
+                                                    ? ' h-8'
+                                                    : ' h-12')
+                                            }
                                         >
                                             <span
-                                                className={`absolute -left-[250px] top-3 w-[240px] overflow-hidden text-ellipsis whitespace-nowrap ${labelClass}`}
+                                                className={`absolute top-3 -left-[250px] w-[240px] overflow-hidden text-ellipsis whitespace-nowrap ${labelClass}`}
                                                 title={`${row.taskId}: ${row.taskName}`}
                                                 style={{
-                                                    paddingLeft: indentPx ? `${indentPx}px` : undefined,
+                                                    paddingLeft: indentPx
+                                                        ? `${indentPx}px`
+                                                        : undefined,
                                                     display: 'inline-block',
                                                 }}
                                             >
@@ -1012,17 +1209,32 @@ export function OverlayComparison({
             {hoverGuide.visible && (
                 <div
                     className="pointer-events-none fixed z-40 flex min-w-[240px] -translate-x-1/2 flex-col gap-1 rounded-md bg-gray-900/95 px-3 py-2 text-[12px] text-white shadow-xl"
-                    style={{ left: `${hoverGuide.viewportLeft}px`, top: `${hoverGuide.topPx}px` }}
+                    style={{
+                        left: `${hoverGuide.viewportLeft}px`,
+                        top: `${hoverGuide.topPx}px`,
+                    }}
                 >
-                    <span className="text-[11px] font-semibold">{hoverGuide.timeLabel}</span>
+                    <span className="text-[11px] font-semibold">
+                        {hoverGuide.timeLabel}
+                    </span>
                     <div className="flex flex-col">
                         <span className="flex items-center gap-1">
                             <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-                            {variantALabel}: {new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(hoverGuide.variantAHours)} h
+                            {variantALabel}:{' '}
+                            {new Intl.NumberFormat('id-ID', {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1,
+                            }).format(hoverGuide.variantAHours)}{' '}
+                            h
                         </span>
                         <span className="flex items-center gap-1">
                             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                            {variantBLabel}: {new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(hoverGuide.variantBHours)} h
+                            {variantBLabel}:{' '}
+                            {new Intl.NumberFormat('id-ID', {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1,
+                            }).format(hoverGuide.variantBHours)}{' '}
+                            h
                         </span>
                     </div>
                     {/* <span className="text-white/70">Baseline +{hoverGuide.globalHours.toFixed(1)} h</span> */}

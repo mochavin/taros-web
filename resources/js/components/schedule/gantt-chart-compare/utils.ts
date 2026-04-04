@@ -53,6 +53,121 @@ export const applyBaselineShift = (
     });
 };
 
+export const getShiftedTaskRows = (
+    taskRows: TaskRow[],
+    customStart: string,
+): TaskRow[] => {
+    const baselineShiftMs = computeBaselineShiftMs(taskRows, customStart);
+    return applyBaselineShift(taskRows, baselineShiftMs);
+};
+
+export const normalizeScheduleValue = (
+    value: string | null | undefined,
+): string => {
+    const parsed = parseDate(value);
+    if (parsed) {
+        return String(parsed.getTime());
+    }
+
+    return String(value ?? '').trim();
+};
+
+export const buildTaskIndex = (taskRows: TaskRow[]): Map<string, TaskRow> => {
+    const taskIndex = new Map<string, TaskRow>();
+
+    for (const taskRow of taskRows) {
+        const taskId = String(taskRow.TaskID ?? '').trim();
+        if (!taskId || taskIndex.has(taskId)) {
+            continue;
+        }
+
+        taskIndex.set(taskId, taskRow);
+    }
+
+    return taskIndex;
+};
+
+export const hasDifferentScheduleTime = (
+    leftTask: TaskRow | undefined,
+    rightTask: TaskRow | undefined,
+): boolean => {
+    if (!leftTask || !rightTask) {
+        return false;
+    }
+
+    return (
+        normalizeScheduleValue(leftTask.Start) !==
+            normalizeScheduleValue(rightTask.Start) ||
+        normalizeScheduleValue(leftTask.Finish) !==
+            normalizeScheduleValue(rightTask.Finish)
+    );
+};
+
+export const getDifferentScheduleTaskIds = (
+    leftTaskRows: TaskRow[],
+    rightTaskRows: TaskRow[],
+    customStart: string,
+): Set<string> => {
+    const leftTaskIndex = buildTaskIndex(
+        getShiftedTaskRows(leftTaskRows, customStart),
+    );
+    const rightTaskIndex = buildTaskIndex(
+        getShiftedTaskRows(rightTaskRows, customStart),
+    );
+    const differentTaskIds = new Set<string>();
+
+    for (const [taskId, leftTask] of leftTaskIndex) {
+        const rightTask = rightTaskIndex.get(taskId);
+
+        if (hasDifferentScheduleTime(leftTask, rightTask)) {
+            differentTaskIds.add(taskId);
+        }
+    }
+
+    return differentTaskIds;
+};
+
+export const filterTaskRowsByIds = (
+    taskRows: TaskRow[],
+    taskIds: Set<string>,
+): TaskRow[] => {
+    if (taskIds.size === 0) {
+        return [];
+    }
+
+    return taskRows.filter((taskRow) =>
+        taskIds.has(String(taskRow.TaskID ?? '').trim()),
+    );
+};
+
+export const expandVisibleTaskIdsWithAncestors = <
+    THierarchyRow extends { ParentID?: string | number },
+>(
+    visibleTaskIds: Set<string>,
+    hierarchyById: Record<string, THierarchyRow>,
+): Set<string> => {
+    const expandedIds = new Set<string>(visibleTaskIds);
+
+    for (const taskId of visibleTaskIds) {
+        let currentId = taskId;
+
+        while (currentId) {
+            const parentId = String(
+                hierarchyById[currentId]?.ParentID ?? '',
+            ).trim();
+
+            if (!parentId || expandedIds.has(parentId)) {
+                break;
+            }
+
+            expandedIds.add(parentId);
+            currentId = parentId;
+        }
+    }
+
+    return expandedIds;
+};
+
 export const parseCSVFromURL = async (url: string): Promise<TaskRow[]> => {
     try {
         const response = await fetch(url);
