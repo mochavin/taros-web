@@ -36,9 +36,10 @@ export function VariantCard({
 }: VariantCardProps) {
     const taskRows =
         providedTaskRows ?? entry.data?.taskRows ?? EMPTY_TASK_ROWS;
+    const baselineSourceTaskRows = entry.data?.taskRows ?? taskRows;
     const baselineShiftMs = useMemo(
-        () => computeBaselineShiftMs(taskRows, customStart),
-        [taskRows, customStart],
+        () => computeBaselineShiftMs(baselineSourceTaskRows, customStart),
+        [baselineSourceTaskRows, customStart],
     );
 
     const isLoading = entry.data?.isLoading ?? true;

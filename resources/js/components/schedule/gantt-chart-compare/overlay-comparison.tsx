@@ -89,6 +89,8 @@ export function OverlayComparison({
 
     const tasksA = providedTaskRowsA ?? dataA?.taskRows ?? EMPTY_TASK_ROWS;
     const tasksB = providedTaskRowsB ?? dataB?.taskRows ?? EMPTY_TASK_ROWS;
+    const baselineSourceTasksA = dataA?.taskRows ?? tasksA;
+    const baselineSourceTasksB = dataB?.taskRows ?? tasksB;
 
     const [tooltip, setTooltip] = useState<TooltipState>({
         visible: false,
@@ -101,12 +103,12 @@ export function OverlayComparison({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const baselineShiftA = useMemo(
-        () => computeBaselineShiftMs(tasksA, customStart),
-        [tasksA, customStart],
+        () => computeBaselineShiftMs(baselineSourceTasksA, customStart),
+        [baselineSourceTasksA, customStart],
     );
     const baselineShiftB = useMemo(
-        () => computeBaselineShiftMs(tasksB, customStart),
-        [tasksB, customStart],
+        () => computeBaselineShiftMs(baselineSourceTasksB, customStart),
+        [baselineSourceTasksB, customStart],
     );
 
     const shiftedTasksA = useMemo(
