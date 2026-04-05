@@ -1,16 +1,35 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { ResourceRow } from '@/types/schedule';
-import { parseDate, parseLocalDateInput, ymd, niceMax, makeColor } from '@/lib/schedule-utils';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    makeColor,
+    niceMax,
+    parseDate,
+    parseLocalDateInput,
+    textFilterPredicate,
+    ymd,
+} from '@/lib/schedule-utils';
+import type {
+    ResourceLoadChartControls,
+    ResourceLoadTimeGrouping,
+    ResourceLoadViewMode,
+    ResourceRow,
+} from '@/types/schedule';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ResourceLoadChartProps {
     resources: ResourceRow[];
+    controls?: ResourceLoadChartControls;
+    onControlsChange?: (controls: ResourceLoadChartControls) => void;
+    showControls?: boolean;
 }
-
-type TimeGrouping = 'day' | 'hour';
 
 interface Aggregation {
     labels: string[];
@@ -20,12 +39,23 @@ interface Aggregation {
     totalsByBucket: number[];
 }
 
-export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
-    const [topN, setTopN] = useState('10');
-    const [timeGrouping, setTimeGrouping] = useState<TimeGrouping>('day');
-    const [viewMode, setViewMode] = useState<'stacked' | 'single'>('stacked');
+const DEFAULT_CONTROLS: ResourceLoadChartControls = {
+    resourceFilter: '',
+    fromDate: '',
+    toDate: '',
+    topN: '10',
+    timeGrouping: 'day',
+    viewMode: 'stacked',
+};
+
+export function ResourceLoadChart({
+    resources,
+    controls,
+    onControlsChange,
+    showControls = true,
+}: ResourceLoadChartProps) {
+    const [internalControls, setInternalControls] =
+        useState<ResourceLoadChartControls>(DEFAULT_CONTROLS);
     const [currentResIdx, setCurrentResIdx] = useState(0);
     const [tooltip, setTooltip] = useState<{
         visible: boolean;
@@ -35,17 +65,41 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
     }>({ visible: false, x: 0, y: 0, content: null });
 
     const tooltipRef = useRef<HTMLDivElement>(null);
+    const activeControls = controls ?? internalControls;
+    const isControlled = controls !== undefined;
+    const updateControls = (patch: Partial<ResourceLoadChartControls>) => {
+        const nextControls = { ...activeControls, ...patch };
+
+        if (controls && onControlsChange) {
+            onControlsChange(nextControls);
+            return;
+        }
+
+        setInternalControls(nextControls);
+    };
+    const filteredResources = useMemo(() => {
+        const predicate = textFilterPredicate(activeControls.resourceFilter);
+        return resources.filter((row) =>
+            predicate(row as unknown as Record<string, unknown>),
+        );
+    }, [activeControls.resourceFilter, resources]);
 
     // Aggregate daily resource hours
     const aggregation = useMemo((): Aggregation => {
-        if (!resources.length) {
-            return { labels: [], resources: [], matrix: [], totalsByRes: [], totalsByBucket: [] };
+        if (!filteredResources.length) {
+            return {
+                labels: [],
+                resources: [],
+                matrix: [],
+                totalsByRes: [],
+                totalsByBucket: [],
+            };
         }
 
         // Calculate date range from resources if not set
         let minDt: Date | null = null;
         let maxDt: Date | null = null;
-        for (const r of resources) {
+        for (const r of filteredResources) {
             const s = parseDate(r.SegmentStart);
             const e = parseDate(r.SegmentEnd);
             if (!s || !e) continue;
@@ -54,28 +108,58 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
         }
 
         if (!minDt || !maxDt) {
-            return { labels: [], resources: [], matrix: [], totalsByRes: [], totalsByBucket: [] };
+            return {
+                labels: [],
+                resources: [],
+                matrix: [],
+                totalsByRes: [],
+                totalsByBucket: [],
+            };
         }
 
-        const fromDay = parseLocalDateInput(fromDate) || minDt;
-        const toDay = parseLocalDateInput(toDate) || maxDt;
+        const fromDay = parseLocalDateInput(activeControls.fromDate) || minDt;
+        const toDay = parseLocalDateInput(activeControls.toDate) || maxDt;
 
         if (fromDay > toDay) {
-            return { labels: [], resources: [], matrix: [], totalsByRes: [], totalsByBucket: [] };
+            return {
+                labels: [],
+                resources: [],
+                matrix: [],
+                totalsByRes: [],
+                totalsByBucket: [],
+            };
         }
 
-        const dayStart = new Date(fromDay.getFullYear(), fromDay.getMonth(), fromDay.getDate());
-        const dayEnd = new Date(toDay.getFullYear(), toDay.getMonth(), toDay.getDate(), 23, 59, 59, 999);
+        const dayStart = new Date(
+            fromDay.getFullYear(),
+            fromDay.getMonth(),
+            fromDay.getDate(),
+        );
+        const dayEnd = new Date(
+            toDay.getFullYear(),
+            toDay.getMonth(),
+            toDay.getDate(),
+            23,
+            59,
+            59,
+            999,
+        );
 
-        const bucketSizeMs = timeGrouping === 'day' ? 86_400_000 : 3_600_000;
+        const bucketSizeMs =
+            activeControls.timeGrouping === 'day' ? 86_400_000 : 3_600_000;
         const alignToBucketStart = (date: Date): Date => {
-            return timeGrouping === 'day'
+            return activeControls.timeGrouping === 'day'
                 ? new Date(date.getFullYear(), date.getMonth(), date.getDate())
-                : new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours());
+                : new Date(
+                      date.getFullYear(),
+                      date.getMonth(),
+                      date.getDate(),
+                      date.getHours(),
+                  );
         };
 
         const formatLabel = (date: Date): string => {
-            if (timeGrouping === 'day') {
+            if (activeControls.timeGrouping === 'day') {
                 return ymd(date);
             }
             const hours = String(date.getHours()).padStart(2, '0');
@@ -84,7 +168,11 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
 
         const buckets: Array<{ label: string; start: Date; end: Date }> = [];
         const bucketIndex = new Map<number, number>();
-        for (let d = new Date(dayStart); d <= dayEnd; d = new Date(d.getTime() + bucketSizeMs)) {
+        for (
+            let d = new Date(dayStart);
+            d <= dayEnd;
+            d = new Date(d.getTime() + bucketSizeMs)
+        ) {
             const start = new Date(d);
             const end = new Date(d.getTime() + bucketSizeMs);
             bucketIndex.set(start.getTime(), buckets.length);
@@ -92,7 +180,13 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
         }
 
         if (!buckets.length) {
-            return { labels: [], resources: [], matrix: [], totalsByRes: [], totalsByBucket: [] };
+            return {
+                labels: [],
+                resources: [],
+                matrix: [],
+                totalsByRes: [],
+                totalsByBucket: [],
+            };
         }
 
         // Map resources to index
@@ -111,7 +205,7 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
         // Matrix day x resource
         const matrix: number[][] = buckets.map(() => []);
 
-        for (const r of resources) {
+        for (const r of filteredResources) {
             const s0 = parseDate(r.SegmentStart);
             const e0 = parseDate(r.SegmentEnd);
             if (!s0 || !e0) continue;
@@ -123,7 +217,8 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
             if (e <= s || durMs <= 0) continue;
 
             let totalH = Number(r.SegmentHours);
-            if (!isFinite(totalH)) totalH = (e0.getTime() - s0.getTime()) / 36e5;
+            if (!isFinite(totalH))
+                totalH = (e0.getTime() - s0.getTime()) / 36e5;
 
             const idx = getResIdx(r.ResourceName || r.ResourceID || 'Unknown');
             let cur = alignToBucketStart(s);
@@ -138,15 +233,20 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                     const portion = sliceMs / durMs;
                     const bucketIdx = bucketIndex.get(cur.getTime());
                     if (bucketIdx !== undefined) {
-                        matrix[bucketIdx][idx] = (matrix[bucketIdx][idx] || 0) + totalH * portion;
+                        matrix[bucketIdx][idx] =
+                            (matrix[bucketIdx][idx] || 0) + totalH * portion;
                     }
                 }
                 cur = next;
             }
         }
 
-        const totalsByRes = resourceNames.map((_, i) => matrix.reduce((acc, row) => acc + (row[i] || 0), 0));
-        const totalsByBucket = matrix.map((row) => row.reduce((acc, val) => acc + (val || 0), 0));
+        const totalsByRes = resourceNames.map((_, i) =>
+            matrix.reduce((acc, row) => acc + (row[i] || 0), 0),
+        );
+        const totalsByBucket = matrix.map((row) =>
+            row.reduce((acc, val) => acc + (val || 0), 0),
+        );
 
         return {
             labels: buckets.map((bucket) => bucket.label),
@@ -155,32 +255,54 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
             totalsByRes,
             totalsByBucket,
         };
-    }, [resources, fromDate, toDate, timeGrouping]);
+    }, [
+        activeControls.fromDate,
+        activeControls.timeGrouping,
+        activeControls.toDate,
+        filteredResources,
+    ]);
 
     // Set default dates on mount
     useEffect(() => {
-        if (!fromDate && !toDate && resources.length > 0) {
-            let minDt: Date | null = null;
-            let maxDt: Date | null = null;
-            for (const r of resources) {
-                const s = parseDate(r.SegmentStart);
-                const e = parseDate(r.SegmentEnd);
-                if (!s || !e) continue;
-                if (!minDt || s < minDt) minDt = s;
-                if (!maxDt || e > maxDt) maxDt = e;
-            }
-            if (minDt && maxDt) {
-                setFromDate(ymd(minDt));
-                setToDate(ymd(maxDt));
-            }
+        if (
+            isControlled ||
+            activeControls.fromDate ||
+            activeControls.toDate ||
+            !filteredResources.length
+        ) {
+            return;
         }
-    }, [resources, fromDate, toDate]);
+
+        let minDt: Date | null = null;
+        let maxDt: Date | null = null;
+        for (const r of filteredResources) {
+            const s = parseDate(r.SegmentStart);
+            const e = parseDate(r.SegmentEnd);
+            if (!s || !e) continue;
+            if (!minDt || s < minDt) minDt = s;
+            if (!maxDt || e > maxDt) maxDt = e;
+        }
+        if (minDt && maxDt) {
+            updateControls({
+                fromDate: ymd(minDt),
+                toDate: ymd(maxDt),
+            });
+        }
+    }, [
+        activeControls.fromDate,
+        activeControls.toDate,
+        filteredResources,
+        isControlled,
+    ]);
 
     // Get resource order by totals descending
     const resOrder = useMemo(() => {
         return aggregation.resources
             .map((_, i) => i)
-            .sort((a, b) => aggregation.totalsByRes[b] - aggregation.totalsByRes[a]);
+            .sort(
+                (a, b) =>
+                    aggregation.totalsByRes[b] - aggregation.totalsByRes[a],
+            );
     }, [aggregation]);
 
     // Ensure current resource index is valid
@@ -216,29 +338,36 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
 
     const handleBarMouseEnter = (
         e: React.MouseEvent<SVGRectElement>,
-        tooltipData: { label: string; resource?: string; hours: number; total?: number },
+        tooltipData: {
+            label: string;
+            resource?: string;
+            hours: number;
+            total?: number;
+        },
     ) => {
         const content = (
-            <div className="bg-gray-900 text-white text-xs p-2 rounded-md shadow-lg">
+            <div className="rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
                 <table className="w-full">
                     <tbody>
                         <tr>
-                            <td className="text-gray-400 pr-2">Period</td>
+                            <td className="pr-2 text-gray-400">Period</td>
                             <td>{tooltipData.label}</td>
                         </tr>
                         {tooltipData.resource && (
                             <tr>
-                                <td className="text-gray-400 pr-2">Resource</td>
+                                <td className="pr-2 text-gray-400">Resource</td>
                                 <td>{tooltipData.resource}</td>
                             </tr>
                         )}
                         <tr>
-                            <td className="text-gray-400 pr-2">Hours</td>
+                            <td className="pr-2 text-gray-400">Hours</td>
                             <td>{tooltipData.hours.toFixed(2)} h</td>
                         </tr>
                         {tooltipData.total !== undefined && (
                             <tr>
-                                <td className="text-gray-400 pr-2">Period Total</td>
+                                <td className="pr-2 text-gray-400">
+                                    Period Total
+                                </td>
                                 <td>{tooltipData.total.toFixed(2)} h</td>
                             </tr>
                         )}
@@ -265,18 +394,30 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
     const handleExportCSV = () => {
         if (!aggregation.labels.length) return;
 
-        const actualTopN = topN === 'all' ? aggregation.resources.length : Math.max(1, parseInt(topN, 10) || 10);
+        const actualTopN =
+            activeControls.topN === 'all'
+                ? aggregation.resources.length
+                : Math.max(1, parseInt(activeControls.topN, 10) || 10);
         const idxs = resOrder.slice(0, actualTopN);
         const resourceNames = idxs.map((i) => aggregation.resources[i]);
-        const matrix = aggregation.matrix.map((row) => idxs.map((i) => Number((row[i] || 0).toFixed(2))));
+        const matrix = aggregation.matrix.map((row) =>
+            idxs.map((i) => Number((row[i] || 0).toFixed(2))),
+        );
 
         const header = ['Period', ...resourceNames];
         const lines = [header.join(',')];
         for (let d = 0; d < aggregation.labels.length; d++) {
-            lines.push([aggregation.labels[d], ...matrix[d].map((v) => v.toFixed(2))].join(','));
+            lines.push(
+                [
+                    aggregation.labels[d],
+                    ...matrix[d].map((v) => v.toFixed(2)),
+                ].join(','),
+            );
         }
 
-        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([lines.join('\n')], {
+            type: 'text/csv;charset=utf-8;',
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -291,24 +432,31 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
     const renderChart = () => {
         if (!aggregation.labels.length) {
             return (
-                <div className="border rounded-lg p-8 text-center text-muted-foreground">
+                <div className="rounded-lg border p-8 text-center text-muted-foreground">
                     No resource data in range
                 </div>
             );
         }
 
-        if (viewMode === 'single') {
+        if (activeControls.viewMode === 'single') {
             // Single resource view
-            const resIdx = resOrder.length ? resOrder[Math.max(0, currentResIdx)] : 0;
+            const resIdx = resOrder.length
+                ? resOrder[Math.max(0, currentResIdx)]
+                : 0;
             const resName = aggregation.resources[resIdx] ?? 'Unknown';
-            const series = aggregation.matrix.map((row) => Number((row[resIdx] || 0).toFixed(2)));
+            const series = aggregation.matrix.map((row) =>
+                Number((row[resIdx] || 0).toFixed(2)),
+            );
             const maxDay = Math.max(...series, 0);
             const yMax = niceMax(maxDay);
 
             const pad = { left: 60, right: 12, top: 10, bottom: 28 };
             const barW = 20;
-            const step = timeGrouping === 'hour' ? 18 : 26;
-            const w = pad.left + pad.right + Math.max(aggregation.labels.length * step, 300);
+            const step = activeControls.timeGrouping === 'hour' ? 18 : 26;
+            const w =
+                pad.left +
+                pad.right +
+                Math.max(aggregation.labels.length * step, 300);
             const h = 340;
             const ch = h - pad.top - pad.bottom;
             const scaleY = (v: number) => (ch * v) / yMax;
@@ -320,7 +468,13 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setCurrentResIdx((prev) => (prev - 1 + resOrder.length) % resOrder.length)}
+                                onClick={() =>
+                                    setCurrentResIdx(
+                                        (prev) =>
+                                            (prev - 1 + resOrder.length) %
+                                            resOrder.length,
+                                    )
+                                }
                             >
                                 Prev
                             </Button>
@@ -337,7 +491,10 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {resOrder.map((ri) => (
-                                        <SelectItem key={ri} value={ri.toString()}>
+                                        <SelectItem
+                                            key={ri}
+                                            value={ri.toString()}
+                                        >
                                             {aggregation.resources[ri]}
                                         </SelectItem>
                                     ))}
@@ -346,21 +503,36 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setCurrentResIdx((prev) => (prev + 1) % resOrder.length)}
+                                onClick={() =>
+                                    setCurrentResIdx(
+                                        (prev) => (prev + 1) % resOrder.length,
+                                    )
+                                }
                             >
                                 Next
                             </Button>
                             <span className="text-sm text-muted-foreground">
-                                {resName} (total {aggregation.totalsByRes[resIdx]?.toFixed(1) || '0.0'} h)
+                                {resName} (total{' '}
+                                {aggregation.totalsByRes[resIdx]?.toFixed(1) ||
+                                    '0.0'}{' '}
+                                h)
                             </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                            Time slots: {aggregation.labels.length} | Max {timeGrouping === 'day' ? 'daily' : 'hourly'} hours: {maxDay.toFixed(1)}
+                            Time slots: {aggregation.labels.length} | Max{' '}
+                            {activeControls.timeGrouping === 'day'
+                                ? 'daily'
+                                : 'hourly'}{' '}
+                            hours: {maxDay.toFixed(1)}
                         </div>
                     </div>
 
-                    <div className="border rounded-lg bg-white dark:bg-gray-950 overflow-x-auto p-4">
-                        <svg width={w} height={h} xmlns="http://www.w3.org/2000/svg">
+                    <div className="overflow-x-auto rounded-lg border bg-white p-4 dark:bg-gray-950">
+                        <svg
+                            width={w}
+                            height={h}
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
                             {/* Grid and axes */}
                             {Array.from({ length: 6 }).map((_, i) => {
                                 const val = (yMax * i) / 5;
@@ -393,14 +565,24 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                                 x2={w - pad.right}
                                 y2={pad.top + ch}
                             />
-                            <line className="stroke-gray-400" x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + ch} />
+                            <line
+                                className="stroke-gray-400"
+                                x1={pad.left}
+                                y1={pad.top}
+                                x2={pad.left}
+                                y2={pad.top + ch}
+                            />
 
                             {/* Bars */}
                             {aggregation.labels.map((label, d) => {
-                                const x = pad.left + d * step + Math.max(0, (step - barW) / 2);
+                                const x =
+                                    pad.left +
+                                    d * step +
+                                    Math.max(0, (step - barW) / 2);
                                 const val = series[d] || 0;
                                 if (val <= 0) return null;
-                                const y = pad.top + ch - Math.max(1, scaleY(val));
+                                const y =
+                                    pad.top + ch - Math.max(1, scaleY(val));
                                 const bh = Math.max(1, scaleY(val));
                                 return (
                                     <rect
@@ -410,8 +592,14 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                                         width={barW}
                                         height={bh}
                                         fill={makeColor(0, 1)}
-                                        className="hover:opacity-80 cursor-pointer transition-opacity"
-                                        onMouseEnter={(e) => handleBarMouseEnter(e, { label, resource: resName, hours: val })}
+                                        className="cursor-pointer transition-opacity hover:opacity-80"
+                                        onMouseEnter={(e) =>
+                                            handleBarMouseEnter(e, {
+                                                label,
+                                                resource: resName,
+                                                hours: val,
+                                            })
+                                        }
                                         onMouseMove={handleBarMouseMove}
                                         onMouseLeave={handleBarMouseLeave}
                                     />
@@ -420,11 +608,21 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
 
                             {/* X-axis labels */}
                             {aggregation.labels.map((label, d) => {
-                                if (d % Math.max(1, Math.ceil(aggregation.labels.length / 12)) !== 0) return null;
+                                if (
+                                    d %
+                                        Math.max(
+                                            1,
+                                            Math.ceil(
+                                                aggregation.labels.length / 12,
+                                            ),
+                                        ) !==
+                                    0
+                                )
+                                    return null;
                                 const x = pad.left + d * step + barW / 2;
                                 const [datePart, timePart] = label.split(' ');
                                 const axisLabel =
-                                    timeGrouping === 'day'
+                                    activeControls.timeGrouping === 'day'
                                         ? datePart.slice(5)
                                         : `${datePart.slice(5)} ${timePart ?? ''}`.trim();
                                 return (
@@ -446,18 +644,28 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
             );
         } else {
             // Stacked view
-            const actualTopN = topN === 'all' ? aggregation.resources.length : Math.max(1, parseInt(topN, 10) || 10);
+            const actualTopN =
+                activeControls.topN === 'all'
+                    ? aggregation.resources.length
+                    : Math.max(1, parseInt(activeControls.topN, 10) || 10);
             const idxs = resOrder.slice(0, actualTopN);
             const resourceNames = idxs.map((i) => aggregation.resources[i]);
-            const matrix = aggregation.matrix.map((row) => idxs.map((i) => Number((row[i] || 0).toFixed(2))));
-            const visibleTotals = matrix.map((row) => row.reduce((a, b) => a + b, 0));
+            const matrix = aggregation.matrix.map((row) =>
+                idxs.map((i) => Number((row[i] || 0).toFixed(2))),
+            );
+            const visibleTotals = matrix.map((row) =>
+                row.reduce((a, b) => a + b, 0),
+            );
             const maxDay = Math.max(...visibleTotals, 0);
             const yMax = niceMax(maxDay);
 
             const pad = { left: 60, right: 12, top: 10, bottom: 28 };
             const barW = 20;
-            const step = timeGrouping === 'hour' ? 18 : 26;
-            const w = pad.left + pad.right + Math.max(aggregation.labels.length * step, 300);
+            const step = activeControls.timeGrouping === 'hour' ? 18 : 26;
+            const w =
+                pad.left +
+                pad.right +
+                Math.max(aggregation.labels.length * step, 300);
             const h = 340;
             const ch = h - pad.top - pad.bottom;
             const scaleY = (v: number) => (ch * v) / yMax;
@@ -469,8 +677,13 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                         {resourceNames.map((r, i) => (
                             <div key={i} className="flex items-center gap-2">
                                 <div
-                                    className="w-3 h-3 rounded border border-gray-400"
-                                    style={{ background: makeColor(i, resourceNames.length) }}
+                                    className="h-3 w-3 rounded border border-gray-400"
+                                    style={{
+                                        background: makeColor(
+                                            i,
+                                            resourceNames.length,
+                                        ),
+                                    }}
                                 />
                                 <span className="text-sm">{r}</span>
                             </div>
@@ -478,12 +691,21 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                     </div>
 
                     <div className="text-sm text-muted-foreground">
-                        Time slots: {aggregation.labels.length} | Resources: {resourceNames.length}/{aggregation.resources.length} | Max
-                        {timeGrouping === 'day' ? ' daily' : ' hourly'} hours: {maxDay.toFixed(1)}
+                        Time slots: {aggregation.labels.length} | Resources:{' '}
+                        {resourceNames.length}/{aggregation.resources.length} |
+                        Max
+                        {activeControls.timeGrouping === 'day'
+                            ? ' daily'
+                            : ' hourly'}{' '}
+                        hours: {maxDay.toFixed(1)}
                     </div>
 
-                    <div className="border rounded-lg bg-white dark:bg-gray-950 overflow-x-auto p-4">
-                        <svg width={w} height={h} xmlns="http://www.w3.org/2000/svg">
+                    <div className="overflow-x-auto rounded-lg border bg-white p-4 dark:bg-gray-950">
+                        <svg
+                            width={w}
+                            height={h}
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
                             {/* Grid and axes */}
                             {Array.from({ length: 6 }).map((_, i) => {
                                 const val = (yMax * i) / 5;
@@ -516,18 +738,30 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                                 x2={w - pad.right}
                                 y2={pad.top + ch}
                             />
-                            <line className="stroke-gray-400" x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + ch} />
+                            <line
+                                className="stroke-gray-400"
+                                x1={pad.left}
+                                y1={pad.top}
+                                x2={pad.left}
+                                y2={pad.top + ch}
+                            />
 
                             {/* Stacked bars */}
                             {aggregation.labels.map((label, d) => {
-                                const x = pad.left + d * step + Math.max(0, (step - barW) / 2);
+                                const x =
+                                    pad.left +
+                                    d * step +
+                                    Math.max(0, (step - barW) / 2);
                                 let acc = 0;
                                 return (
                                     <g key={d}>
                                         {resourceNames.map((resName, r) => {
                                             const val = matrix[d][r] || 0;
                                             if (val <= 0) return null;
-                                            const y = pad.top + ch - scaleY(acc + val);
+                                            const y =
+                                                pad.top +
+                                                ch -
+                                                scaleY(acc + val);
                                             const bh = Math.max(1, scaleY(val));
                                             const rect = (
                                                 <rect
@@ -536,16 +770,27 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
                                                     y={y}
                                                     width={barW}
                                                     height={bh}
-                                                    fill={makeColor(r, resourceNames.length)}
-                                                    className="hover:opacity-80 cursor-pointer transition-opacity"
-                                                    onMouseEnter={(e) => handleBarMouseEnter(e, {
-                                                        label,
-                                                        resource: resName,
-                                                        hours: val,
-                                                        total: visibleTotals[d],
-                                                    })}
-                                                    onMouseMove={handleBarMouseMove}
-                                                    onMouseLeave={handleBarMouseLeave}
+                                                    fill={makeColor(
+                                                        r,
+                                                        resourceNames.length,
+                                                    )}
+                                                    className="cursor-pointer transition-opacity hover:opacity-80"
+                                                    onMouseEnter={(e) =>
+                                                        handleBarMouseEnter(e, {
+                                                            label,
+                                                            resource: resName,
+                                                            hours: val,
+                                                            total: visibleTotals[
+                                                                d
+                                                            ],
+                                                        })
+                                                    }
+                                                    onMouseMove={
+                                                        handleBarMouseMove
+                                                    }
+                                                    onMouseLeave={
+                                                        handleBarMouseLeave
+                                                    }
                                                 />
                                             );
                                             acc += val;
@@ -557,11 +802,21 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
 
                             {/* X-axis labels */}
                             {aggregation.labels.map((label, d) => {
-                                if (d % Math.max(1, Math.ceil(aggregation.labels.length / 12)) !== 0) return null;
+                                if (
+                                    d %
+                                        Math.max(
+                                            1,
+                                            Math.ceil(
+                                                aggregation.labels.length / 12,
+                                            ),
+                                        ) !==
+                                    0
+                                )
+                                    return null;
                                 const x = pad.left + d * step + barW / 2;
                                 const [datePart, timePart] = label.split(' ');
                                 const axisLabel =
-                                    timeGrouping === 'day'
+                                    activeControls.timeGrouping === 'day'
                                         ? datePart.slice(5)
                                         : `${datePart.slice(5)} ${timePart ?? ''}`.trim();
                                 return (
@@ -586,60 +841,124 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
 
     return (
         <div className="space-y-4">
-            {/* Filters */}
-            <div className="flex flex-wrap items-end gap-4">
-                <div>
-                    <Label htmlFor="rlFrom">From</Label>
-                    <Input id="rlFrom" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-                </div>
-                <div>
-                    <Label htmlFor="rlTo">To</Label>
-                    <Input id="rlTo" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-                </div>
-                <div>
-                    <Label htmlFor="rlGrouping">Grouping</Label>
-                    <Select value={timeGrouping} onValueChange={(v) => setTimeGrouping(v as TimeGrouping)}>
-                        <SelectTrigger id="rlGrouping" className="w-[160px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="day">Per Day</SelectItem>
-                            <SelectItem value="hour">Per Hour</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                {viewMode === 'stacked' && (
+            {showControls ? (
+                <div className="flex flex-wrap items-end gap-4">
+                    <div className="min-w-[200px] flex-1">
+                        <Label htmlFor="rlResourceFilter">
+                            Filter resources/tasks
+                        </Label>
+                        <Input
+                            id="rlResourceFilter"
+                            type="text"
+                            placeholder="Filter resources/tasks..."
+                            value={activeControls.resourceFilter}
+                            onChange={(e) =>
+                                updateControls({
+                                    resourceFilter: e.target.value,
+                                })
+                            }
+                        />
+                    </div>
                     <div>
-                        <Label htmlFor="rlTopN">Top resources</Label>
-                        <Select value={topN} onValueChange={setTopN}>
-                            <SelectTrigger id="rlTopN" className="w-[120px]">
+                        <Label htmlFor="rlFrom">From</Label>
+                        <Input
+                            id="rlFrom"
+                            type="date"
+                            value={activeControls.fromDate}
+                            onChange={(e) =>
+                                updateControls({ fromDate: e.target.value })
+                            }
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="rlTo">To</Label>
+                        <Input
+                            id="rlTo"
+                            type="date"
+                            value={activeControls.toDate}
+                            onChange={(e) =>
+                                updateControls({ toDate: e.target.value })
+                            }
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="rlGrouping">Grouping</Label>
+                        <Select
+                            value={activeControls.timeGrouping}
+                            onValueChange={(v) =>
+                                updateControls({
+                                    timeGrouping: v as ResourceLoadTimeGrouping,
+                                })
+                            }
+                        >
+                            <SelectTrigger
+                                id="rlGrouping"
+                                className="w-[160px]"
+                            >
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="5">5</SelectItem>
-                                <SelectItem value="10">10</SelectItem>
-                                <SelectItem value="20">20</SelectItem>
-                                <SelectItem value="all">All</SelectItem>
+                                <SelectItem value="day">Per Day</SelectItem>
+                                <SelectItem value="hour">Per Hour</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                )}
-                <div>
-                    <Label htmlFor="rlView">View</Label>
-                    <Select value={viewMode} onValueChange={(v) => setViewMode(v as 'stacked' | 'single')}>
-                        <SelectTrigger id="rlView" className="w-[140px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="stacked">Stacked</SelectItem>
-                            <SelectItem value="single">Single Resource</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    {activeControls.viewMode === 'stacked' && (
+                        <div>
+                            <Label htmlFor="rlTopN">Top resources</Label>
+                            <Select
+                                value={activeControls.topN}
+                                onValueChange={(v) =>
+                                    updateControls({ topN: v })
+                                }
+                            >
+                                <SelectTrigger
+                                    id="rlTopN"
+                                    className="w-[120px]"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="5">5</SelectItem>
+                                    <SelectItem value="10">10</SelectItem>
+                                    <SelectItem value="20">20</SelectItem>
+                                    <SelectItem value="all">All</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    <div>
+                        <Label htmlFor="rlView">View</Label>
+                        <Select
+                            value={activeControls.viewMode}
+                            onValueChange={(v) =>
+                                updateControls({
+                                    viewMode: v as ResourceLoadViewMode,
+                                })
+                            }
+                        >
+                            <SelectTrigger id="rlView" className="w-[140px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="stacked">Stacked</SelectItem>
+                                <SelectItem value="single">
+                                    Single Resource
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button variant="outline" onClick={handleExportCSV}>
+                        Export CSV
+                    </Button>
                 </div>
-                <Button variant="outline" onClick={handleExportCSV}>
-                    Export CSV
-                </Button>
-            </div>
+            ) : (
+                <div className="flex justify-end">
+                    <Button variant="outline" onClick={handleExportCSV}>
+                        Export CSV
+                    </Button>
+                </div>
+            )}
 
             {/* Chart */}
             {renderChart()}
@@ -648,7 +967,7 @@ export function ResourceLoadChart({ resources }: ResourceLoadChartProps) {
             {tooltip.visible && (
                 <div
                     ref={tooltipRef}
-                    className="fixed z-50 pointer-events-none"
+                    className="pointer-events-none fixed z-50"
                     style={{
                         left: `${tooltip.x}px`,
                         top: `${tooltip.y}px`,

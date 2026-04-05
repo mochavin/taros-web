@@ -27,12 +27,17 @@ export interface ScheduleVariantOption {
     name: string;
     description?: string | null;
     isDefault: boolean;
-     isHidden: boolean;
+    isHidden: boolean;
     taskCandidates: string[];
     resCandidates: string[];
 }
 
-export type TaskSortMode = 'id' | 'start' | 'finish' | 'duration' | 'duration_asc';
+export type TaskSortMode =
+    | 'id'
+    | 'start'
+    | 'finish'
+    | 'duration'
+    | 'duration_asc';
 
 export interface GanttFilters {
     filter: string;
@@ -41,6 +46,26 @@ export interface GanttFilters {
     sortMode: TaskSortMode;
     page: number;
     pageSize: number;
+}
+
+export interface ResourceTableFilters {
+    filter: string;
+    fromDate: string;
+    toDate: string;
+    pageSize: number;
+}
+
+export type ResourceLoadTimeGrouping = 'day' | 'hour';
+
+export type ResourceLoadViewMode = 'stacked' | 'single';
+
+export interface ResourceLoadChartControls {
+    resourceFilter: string;
+    fromDate: string;
+    toDate: string;
+    topN: string;
+    timeGrouping: ResourceLoadTimeGrouping;
+    viewMode: ResourceLoadViewMode;
 }
 
 export interface PaginationResult<T> {

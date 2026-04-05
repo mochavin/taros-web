@@ -1,25 +1,51 @@
 // Utility functions for schedule viewer
 
-import type { TaskRow, PaginationResult, TaskSortMode } from '@/types/schedule';
+import type {
+    PaginationResult,
+    ResourceRow,
+    ResourceTableFilters,
+    TaskRow,
+    TaskSortMode,
+} from '@/types/schedule';
 
 export function parseDate(s: string | null | undefined): Date | null {
     if (!s) return null;
     const t = String(s).trim().replace('T', ' ');
-    const m = t.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
+    const m = t.match(
+        /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/,
+    );
     if (!m) return new Date(t);
     const [, year, month, day, hour, minute, second] = m;
-    return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second || '0'));
+    return new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second || '0'),
+    );
 }
 
-export function parseLocalDateTimeInput(val: string | null | undefined): Date | null {
+export function parseLocalDateTimeInput(
+    val: string | null | undefined,
+): Date | null {
     if (!val) return null;
     const m = val.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
     if (!m) return null;
     const [, year, month, day, hour, minute] = m;
-    return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), 0);
+    return new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        0,
+    );
 }
 
-export function parseLocalDateInput(val: string | null | undefined): Date | null {
+export function parseLocalDateInput(
+    val: string | null | undefined,
+): Date | null {
     if (!val) return null;
     const m = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!m) return null;
@@ -49,7 +75,11 @@ export function formatIndoDateTime(dtStr: string | null | undefined): string {
         month: 'long',
         day: 'numeric',
     });
-    const timePart = dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const timePart = dt.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
     return `${datePart} ${timePart}`;
 }
 
@@ -64,7 +94,11 @@ export function addDays(dt: Date, n: number): Date {
     return d;
 }
 
-export function paginate<T>(arr: T[], page: number, size: number): PaginationResult<T> {
+export function paginate<T>(
+    arr: T[],
+    page: number,
+    size: number,
+): PaginationResult<T> {
     const total = arr.length;
     const pages = Math.max(1, Math.ceil(total / size));
     const p = Math.min(Math.max(1, page), pages);
@@ -76,10 +110,58 @@ export function paginate<T>(arr: T[], page: number, size: number): PaginationRes
 export function textFilterPredicate(q: string | null | undefined) {
     if (!q) return () => true;
     const s = q.toLowerCase();
-    return (row: Record<string, unknown>) => Object.values(row).join(' ').toLowerCase().includes(s);
+    return (row: Record<string, unknown>) =>
+        Object.values(row).join(' ').toLowerCase().includes(s);
 }
 
-export function dateRangeFilterPredicate(fromDt: Date | null, toDt: Date | null) {
+export function filterResourceRows(
+    rows: ResourceRow[],
+    filters: Pick<ResourceTableFilters, 'filter' | 'fromDate' | 'toDate'>,
+) {
+    const predText = textFilterPredicate(filters.filter);
+    const fromDay = parseLocalDateInput(filters.fromDate);
+    const toDay = parseLocalDateInput(filters.toDate);
+    const fromDt = fromDay
+        ? new Date(
+            fromDay.getFullYear(),
+            fromDay.getMonth(),
+            fromDay.getDate(),
+            0,
+            0,
+            0,
+            0,
+        )
+        : null;
+    const toDt = toDay
+        ? new Date(
+            toDay.getFullYear(),
+            toDay.getMonth(),
+            toDay.getDate(),
+            23,
+            59,
+            59,
+            999,
+        )
+        : null;
+
+    return rows.filter((row) => {
+        const matchesText = predText(row as unknown as Record<string, unknown>);
+        if (!matchesText) return false;
+        if (!fromDt && !toDt) return true;
+
+        const start = parseDate(row.SegmentStart);
+        const end = parseDate(row.SegmentEnd);
+        if (!start || !end) return false;
+        if (fromDt && end < fromDt) return false;
+        if (toDt && start > toDt) return false;
+        return true;
+    });
+}
+
+export function dateRangeFilterPredicate(
+    fromDt: Date | null,
+    toDt: Date | null,
+) {
     return (row: { Start: string; Finish: string }) => {
         const s = parseDate(row.Start);
         const e = parseDate(row.Finish);

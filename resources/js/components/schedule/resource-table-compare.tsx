@@ -1,10 +1,15 @@
 import { Label } from '@/components/ui/label';
 import {
+    filterResourceRows,
     formatDateLocal,
     parseDate,
     parseLocalDateTimeInput,
 } from '@/lib/schedule-utils';
-import type { ResourceRow, ScheduleVariantOption } from '@/types/schedule';
+import type {
+    ResourceRow,
+    ResourceTableFilters,
+    ScheduleVariantOption,
+} from '@/types/schedule';
 import { Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
@@ -14,6 +19,7 @@ interface ResourceTableCompareProps {
     variants: ScheduleVariantOption[];
     compareVariants: string[];
     customStart: string;
+    filters: ResourceTableFilters;
 }
 
 interface VariantData {
@@ -58,6 +64,7 @@ export function ResourceTableCompare({
     variants,
     compareVariants,
     customStart,
+    filters,
 }: ResourceTableCompareProps) {
     const [variantDataMap, setVariantDataMap] = useState<
         Map<string, VariantData>
@@ -97,8 +104,7 @@ export function ResourceTableCompare({
                     ) {
                         for (const candidate of variant.resCandidates) {
                             try {
-                                resourceRows =
-                                    await parseCSVFromURL(candidate);
+                                resourceRows = await parseCSVFromURL(candidate);
                                 if (resourceRows.length > 0) {
                                     break; // Successfully loaded
                                 }
@@ -217,6 +223,10 @@ export function ResourceTableCompare({
                         resourceRows,
                         baselineShiftMs,
                     );
+                    const filteredResources = filterResourceRows(
+                        shiftedResources,
+                        filters,
+                    );
 
                     return (
                         <div
@@ -233,7 +243,9 @@ export function ResourceTableCompare({
                                     </div>
                                     <div className="text-right">
                                         <Label className="text-sm">
-                                            Resources: {resourceRows.length}
+                                            Resources:{' '}
+                                            {filteredResources.length} of{' '}
+                                            {shiftedResources.length}
                                         </Label>
                                     </div>
                                 </div>
@@ -272,21 +284,23 @@ export function ResourceTableCompare({
 
                                 {!isLoading &&
                                     !error &&
-                                    resourceRows.length === 0 && (
+                                    filteredResources.length === 0 && (
                                         <div className="flex h-full min-h-[300px] items-center justify-center rounded-lg border bg-muted/30 p-8">
                                             <p className="text-muted-foreground">
                                                 No resources found for this
-                                                variant.
+                                                filter.
                                             </p>
                                         </div>
                                     )}
 
                                 {!isLoading &&
                                     !error &&
-                                    resourceRows.length > 0 && (
+                                    filteredResources.length > 0 && (
                                         <div className="h-full">
                                             <ResourceTable
                                                 resources={shiftedResources}
+                                                filters={filters}
+                                                showFilters={false}
                                             />
                                         </div>
                                     )}

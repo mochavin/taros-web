@@ -15,14 +15,12 @@ import {
     parseDate,
     parseLocalDateTimeInput,
 } from '@/lib/schedule-utils';
-import type { ScheduleVariantOption } from '@/types/schedule';
-import {
-    Calendar,
-    FileUp,
-    Loader2,
-    Settings2,
-    Upload,
-} from 'lucide-react';
+import type {
+    ResourceLoadChartControls,
+    ResourceTableFilters,
+    ScheduleVariantOption,
+} from '@/types/schedule';
+import { Loader2, Settings2 } from 'lucide-react';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { GanttChart } from './gantt-chart';
@@ -87,6 +85,22 @@ export function ScheduleViewerComponent({
     >('hierarchy');
     const [compareVariants, setCompareVariants] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState('gantt');
+    const [resourceCompareFilters, setResourceCompareFilters] =
+        useState<ResourceTableFilters>({
+            filter: '',
+            fromDate: '',
+            toDate: '',
+            pageSize: 50,
+        });
+    const [resourceLoadCompareControls, setResourceLoadCompareControls] =
+        useState<ResourceLoadChartControls>({
+            resourceFilter: '',
+            fromDate: '',
+            toDate: '',
+            topN: '10',
+            timeGrouping: 'day',
+            viewMode: 'stacked',
+        });
 
     const {
         taskRows,
@@ -320,7 +334,12 @@ export function ScheduleViewerComponent({
                     <div className="flex flex-wrap items-center gap-6">
                         {/* Variant Selection */}
                         <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="variantSelect" className="text-xs font-medium text-muted-foreground">Variant</Label>
+                            <Label
+                                htmlFor="variantSelect"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                Variant
+                            </Label>
                             <Select
                                 value={currentVariant || undefined}
                                 onValueChange={handleVariantChange}
@@ -328,7 +347,7 @@ export function ScheduleViewerComponent({
                             >
                                 <SelectTrigger
                                     id="variantSelect"
-                                    className="w-[220px] h-9"
+                                    className="h-9 w-[220px]"
                                 >
                                     <SelectValue
                                         placeholder={
@@ -356,30 +375,48 @@ export function ScheduleViewerComponent({
 
                         {/* View Mode Selector */}
                         <div className="flex flex-col gap-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">View Mode</Label>
-                            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-md border h-9">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                                View Mode
+                            </Label>
+                            <div className="flex h-9 items-center gap-1 rounded-md border bg-muted/50 p-1">
                                 {activeTab === 'gantt' && (
                                     <>
                                         <Button
-                                            variant={ganttViewMode === 'hierarchy' ? 'default' : 'ghost'}
+                                            variant={
+                                                ganttViewMode === 'hierarchy'
+                                                    ? 'default'
+                                                    : 'ghost'
+                                            }
                                             size="sm"
                                             className="h-7 px-3 text-xs"
-                                            onClick={() => setGanttViewMode('hierarchy')}
+                                            onClick={() =>
+                                                setGanttViewMode('hierarchy')
+                                            }
                                         >
                                             Hierarchy
                                         </Button>
                                         <Button
-                                            variant={ganttViewMode === 'flat' ? 'default' : 'ghost'}
+                                            variant={
+                                                ganttViewMode === 'flat'
+                                                    ? 'default'
+                                                    : 'ghost'
+                                            }
                                             size="sm"
                                             className="h-7 px-3 text-xs"
-                                            onClick={() => setGanttViewMode('flat')}
+                                            onClick={() =>
+                                                setGanttViewMode('flat')
+                                            }
                                         >
                                             Flat
                                         </Button>
                                     </>
                                 )}
                                 <Button
-                                    variant={ganttViewMode === 'compare' ? 'default' : 'ghost'}
+                                    variant={
+                                        ganttViewMode === 'compare'
+                                            ? 'default'
+                                            : 'ghost'
+                                    }
                                     size="sm"
                                     className="h-7 px-3 text-xs"
                                     onClick={() => setGanttViewMode('compare')}
@@ -398,7 +435,12 @@ export function ScheduleViewerComponent({
                             onResourceFileChange={handleResourceFileChange}
                         />
 
-                        <Button variant="ghost" size="sm" onClick={handleClear} className="h-9">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleClear}
+                            className="h-9"
+                        >
                             Clear
                         </Button>
                     </div>
@@ -406,8 +448,8 @@ export function ScheduleViewerComponent({
 
                 {status && (
                     <div className="flex items-center gap-2 px-1">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        <span className="text-xs text-muted-foreground font-medium">
+                        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                        <span className="text-xs font-medium text-muted-foreground">
                             {status}
                         </span>
                     </div>
@@ -416,9 +458,9 @@ export function ScheduleViewerComponent({
 
             {/* Variant Comparison Selector - Only when Compare Mode Active */}
             {ganttViewMode === 'compare' && (
-                <div className="rounded-xl border bg-muted/30 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="flex items-center justify-between mb-3">
-                        <Label className="text-sm font-semibold flex items-center gap-2">
+                <div className="rounded-xl border bg-muted/30 p-4 duration-300 animate-in fade-in slide-in-from-top-2">
+                    <div className="mb-3 flex items-center justify-between">
+                        <Label className="flex items-center gap-2 text-sm font-semibold">
                             <Settings2 className="h-4 w-4" />
                             Select Variants to Compare
                         </Label>
@@ -440,21 +482,344 @@ export function ScheduleViewerComponent({
                                 onClick={() => {
                                     setCompareVariants((prev) =>
                                         prev.includes(variant.slug)
-                                            ? prev.filter((v) => v !== variant.slug)
+                                            ? prev.filter(
+                                                (v) => v !== variant.slug,
+                                            )
                                             : [...prev, variant.slug],
                                     );
                                 }}
                             >
-                                {variant.name || formatVariantLabel(variant.slug)}
+                                {variant.name ||
+                                    formatVariantLabel(variant.slug)}
                             </Button>
                         ))}
                     </div>
                 </div>
             )}
 
+            {ganttViewMode === 'compare' && activeTab === 'resources' && (
+                <div className="rounded-xl border bg-muted/30 p-4 duration-300 animate-in fade-in slide-in-from-top-2">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                            <Label className="text-sm font-semibold">
+                                Shared Resource Compare Filters
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Satu filter untuk semua variant pada tab
+                                resource tracking.
+                            </p>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                                setResourceCompareFilters({
+                                    filter: '',
+                                    fromDate: '',
+                                    toDate: '',
+                                    pageSize: 50,
+                                })
+                            }
+                        >
+                            Reset
+                        </Button>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-4">
+                        <div className="min-w-[220px] flex-1">
+                            <Label
+                                htmlFor="compareResourceFilter"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                Filter resources/tasks
+                            </Label>
+                            <Input
+                                id="compareResourceFilter"
+                                type="text"
+                                placeholder="Filter resources/tasks..."
+                                value={resourceCompareFilters.filter}
+                                onChange={(e) =>
+                                    setResourceCompareFilters((prev) => ({
+                                        ...prev,
+                                        filter: e.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label
+                                htmlFor="compareResourceFrom"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                From
+                            </Label>
+                            <Input
+                                id="compareResourceFrom"
+                                type="date"
+                                value={resourceCompareFilters.fromDate}
+                                onChange={(e) =>
+                                    setResourceCompareFilters((prev) => ({
+                                        ...prev,
+                                        fromDate: e.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label
+                                htmlFor="compareResourceTo"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                To
+                            </Label>
+                            <Input
+                                id="compareResourceTo"
+                                type="date"
+                                value={resourceCompareFilters.toDate}
+                                onChange={(e) =>
+                                    setResourceCompareFilters((prev) => ({
+                                        ...prev,
+                                        toDate: e.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label
+                                htmlFor="compareResourcePageSize"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                Page size
+                            </Label>
+                            <Select
+                                value={
+                                    resourceCompareFilters.pageSize === -1
+                                        ? 'all'
+                                        : resourceCompareFilters.pageSize.toString()
+                                }
+                                onValueChange={(value) =>
+                                    setResourceCompareFilters((prev) => ({
+                                        ...prev,
+                                        pageSize:
+                                            value === 'all'
+                                                ? -1
+                                                : Number(value),
+                                    }))
+                                }
+                            >
+                                <SelectTrigger
+                                    id="compareResourcePageSize"
+                                    className="w-[110px]"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="25">25</SelectItem>
+                                    <SelectItem value="50">50</SelectItem>
+                                    <SelectItem value="100">100</SelectItem>
+                                    <SelectItem value="200">200</SelectItem>
+                                    <SelectItem value="all">All</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {ganttViewMode === 'compare' && activeTab === 'resload' && (
+                <div className="rounded-xl border bg-muted/30 p-4 duration-300 animate-in fade-in slide-in-from-top-2">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                            <Label className="text-sm font-semibold">
+                                Shared Resource Load Filters
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Satu kontrol untuk semua variant pada tab
+                                resource load.
+                            </p>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                                setResourceLoadCompareControls({
+                                    resourceFilter: '',
+                                    fromDate: '',
+                                    toDate: '',
+                                    topN: '10',
+                                    timeGrouping: 'day',
+                                    viewMode: 'stacked',
+                                })
+                            }
+                        >
+                            Reset
+                        </Button>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-4">
+                        <div className="min-w-[220px] flex-1">
+                            <Label
+                                htmlFor="compareResourceLoadFilter"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                Filter resources/tasks
+                            </Label>
+                            <Input
+                                id="compareResourceLoadFilter"
+                                type="text"
+                                placeholder="Filter resources/tasks..."
+                                value={
+                                    resourceLoadCompareControls.resourceFilter
+                                }
+                                onChange={(e) =>
+                                    setResourceLoadCompareControls((prev) => ({
+                                        ...prev,
+                                        resourceFilter: e.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label
+                                htmlFor="compareResourceLoadFrom"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                From
+                            </Label>
+                            <Input
+                                id="compareResourceLoadFrom"
+                                type="date"
+                                value={resourceLoadCompareControls.fromDate}
+                                onChange={(e) =>
+                                    setResourceLoadCompareControls((prev) => ({
+                                        ...prev,
+                                        fromDate: e.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label
+                                htmlFor="compareResourceLoadTo"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                To
+                            </Label>
+                            <Input
+                                id="compareResourceLoadTo"
+                                type="date"
+                                value={resourceLoadCompareControls.toDate}
+                                onChange={(e) =>
+                                    setResourceLoadCompareControls((prev) => ({
+                                        ...prev,
+                                        toDate: e.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label
+                                htmlFor="compareResourceLoadGrouping"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                Grouping
+                            </Label>
+                            <Select
+                                value={resourceLoadCompareControls.timeGrouping}
+                                onValueChange={(value) =>
+                                    setResourceLoadCompareControls((prev) => ({
+                                        ...prev,
+                                        timeGrouping:
+                                            value as ResourceLoadChartControls['timeGrouping'],
+                                    }))
+                                }
+                            >
+                                <SelectTrigger
+                                    id="compareResourceLoadGrouping"
+                                    className="w-[150px]"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="day">Per Day</SelectItem>
+                                    <SelectItem value="hour">
+                                        Per Hour
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {resourceLoadCompareControls.viewMode === 'stacked' && (
+                            <div>
+                                <Label
+                                    htmlFor="compareResourceLoadTopN"
+                                    className="text-xs font-medium text-muted-foreground"
+                                >
+                                    Top resources
+                                </Label>
+                                <Select
+                                    value={resourceLoadCompareControls.topN}
+                                    onValueChange={(value) =>
+                                        setResourceLoadCompareControls(
+                                            (prev) => ({
+                                                ...prev,
+                                                topN: value,
+                                            }),
+                                        )
+                                    }
+                                >
+                                    <SelectTrigger
+                                        id="compareResourceLoadTopN"
+                                        className="w-[120px]"
+                                    >
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="5">5</SelectItem>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="20">20</SelectItem>
+                                        <SelectItem value="all">All</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                        <div>
+                            <Label
+                                htmlFor="compareResourceLoadView"
+                                className="text-xs font-medium text-muted-foreground"
+                            >
+                                View
+                            </Label>
+                            <Select
+                                value={resourceLoadCompareControls.viewMode}
+                                onValueChange={(value) =>
+                                    setResourceLoadCompareControls((prev) => ({
+                                        ...prev,
+                                        viewMode:
+                                            value as ResourceLoadChartControls['viewMode'],
+                                    }))
+                                }
+                            >
+                                <SelectTrigger
+                                    id="compareResourceLoadView"
+                                    className="w-[150px]"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="stacked">
+                                        Stacked
+                                    </SelectItem>
+                                    <SelectItem value="single">
+                                        Single Resource
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Tabs */}
             <Tabs
-                defaultValue="gantt"
+                value={activeTab}
                 className="w-full"
                 onValueChange={(value) => setActiveTab(value)}
             >
@@ -512,6 +877,7 @@ export function ScheduleViewerComponent({
                             variants={visibleVariants}
                             compareVariants={compareVariants}
                             customStart={customStart}
+                            filters={resourceCompareFilters}
                         />
                     ) : (
                         renderContent(
@@ -526,6 +892,7 @@ export function ScheduleViewerComponent({
                             variants={visibleVariants}
                             compareVariants={compareVariants}
                             customStart={customStart}
+                            controls={resourceLoadCompareControls}
                         />
                     ) : (
                         renderContent(

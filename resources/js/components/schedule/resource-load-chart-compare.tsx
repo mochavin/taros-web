@@ -4,7 +4,11 @@ import {
     parseDate,
     parseLocalDateTimeInput,
 } from '@/lib/schedule-utils';
-import type { ResourceRow, ScheduleVariantOption } from '@/types/schedule';
+import type {
+    ResourceLoadChartControls,
+    ResourceRow,
+    ScheduleVariantOption,
+} from '@/types/schedule';
 import { Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
@@ -14,6 +18,7 @@ interface ResourceLoadChartCompareProps {
     variants: ScheduleVariantOption[];
     compareVariants: string[];
     customStart: string;
+    controls: ResourceLoadChartControls;
 }
 
 interface VariantData {
@@ -58,6 +63,7 @@ export function ResourceLoadChartCompare({
     variants,
     compareVariants,
     customStart,
+    controls,
 }: ResourceLoadChartCompareProps) {
     const [variantDataMap, setVariantDataMap] = useState<
         Map<string, VariantData>
@@ -97,8 +103,7 @@ export function ResourceLoadChartCompare({
                     ) {
                         for (const candidate of variant.resCandidates) {
                             try {
-                                resourceRows =
-                                    await parseCSVFromURL(candidate);
+                                resourceRows = await parseCSVFromURL(candidate);
                                 if (resourceRows.length > 0) {
                                     break; // Successfully loaded
                                 }
@@ -287,6 +292,8 @@ export function ResourceLoadChartCompare({
                                         <div className="h-full">
                                             <ResourceLoadChart
                                                 resources={shiftedResources}
+                                                controls={controls}
+                                                showControls={false}
                                             />
                                         </div>
                                     )}
