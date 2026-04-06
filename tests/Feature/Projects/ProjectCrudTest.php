@@ -19,6 +19,28 @@ it('lists projects for authenticated user', function () {
         ->assertSee($projects->first()->name);
 });
 
+it('updates project visibility through dedicated endpoint', function (): void {
+    $user = User::factory()->create();
+    $project = Project::factory()->create([
+        'user_id' => $user->id,
+        'is_hidden' => false,
+    ]);
+
+    $response = $this->actingAs($user)->patch(route('projects.visibility', $project), [
+        'is_hidden' => true,
+    ]);
+
+    $response->assertRedirect();
+    expect($project->fresh()->is_hidden)->toBeTrue();
+
+    $response = $this->actingAs($user)->patch(route('projects.visibility', $project), [
+        'is_hidden' => false,
+    ]);
+
+    $response->assertRedirect();
+    expect($project->fresh()->is_hidden)->toBeFalse();
+});
+
 it('creates a project', function () {
     $user = User::factory()->create();
 

@@ -23,6 +23,7 @@ class ProjectFactory extends Factory
             'name' => ucfirst($this->faker->words(3, true)),
             'start_date' => $start->format('Y-m-d'),
             'end_date' => $end->format('Y-m-d'),
+            'is_hidden' => false,
         ];
     }
 }

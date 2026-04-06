@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Projects\StoreProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectRequest;
+use App\Http\Requests\Projects\UpdateProjectVisibilityRequest;
 use App\Models\Project;
 use App\Models\ScheduleVariant;
 use Illuminate\Http\RedirectResponse;
@@ -19,8 +20,9 @@ class ProjectController extends Controller
     {
         $projects = Project::query()
             ->where('user_id', Auth::id())
+            ->orderBy('is_hidden')
             ->latest('start_date')
-            ->get(['id', 'name', 'start_date', 'end_date', 'start_baseline']);
+            ->get(['id', 'name', 'start_date', 'end_date', 'start_baseline', 'is_hidden']);
 
         return Inertia::render('projects/index', [
             'projects' => $projects,
@@ -138,6 +140,19 @@ class ProjectController extends Controller
         $project->delete();
 
         return redirect()->route('projects.index');
+    }
+
+    public function updateVisibility(
+        UpdateProjectVisibilityRequest $request,
+        Project $project,
+    ): RedirectResponse {
+        $this->authorizeProject($project);
+
+        $project->forceFill([
+            'is_hidden' => (bool) $request->validated('is_hidden'),
+        ])->save();
+
+        return redirect()->back();
     }
 
     protected function authorizeProject(Project $project): void

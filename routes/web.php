@@ -45,6 +45,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('projects.hierarchy');
 
     Route::resource('projects', ProjectController::class);
+    Route::patch('projects/{project}/visibility', [
+        ProjectController::class,
+        'updateVisibility',
+    ])->name('projects.visibility');
     Route::patch('projects/{project}/schedule-variants/{scheduleVariant}/visibility', [
         ScheduleVariantController::class,
         'updateVisibility',
