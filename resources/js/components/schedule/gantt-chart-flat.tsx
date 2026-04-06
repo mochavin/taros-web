@@ -11,6 +11,7 @@ import {
 import {
     dateRangeFilterPredicate,
     formatIndoDateTime,
+    isElapsedTask,
     paginate,
     parseDate,
     parseLocalDateTimeInput,
@@ -245,6 +246,7 @@ export function GanttChartFlat({
             task.DurationHours && !Number.isNaN(Number(task.DurationHours))
                 ? Number(task.DurationHours).toFixed(1)
                 : '';
+        const isElapsed = isElapsedTask(task.IsElapsed);
 
         const content = (
             <div className="max-w-md rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
@@ -256,7 +258,9 @@ export function GanttChartFlat({
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Task Name</td>
-                            <td>{task.TaskName}</td>
+                            <td className={isElapsed ? 'font-semibold text-red-400' : undefined}>
+                                {task.TaskName}
+                            </td>
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Start</td>
@@ -274,7 +278,9 @@ export function GanttChartFlat({
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Is Elapsed</td>
-                            <td>{task.IsElapsed}</td>
+                            <td className={isElapsed ? 'font-semibold text-red-400' : undefined}>
+                                {isElapsed ? 'Yes (elapsed task)' : task.IsElapsed}
+                            </td>
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Assignments</td>
@@ -490,10 +496,10 @@ export function GanttChartFlat({
                                         pxPerHour,
                                 ),
                             );
-                            const isElapsed = (task.IsElapsed || '')
-                                .toString()
-                                .toUpperCase()
-                                .startsWith('Y');
+                            const isElapsed = isElapsedTask(task.IsElapsed);
+                            const taskTitle = isElapsed
+                                ? `${task.TaskID}: ${task.TaskName} (Elapsed task)`
+                                : `${task.TaskID}: ${task.TaskName}`;
 
                             return (
                                 <div
@@ -501,17 +507,17 @@ export function GanttChartFlat({
                                     className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800"
                                 >
                                     <span
-                                        className="absolute top-1.5 -left-[200px] w-[190px] overflow-hidden text-sm text-ellipsis whitespace-nowrap"
-                                        title={`${task.TaskID}: ${task.TaskName}`}
+                                        className={`absolute top-1.5 -left-[200px] w-[190px] overflow-hidden text-sm text-ellipsis whitespace-nowrap ${
+                                            isElapsed
+                                                ? 'text-red-600 dark:text-red-400'
+                                                : 'text-gray-700 dark:text-gray-300'
+                                        }`}
+                                        title={taskTitle}
                                     >
                                         {task.TaskName}
                                     </span>
                                     <div
-                                        className={`absolute top-1.5 h-4 cursor-pointer rounded transition-opacity hover:opacity-80 ${
-                                            isElapsed
-                                                ? 'bg-red-500'
-                                                : 'bg-blue-500'
-                                        }`}
+                                        className="absolute top-1.5 h-4 cursor-pointer rounded bg-blue-500 transition-opacity hover:opacity-80"
                                         style={{
                                             left: `${left}px`,
                                             width: `${width}px`,

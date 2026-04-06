@@ -2,6 +2,7 @@ import {
     dateRangeFilterPredicate,
     formatDateLocal,
     formatIndoDateTime,
+    isElapsedTask,
     paginate,
     parseDate,
     parseLocalDateTimeInput,
@@ -158,21 +159,18 @@ export function OverlayComparison({
                 task.DurationHours && !Number.isNaN(Number(task.DurationHours))
                     ? Number(task.DurationHours).toFixed(1)
                     : (() => {
-                          const start = parseDate(task.Start);
-                          const finish = parseDate(task.Finish);
-                          if (!start || !finish) {
-                              return '';
-                          }
-                          return (
-                              (finish.getTime() - start.getTime()) /
-                              36e5
-                          ).toFixed(1);
-                      })();
+                        const start = parseDate(task.Start);
+                        const finish = parseDate(task.Finish);
+                        if (!start || !finish) {
+                            return '';
+                        }
+                        return (
+                            (finish.getTime() - start.getTime()) /
+                            36e5
+                        ).toFixed(1);
+                    })();
 
-            const isElapsed = (task.IsElapsed ?? '')
-                .toString()
-                .toUpperCase()
-                .startsWith('Y');
+            const isElapsed = isElapsedTask(task.IsElapsed);
 
             return (
                 <div className="max-w-md rounded-md bg-gray-900 p-2 text-xs text-white shadow-lg">
@@ -190,7 +188,9 @@ export function OverlayComparison({
                                 <td className="pr-2 text-gray-400">
                                     Task Name
                                 </td>
-                                <td>{task.TaskName}</td>
+                                <td className={isElapsed ? 'font-semibold text-red-400' : undefined}>
+                                    {task.TaskName}
+                                </td>
                             </tr>
                             <tr>
                                 <td className="pr-2 text-gray-400">Start</td>
@@ -210,7 +210,9 @@ export function OverlayComparison({
                                 <td className="pr-2 text-gray-400">
                                     Is Elapsed
                                 </td>
-                                <td>{isElapsed ? 'Yes' : 'No'}</td>
+                                <td className={isElapsed ? 'font-semibold text-red-400' : undefined}>
+                                    {isElapsed ? 'Yes (elapsed task)' : 'No'}
+                                </td>
                             </tr>
                             <tr>
                                 <td className="pr-2 text-gray-400">
@@ -1089,16 +1091,16 @@ export function OverlayComparison({
                                     const indentPx =
                                         viewMode === 'hierarchy'
                                             ? Math.min(
-                                                  Math.max(
-                                                      row.outlineLevel,
-                                                      0,
-                                                  ) * 12,
-                                                  200,
-                                              )
+                                                Math.max(
+                                                    row.outlineLevel,
+                                                    0,
+                                                ) * 12,
+                                                200,
+                                            )
                                             : 0;
                                     const labelClass =
                                         viewMode === 'hierarchy' &&
-                                        row.isSummary
+                                            row.isSummary
                                             ? 'text-sm font-semibold text-gray-900 dark:text-gray-100'
                                             : 'text-sm font-medium text-gray-800 dark:text-gray-200';
 
@@ -1119,7 +1121,7 @@ export function OverlayComparison({
                                                 ((start.getTime() -
                                                     minStart!.getTime()) /
                                                     36e5) *
-                                                    pxPerHour,
+                                                pxPerHour,
                                             ),
                                         );
                                         const width = Math.max(
@@ -1128,19 +1130,12 @@ export function OverlayComparison({
                                                 ((finish.getTime() -
                                                     start.getTime()) /
                                                     36e5) *
-                                                    pxPerHour,
+                                                pxPerHour,
                                             ),
                                         );
-                                        const isElapsed = (task.IsElapsed ?? '')
-                                            .toString()
-                                            .toUpperCase()
-                                            .startsWith('Y');
-                                        const colorClass = isElapsed
-                                            ? 'bg-red-500'
-                                            : baseColor;
                                         return (
                                             <div
-                                                className={`absolute z-10 h-4 cursor-pointer rounded border border-black/20 shadow-sm transition-opacity hover:opacity-85 ${colorClass}`}
+                                                className={`absolute z-10 h-4 cursor-pointer rounded border border-black/20 shadow-sm transition-opacity hover:opacity-85 ${baseColor}`}
                                                 style={{
                                                     left: `${left}px`,
                                                     top: `${topPx}px`,
@@ -1172,8 +1167,30 @@ export function OverlayComparison({
                                             }
                                         >
                                             <span
-                                                className={`absolute top-3 -left-[250px] w-[240px] overflow-hidden text-ellipsis whitespace-nowrap ${labelClass}`}
-                                                title={`${row.taskId}: ${row.taskName}`}
+                                                className={`absolute top-3 -left-[250px] w-[240px] overflow-hidden text-ellipsis whitespace-nowrap ${row.variantATask &&
+                                                        isElapsedTask(
+                                                            row.variantATask.IsElapsed,
+                                                        )
+                                                        ? 'text-red-600 dark:text-red-400'
+                                                        : row.variantBTask &&
+                                                            isElapsedTask(
+                                                                row.variantBTask.IsElapsed,
+                                                            )
+                                                            ? 'text-red-600 dark:text-red-400'
+                                                            : labelClass
+                                                    }`}
+                                                title={
+                                                    (row.variantATask &&
+                                                        isElapsedTask(
+                                                            row.variantATask.IsElapsed,
+                                                        )) ||
+                                                        (row.variantBTask &&
+                                                            isElapsedTask(
+                                                                row.variantBTask.IsElapsed,
+                                                            ))
+                                                        ? `${row.taskId}: ${row.taskName} (Elapsed task)`
+                                                        : `${row.taskId}: ${row.taskName}`
+                                                }
                                                 style={{
                                                     paddingLeft: indentPx
                                                         ? `${indentPx}px`

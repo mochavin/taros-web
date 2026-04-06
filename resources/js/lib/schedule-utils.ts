@@ -276,3 +276,7 @@ export function makeColor(i: number, total: number): string {
     const light = 55 - (Math.floor(i / 12) % 2) * 10;
     return `hsl(${Math.floor(hue)}, ${sat}%, ${light}%)`;
 }
+
+export function isElapsedTask(value: string | null | undefined): boolean {
+    return (value ?? '').toString().trim().toUpperCase().startsWith('Y');
+}

@@ -11,6 +11,7 @@ import {
 import {
     dateRangeFilterPredicate,
     formatIndoDateTime,
+    isElapsedTask,
     paginate,
     parseDate,
     parseLocalDateTimeInput,
@@ -635,6 +636,7 @@ export function GanttChart({
             task.DurationHours && !isNaN(Number(task.DurationHours))
                 ? Number(task.DurationHours).toFixed(1)
                 : '';
+        const isElapsed = isElapsedTask(task.IsElapsed);
 
         const hierarchy = hierarchyById[String(task.TaskID)];
         const parentId = hierarchy ? hierarchy.ParentID : undefined;
@@ -649,7 +651,9 @@ export function GanttChart({
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Task Name</td>
-                            <td>{task.TaskName}</td>
+                            <td className={isElapsed ? 'font-semibold text-red-400' : undefined}>
+                                {task.TaskName}
+                            </td>
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Start</td>
@@ -667,13 +671,15 @@ export function GanttChart({
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Is Elapsed</td>
-                            <td>{task.IsElapsed}</td>
+                            <td className={isElapsed ? 'font-semibold text-red-400' : undefined}>
+                                {isElapsed ? 'Yes (elapsed task)' : task.IsElapsed}
+                            </td>
                         </tr>
                         <tr>
                             <td className="pr-2 text-gray-400">Assignments</td>
                             <td>{task.Assignments}</td>
                         </tr>
-                        {hierarchy && (
+                        {/* {hierarchy && (
                             <>
                                 <tr>
                                     <td className="pr-2 text-gray-400">
@@ -696,7 +702,7 @@ export function GanttChart({
                                     </tr>
                                 )}
                             </>
-                        )}
+                        )} */}
                     </tbody>
                 </table>
             </div>
@@ -797,6 +803,12 @@ export function GanttChart({
                             const s = parseDate(task.Start);
                             const e = parseDate(task.Finish);
                             if (!s || !e || !minStart) {
+                                const isElapsed = isElapsedTask(
+                                    task.IsElapsed,
+                                );
+                                const taskTitle = isElapsed
+                                    ? `${row.taskId}: ${row.taskName} (Elapsed task)`
+                                    : `${row.taskId}: ${row.taskName}`;
                                 // Task without valid dates - show label only
                                 return (
                                     <div
@@ -804,8 +816,12 @@ export function GanttChart({
                                         className="relative h-7 border-b border-dashed border-gray-200 dark:border-gray-800"
                                     >
                                         <span
-                                            className="absolute top-1.5 -left-[250px] w-[240px] overflow-hidden text-sm text-ellipsis whitespace-nowrap text-gray-600 dark:text-gray-400"
-                                            title={`${row.taskId}: ${row.taskName}`}
+                                            className={`absolute top-1.5 -left-[250px] w-[240px] overflow-hidden text-sm text-ellipsis whitespace-nowrap ${
+                                                isElapsed
+                                                    ? 'text-red-600 dark:text-red-400'
+                                                    : 'text-gray-600 dark:text-gray-400'
+                                            }`}
+                                            title={taskTitle}
                                             style={{
                                                 paddingLeft: `${padLeft}px`,
                                                 display: 'inline-block',
@@ -832,10 +848,10 @@ export function GanttChart({
                                         pxPerHour,
                                 ),
                             );
-                            const isElapsed = (task.IsElapsed || '')
-                                .toString()
-                                .toUpperCase()
-                                .startsWith('Y');
+                            const isElapsed = isElapsedTask(task.IsElapsed);
+                            const taskTitle = isElapsed
+                                ? `${row.taskId}: ${row.taskName} (Elapsed task)`
+                                : `${row.taskId}: ${row.taskName}`;
 
                             return (
                                 <div
@@ -846,9 +862,11 @@ export function GanttChart({
                                         className={`absolute top-1.5 -left-[250px] w-[240px] overflow-hidden text-sm text-ellipsis whitespace-nowrap ${
                                             row.isSummary
                                                 ? 'font-semibold text-gray-800 dark:text-gray-200'
-                                                : 'text-gray-700 dark:text-gray-300'
+                                                : isElapsed
+                                                  ? 'text-red-600 dark:text-red-400'
+                                                  : 'text-gray-700 dark:text-gray-300'
                                         }`}
-                                        title={`${row.taskId}: ${row.taskName}`}
+                                        title={taskTitle}
                                         style={{
                                             paddingLeft: `${padLeft}px`,
                                             display: 'inline-block',
@@ -857,11 +875,7 @@ export function GanttChart({
                                         {row.taskName}
                                     </span>
                                     <div
-                                        className={`absolute top-1.5 h-4 cursor-pointer rounded transition-opacity hover:opacity-80 ${
-                                            isElapsed
-                                                ? 'bg-red-500'
-                                                : 'bg-blue-500'
-                                        }`}
+                                        className="absolute top-1.5 h-4 cursor-pointer rounded bg-blue-500 transition-opacity hover:opacity-80"
                                         style={{
                                             left: `${left}px`,
                                             width: `${width}px`,
