@@ -254,8 +254,8 @@ export function ScheduleViewerComponent({
     //     e.stopPropagation();
     // };
 
-    // Calculate baseline shift
-    const computeBaselineShiftMs = useCallback(() => {
+    // Calculate baseline shift in whole days (preserves time-of-day)
+    const computeBaselineShiftDays = useCallback(() => {
         const custom = parseLocalDateTimeInput(customStart);
         if (!custom) return 0;
 
@@ -266,14 +266,20 @@ export function ScheduleViewerComponent({
             if (!earliest || s < earliest) earliest = s;
         }
         if (!earliest) return 0;
-        return custom.getTime() - earliest.getTime();
+
+        // Strip time components — compute day-only difference
+        const customDay = new Date(custom.getFullYear(), custom.getMonth(), custom.getDate());
+        const earliestDay = new Date(earliest.getFullYear(), earliest.getMonth(), earliest.getDate());
+        const msPerDay = 86_400_000;
+        return Math.round((customDay.getTime() - earliestDay.getTime()) / msPerDay);
     }, [customStart, taskRows]);
 
-    const baselineShiftMs = computeBaselineShiftMs();
+    const baselineShiftDays = computeBaselineShiftDays();
+    const baselineShiftMs = baselineShiftDays * 86_400_000;
 
     // Apply baseline shift to tasks and resources
     const shiftedTasks = taskRows.map((r) => {
-        if (!baselineShiftMs) return r;
+        if (!baselineShiftDays) return r;
         const s = parseDate(r.Start);
         const e = parseDate(r.Finish);
         const rr = { ...r };
@@ -287,7 +293,7 @@ export function ScheduleViewerComponent({
     });
 
     const shiftedResources = resRows.map((r) => {
-        if (!baselineShiftMs) return r;
+        if (!baselineShiftDays) return r;
         const s = parseDate(r.SegmentStart);
         const e = parseDate(r.SegmentEnd);
         const rr = { ...r };

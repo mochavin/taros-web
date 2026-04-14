@@ -144,7 +144,7 @@ export function ResourceLoadChartCompare({
         }
     }, [compareVariants, variants]);
 
-    // Calculate baseline shift
+    // Calculate baseline shift in whole days (preserves time-of-day)
     const computeBaselineShiftMs = (resourceRows: ResourceRow[]): number => {
         const custom = parseLocalDateTimeInput(customStart);
         if (!custom) return 0;
@@ -156,7 +156,12 @@ export function ResourceLoadChartCompare({
             if (!earliest || s < earliest) earliest = s;
         }
         if (!earliest) return 0;
-        return custom.getTime() - earliest.getTime();
+
+        const customDay = new Date(custom.getFullYear(), custom.getMonth(), custom.getDate());
+        const earliestDay = new Date(earliest.getFullYear(), earliest.getMonth(), earliest.getDate());
+        const msPerDay = 86_400_000;
+        const shiftDays = Math.round((customDay.getTime() - earliestDay.getTime()) / msPerDay);
+        return shiftDays * msPerDay;
     };
 
     // Apply baseline shift to resources

@@ -43,7 +43,12 @@ const computeBaselineShiftMs = (
 
     if (!earliest) return 0;
 
-    return custom.getTime() - earliest.getTime();
+    // Calculate shift in whole days only (preserves time-of-day)
+    const customDay = new Date(custom.getFullYear(), custom.getMonth(), custom.getDate());
+    const earliestDay = new Date(earliest.getFullYear(), earliest.getMonth(), earliest.getDate());
+    const msPerDay = 86_400_000;
+    const shiftDays = Math.round((customDay.getTime() - earliestDay.getTime()) / msPerDay);
+    return shiftDays * msPerDay;
 };
 
 const applyBaselineShift = (

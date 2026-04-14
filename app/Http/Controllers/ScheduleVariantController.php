@@ -220,6 +220,13 @@ class ScheduleVariantController extends Controller
         }, sprintf('resource_tracking_%s.csv', $scheduleVariant->name), ['Content-Type' => 'text/csv']);
     }
 
+    /**
+     * Calculate the baseline shift in whole days between the project baseline
+     * date and the earliest Start date found in the variant's task CSV.
+     *
+     * Uses date-only (day-level) comparison so that time-of-day is preserved
+     * when shifting. Non-elapsed tasks that start at 07:00 will remain at 07:00.
+     */
     protected function calculateBaselineShift(ScheduleVariant $variant, ?Carbon $projectBaseline): int
     {
         if (! $projectBaseline || ! $variant->task_path) {
@@ -260,19 +267,26 @@ class ScheduleVariantController extends Controller
             return 0;
         }
 
-        return $projectBaseline->timestamp - $earliest->timestamp;
+        // Calculate shift in whole days only (ignoring time-of-day)
+        // so that the original hour/minute/second is preserved after shifting.
+        // Positive result means CSV dates should move forward (baseline is later than earliest).
+        return (int) $earliest->startOfDay()->diffInDays($projectBaseline->startOfDay(), false);
     }
 
-    protected function shiftDate(string $dateStr, int $shiftSeconds): string
+    /**
+     * Shift a datetime string by the given number of days, preserving
+     * the original time-of-day (hour, minute, second).
+     */
+    protected function shiftDate(string $dateStr, int $shiftDays): string
     {
-        if (trim($dateStr) === '') {
+        if (trim($dateStr) === '' || $shiftDays === 0) {
             return $dateStr;
         }
 
         try {
             $date = Carbon::parse($dateStr);
 
-            return $date->addSeconds($shiftSeconds)->format('Y-m-d H:i:s');
+            return $date->addDays($shiftDays)->format('Y-m-d H:i:s');
         } catch (\Exception $e) {
             return $dateStr;
         }
