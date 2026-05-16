@@ -26,6 +26,7 @@ RUN apt-get update \
         libxml2-dev \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_sqlite \
         mbstring \
         exif \
         pcntl \
@@ -43,6 +44,10 @@ COPY . .
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 
-RUN chown -R www-data:www-data storage bootstrap/cache
+COPY docker/entrypoint.sh /usr/local/bin/taros-entrypoint
+RUN chmod +x /usr/local/bin/taros-entrypoint \
+    && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
+ENTRYPOINT ["taros-entrypoint"]
+CMD ["apache2-foreground"]
