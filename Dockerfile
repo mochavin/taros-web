@@ -1,7 +1,19 @@
 # syntax=docker/dockerfile:1.6
 
-FROM composer:2 AS vendor
+FROM composer:2 AS composer-bin
+
+FROM php:8.3-cli AS vendor
 WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git \
+        unzip \
+        libzip-dev \
+        libonig-dev \
+        libxml2-dev \
+    && docker-php-ext-install -j$(nproc) mbstring zip xml \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=composer-bin /usr/bin/composer /usr/bin/composer
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts
 
