@@ -11,6 +11,7 @@ RUN apt-get update \
         libzip-dev \
         libonig-dev \
         libxml2-dev \
+        libsqlite3-dev \
     && docker-php-ext-install -j$(nproc) mbstring zip xml \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=composer-bin /usr/bin/composer /usr/bin/composer
