@@ -15,6 +15,10 @@ interface ProjectShowData {
         start_date: string;
         end_date: string | null;
         start_baseline: string | null;
+        processing_status: string | null;
+        processing_message: string | null;
+        processing_started_at: string | null;
+        processing_completed_at: string | null;
         created_at: string;
         updated_at: string;
     };
@@ -28,6 +32,7 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant,
         { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
     ];
+    const isProcessing = project.processing_status === 'queued' || project.processing_status === 'processing';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -69,6 +74,25 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant,
                         <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-semibold">
                             {formatIndoDateTime(project.start_baseline)}
                         </span>
+                    </div>
+                )}
+
+                {project.processing_status && project.processing_status !== 'manual' && (
+                    <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">MPP Processing:</span>
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                                {project.processing_status}
+                            </span>
+                            {isProcessing && (
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href={`/projects/${project.id}`}>Refresh</Link>
+                                </Button>
+                            )}
+                        </div>
+                        {project.processing_message && (
+                            <p className="mt-1 text-muted-foreground">{project.processing_message}</p>
+                        )}
                     </div>
                 )}
 

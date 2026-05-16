@@ -24,7 +24,7 @@ class StoreProjectRequest extends FormRequest
             'start_baseline' => ['nullable', 'date'],
             'hierarchy_file' => [
                 'required',
-                File::types(['csv', 'txt'])->max(10_240),
+                File::types(['mpp', 'csv', 'txt'])->max(204_800),
             ],
         ];
     }

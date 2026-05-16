@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Projects\StoreProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectVisibilityRequest;
+use App\Jobs\ProcessMppProject;
 use App\Models\Project;
 use App\Models\ScheduleVariant;
 use Illuminate\Http\RedirectResponse;
@@ -47,8 +48,25 @@ class ProjectController extends Controller
         $project = Project::create($data);
 
         if ($hierarchyFile instanceof UploadedFile) {
-            $path = $this->storeHierarchyFile($project, $hierarchyFile);
-            $project->forceFill(['hierarchy_path' => $path])->save();
+            if ($this->isMppFile($hierarchyFile)) {
+                $path = $this->storeSourceMppFile($project, $hierarchyFile);
+                $project->forceFill([
+                    'source_mpp_path' => $path,
+                    'processing_status' => 'queued',
+                    'processing_message' => 'MPP upload queued for extraction and training.',
+                    'processing_started_at' => null,
+                    'processing_completed_at' => null,
+                ])->save();
+
+                ProcessMppProject::dispatch($project->getKey());
+            } else {
+                $path = $this->storeHierarchyFile($project, $hierarchyFile);
+                $project->forceFill([
+                    'hierarchy_path' => $path,
+                    'processing_status' => 'manual',
+                    'processing_message' => null,
+                ])->save();
+            }
         }
 
         return redirect()->route('projects.show', $project);
@@ -76,6 +94,10 @@ class ProjectController extends Controller
                 'start_date' => $project->start_date?->format('Y-m-d'),
                 'end_date' => $project->end_date?->format('Y-m-d'),
                 'start_baseline' => $project->start_baseline?->toDateTimeString(),
+                'processing_status' => $project->processing_status,
+                'processing_message' => $project->processing_message,
+                'processing_started_at' => $project->processing_started_at?->toDateTimeString(),
+                'processing_completed_at' => $project->processing_completed_at?->toDateTimeString(),
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
             ],
@@ -117,14 +139,34 @@ class ProjectController extends Controller
         $project->fill($data);
 
         if ($hierarchyFile instanceof UploadedFile) {
-            if ($project->hierarchy_path) {
-                $this->deleteHierarchyFile($project->hierarchy_path);
-            }
+            if ($this->isMppFile($hierarchyFile)) {
+                if ($project->source_mpp_path) {
+                    $this->deleteSourceMppFile($project->source_mpp_path);
+                }
 
-            $project->hierarchy_path = $this->storeHierarchyFile($project, $hierarchyFile);
+                $project->source_mpp_path = $this->storeSourceMppFile($project, $hierarchyFile);
+                $project->processing_status = 'queued';
+                $project->processing_message = 'MPP upload queued for extraction and training.';
+                $project->processing_started_at = null;
+                $project->processing_completed_at = null;
+            } else {
+                if ($project->hierarchy_path) {
+                    $this->deleteHierarchyFile($project->hierarchy_path);
+                }
+
+                $project->hierarchy_path = $this->storeHierarchyFile($project, $hierarchyFile);
+                $project->processing_status = 'manual';
+                $project->processing_message = null;
+                $project->processing_started_at = null;
+                $project->processing_completed_at = null;
+            }
         }
 
         $project->save();
+
+        if ($hierarchyFile instanceof UploadedFile && $this->isMppFile($hierarchyFile)) {
+            ProcessMppProject::dispatch($project->getKey());
+        }
 
         return redirect()->route('projects.show', $project);
     }
@@ -135,8 +177,12 @@ class ProjectController extends Controller
         if ($project->hierarchy_path) {
             $this->deleteHierarchyFile($project->hierarchy_path);
         }
+        if ($project->source_mpp_path) {
+            $this->deleteSourceMppFile($project->source_mpp_path);
+        }
 
         $this->deleteHierarchyDirectory($project);
+        $this->deleteSourceDirectory($project);
         $project->delete();
 
         return redirect()->route('projects.index');
@@ -220,9 +266,29 @@ class ProjectController extends Controller
         return $relativeDirectory.'/tasks_hierarchy.csv';
     }
 
+    protected function storeSourceMppFile(Project $project, UploadedFile $file): string
+    {
+        $relativeDirectory = $this->sourceDirectory($project);
+        $disk = Storage::disk('local');
+        $disk->makeDirectory('private/'.$relativeDirectory);
+        $disk->putFileAs('private/'.$relativeDirectory, $file, 'source.mpp');
+
+        return $relativeDirectory.'/source.mpp';
+    }
+
+    protected function isMppFile(UploadedFile $file): bool
+    {
+        return strtolower($file->getClientOriginalExtension()) === 'mpp';
+    }
+
     protected function hierarchyDirectory(Project $project): string
     {
         return sprintf('projects/%s/hierarchy', $project->getKey());
+    }
+
+    protected function sourceDirectory(Project $project): string
+    {
+        return sprintf('projects/%s/source', $project->getKey());
     }
 
     protected function deleteHierarchyFile(string $path): void
@@ -230,8 +296,18 @@ class ProjectController extends Controller
         Storage::disk('local')->delete('private/'.$path);
     }
 
+    protected function deleteSourceMppFile(string $path): void
+    {
+        Storage::disk('local')->delete('private/'.$path);
+    }
+
     protected function deleteHierarchyDirectory(Project $project): void
     {
         Storage::disk('local')->deleteDirectory('private/'.$this->hierarchyDirectory($project));
+    }
+
+    protected function deleteSourceDirectory(Project $project): void
+    {
+        Storage::disk('local')->deleteDirectory('private/'.$this->sourceDirectory($project));
     }
 }

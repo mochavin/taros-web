@@ -19,6 +19,11 @@ class Project extends Model
         'start_baseline',
         'user_id',
         'hierarchy_path',
+        'source_mpp_path',
+        'processing_status',
+        'processing_message',
+        'processing_started_at',
+        'processing_completed_at',
     ];
 
     /**
@@ -31,6 +36,8 @@ class Project extends Model
             'end_date' => 'date',
             'is_hidden' => 'boolean',
             'start_baseline' => 'datetime',
+            'processing_started_at' => 'datetime',
+            'processing_completed_at' => 'datetime',
         ];
     }
 

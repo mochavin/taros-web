@@ -1,9 +1,15 @@
 <?php
 
+use App\Jobs\ProcessMppProject;
 use App\Models\Project;
+use App\Models\ScheduleVariant;
 use App\Models\User;
+use App\Services\TarosCoreClient;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use ZipArchive;
 
 it('redirects guests', function () {
     $this->get(route('projects.index'))->assertRedirect();
@@ -68,6 +74,79 @@ it('creates a project', function () {
         sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project?->id),
     );
     expect(Storage::disk('local')->exists('private/'.$project?->hierarchy_path))->toBeTrue();
+});
+
+it('queues mpp processing when creating a project from an mpp file', function () {
+    $user = User::factory()->create();
+
+    Storage::fake('local');
+    Queue::fake();
+
+    $mpp = UploadedFile::fake()->create('uploaded-plan.mpp', 5, 'application/vnd.ms-project');
+
+    $this->actingAs($user)
+        ->post(route('projects.store'), [
+            'name' => 'MPP Project',
+            'start_date' => now()->format('Y-m-d'),
+            'hierarchy_file' => $mpp,
+        ])
+        ->assertRedirect();
+
+    $project = Project::where('name', 'MPP Project')->firstOrFail();
+
+    expect($project->processing_status)->toBe('queued');
+    expect($project->source_mpp_path)->toBe(sprintf('projects/%s/source/source.mpp', $project->id));
+    expect(Storage::disk('local')->exists('private/'.$project->source_mpp_path))->toBeTrue();
+
+    Queue::assertPushed(ProcessMppProject::class);
+});
+
+it('imports taros-core outputs into project files and schedule variants', function () {
+    $user = User::factory()->create();
+    Storage::fake('local');
+
+    $project = Project::factory()->create([
+        'user_id' => $user->id,
+        'source_mpp_path' => 'projects/1/source/source.mpp',
+        'processing_status' => 'queued',
+    ]);
+    $project->forceFill(['source_mpp_path' => sprintf('projects/%s/source/source.mpp', $project->id)])->save();
+    Storage::disk('local')->put('private/'.$project->source_mpp_path, 'mpp bytes');
+
+    $zipPath = tempnam(sys_get_temp_dir(), 'taros-core-zip');
+    $zip = new ZipArchive();
+    $zip->open($zipPath, ZipArchive::OVERWRITE);
+    $zip->addFromString('input/tasks_hierarchy.csv', "TaskID,TaskName\n1,Start\n");
+    $zip->addFromString('non_rl/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
+    $zip->addFromString('non_rl/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
+    $zip->addFromString('reinforce/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
+    $zip->addFromString('reinforce/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
+    $zip->close();
+
+    Http::fake([
+        'taros-core:5000/process' => Http::response(file_get_contents($zipPath), 200, [
+            'Content-Type' => 'application/zip',
+        ]),
+        'http://taros-core:5000/process' => Http::response(file_get_contents($zipPath), 200, [
+            'Content-Type' => 'application/zip',
+        ]),
+    ]);
+
+    (new ProcessMppProject($project->id))->handle(app(TarosCoreClient::class));
+
+    $project->refresh();
+    expect($project->processing_status)->toBe('completed');
+    expect($project->hierarchy_path)->toBe(sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project->id));
+    expect(Storage::disk('local')->exists('private/'.$project->hierarchy_path))->toBeTrue();
+
+    $nonRl = ScheduleVariant::where('project_id', $project->id)->where('slug', 'non_rl')->first();
+    $reinforce = ScheduleVariant::where('project_id', $project->id)->where('slug', 'reinforce')->first();
+
+    expect($nonRl)->not->toBeNull();
+    expect($nonRl?->is_default)->toBeTrue();
+    expect($reinforce)->not->toBeNull();
+    expect($reinforce?->is_default)->toBeFalse();
+    expect(Storage::disk('local')->exists('private/'.$reinforce?->task_path))->toBeTrue();
 });
 
 it('updates a project', function () {

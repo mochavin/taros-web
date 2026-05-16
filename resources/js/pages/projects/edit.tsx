@@ -58,9 +58,9 @@ export default function ProjectEdit({ project }: ProjectFormData) {
                                 <InputError message={errors.start_baseline} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="hierarchy_file">Hierarchy CSV</Label>
-                                <Input id="hierarchy_file" name="hierarchy_file" type="file" accept=".csv,text/csv" />
-                                <p className="text-xs text-muted-foreground">Kosongkan jika tidak ingin mengganti file hierarchy. Unggah CSV terbaru untuk memperbarui struktur Gantt.</p>
+                                <Label htmlFor="hierarchy_file">MPP / Hierarchy File</Label>
+                                <Input id="hierarchy_file" name="hierarchy_file" type="file" accept=".mpp,.csv,text/csv" />
+                                <p className="text-xs text-muted-foreground">Kosongkan jika tidak ingin mengganti file. Unggah .mpp untuk memproses ulang training, atau CSV untuk memperbarui hierarchy manual.</p>
                                 <InputError message={errors.hierarchy_file} />
                             </div>
                             <div className="flex gap-4">
