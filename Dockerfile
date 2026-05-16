@@ -38,7 +38,7 @@ COPY public/ public/
 COPY vite.config.ts tsconfig.json components.json ./
 RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
 RUN php artisan package:discover --ansi
-RUN php artisan wayfinder:generate --with-form -vvv
+RUN php artisan wayfinder:generate --with-form
 RUN pnpm run build
 
 FROM php:8.3-apache AS runtime
