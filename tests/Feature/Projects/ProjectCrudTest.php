@@ -97,7 +97,14 @@ it('queues mpp processing when creating a project from an mpp file', function ()
     expect($project->source_mpp_path)->toBe(sprintf('projects/%s/source/source.mpp', $project->id));
     expect(Storage::disk('local')->exists('private/'.$project->source_mpp_path))->toBeTrue();
 
-    Queue::assertPushed(ProcessMppProject::class);
+    Queue::assertPushed(
+        ProcessMppProject::class,
+        fn (ProcessMppProject $job): bool => $job->options === [
+            'include_non_rl' => false,
+            'include_rl' => false,
+            'algorithms' => [],
+        ],
+    );
 });
 
 it('imports taros-core outputs into project files and schedule variants', function () {
@@ -116,10 +123,12 @@ it('imports taros-core outputs into project files and schedule variants', functi
     $zip = new ZipArchive();
     $zip->open($zipPath, ZipArchive::OVERWRITE);
     $zip->addFromString('input/tasks_hierarchy.csv', "TaskID,TaskName\n1,Start\n");
+    $zip->addFromString('input/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
+    $zip->addFromString('input/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
     $zip->addFromString('non_rl/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
     $zip->addFromString('non_rl/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
-    $zip->addFromString('reinforce/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
-    $zip->addFromString('reinforce/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
+    $zip->addFromString('dqn/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
+    $zip->addFromString('dqn/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
     $zip->close();
 
     Http::fake([
@@ -131,21 +140,28 @@ it('imports taros-core outputs into project files and schedule variants', functi
         ]),
     ]);
 
-    (new ProcessMppProject($project->id))->handle(app(TarosCoreClient::class));
+    (new ProcessMppProject($project->id, [
+        'include_non_rl' => true,
+        'include_rl' => true,
+        'algorithms' => ['dqn'],
+    ]))->handle(app(TarosCoreClient::class));
 
     $project->refresh();
     expect($project->processing_status)->toBe('completed');
     expect($project->hierarchy_path)->toBe(sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project->id));
     expect(Storage::disk('local')->exists('private/'.$project->hierarchy_path))->toBeTrue();
 
+    $uploaded = ScheduleVariant::where('project_id', $project->id)->where('slug', 'uploaded')->first();
     $nonRl = ScheduleVariant::where('project_id', $project->id)->where('slug', 'non_rl')->first();
-    $reinforce = ScheduleVariant::where('project_id', $project->id)->where('slug', 'reinforce')->first();
+    $dqn = ScheduleVariant::where('project_id', $project->id)->where('slug', 'dqn')->first();
 
+    expect($uploaded)->not->toBeNull();
+    expect($uploaded?->is_default)->toBeTrue();
     expect($nonRl)->not->toBeNull();
-    expect($nonRl?->is_default)->toBeTrue();
-    expect($reinforce)->not->toBeNull();
-    expect($reinforce?->is_default)->toBeFalse();
-    expect(Storage::disk('local')->exists('private/'.$reinforce?->task_path))->toBeTrue();
+    expect($nonRl?->is_default)->toBeFalse();
+    expect($dqn)->not->toBeNull();
+    expect($dqn?->is_default)->toBeFalse();
+    expect(Storage::disk('local')->exists('private/'.$dqn?->task_path))->toBeTrue();
 });
 
 it('updates a project', function () {

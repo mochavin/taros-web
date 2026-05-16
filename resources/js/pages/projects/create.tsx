@@ -48,9 +48,32 @@ export default function ProjectCreate() {
                             <div className="grid gap-2">
                                 <Label htmlFor="hierarchy_file">MPP / Hierarchy File</Label>
                                 <Input id="hierarchy_file" name="hierarchy_file" type="file" required accept=".mpp,.csv,text/csv" />
-                                <p className="text-xs text-muted-foreground">Unggah .mpp untuk diproses dan dilatih otomatis, atau CSV hierarchy untuk input manual.</p>
+                                <p className="text-xs text-muted-foreground">Unggah .mpp untuk diproses, atau CSV hierarchy untuk input manual.</p>
                                 <InputError message={errors.hierarchy_file} />
                             </div>
+                            <fieldset className="space-y-3">
+                                <div>
+                                    <legend className="text-sm font-medium">Training Options</legend>
+                                    <p className="text-xs text-muted-foreground">Tanpa pilihan training, jadwal asli dari MPP menjadi varian default.</p>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-3">
+                                    <label className="flex items-center gap-2 text-sm">
+                                        <input name="train_non_rl" type="checkbox" value="1" className="size-4 rounded border-input" />
+                                        <span>Non-RL</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm">
+                                        <input name="train_dqn" type="checkbox" value="1" className="size-4 rounded border-input" />
+                                        <span>DQN</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm">
+                                        <input name="train_ppo" type="checkbox" value="1" className="size-4 rounded border-input" />
+                                        <span>PPO</span>
+                                    </label>
+                                </div>
+                                <InputError message={errors.train_non_rl} />
+                                <InputError message={errors.train_dqn} />
+                                <InputError message={errors.train_ppo} />
+                            </fieldset>
                             <div className="flex gap-4">
                                 <Button disabled={processing}>Simpan</Button>
                                 <Button type="reset" variant="outline">Reset</Button>

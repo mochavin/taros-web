@@ -31,8 +31,9 @@ return [
     'taros_core' => [
         'url' => env('TAROS_CORE_URL', 'http://taros-core:5000'),
         'timeout' => (int) env('TAROS_CORE_TIMEOUT', 21600),
-        'include_rl' => (bool) env('TAROS_CORE_INCLUDE_RL', true),
-        'rl_algorithms' => env('TAROS_CORE_RL_ALGORITHMS', 'reinforce'),
+        'include_non_rl' => (bool) env('TAROS_CORE_INCLUDE_NON_RL', false),
+        'include_rl' => (bool) env('TAROS_CORE_INCLUDE_RL', false),
+        'rl_algorithms' => env('TAROS_CORE_RL_ALGORITHMS', ''),
         'episodes' => (int) env('TAROS_CORE_EPISODES', 320),
         'steps' => (int) env('TAROS_CORE_STEPS', 96),
         'rollouts' => (int) env('TAROS_CORE_ROLLOUTS', 2),

@@ -21,7 +21,7 @@ class ProcessMppProject implements ShouldQueue
 
     public int $timeout = 0;
 
-    public function __construct(public int $projectId) {}
+    public function __construct(public int $projectId, public array $options = []) {}
 
     public function handle(TarosCoreClient $client): void
     {
@@ -44,6 +44,7 @@ class ProcessMppProject implements ShouldQueue
                 $disk->path($sourcePath),
                 basename($project->source_mpp_path),
                 $this->projectStartDatetime($project),
+                $this->options,
             );
 
             if (! $response->successful()) {
@@ -58,7 +59,7 @@ class ProcessMppProject implements ShouldQueue
 
             $project->forceFill([
                 'processing_status' => 'completed',
-                'processing_message' => 'MPP extraction and schedule training completed.',
+                'processing_message' => 'MPP extraction completed.',
                 'processing_completed_at' => now(),
             ])->save();
         } catch (Throwable $e) {
@@ -76,7 +77,7 @@ class ProcessMppProject implements ShouldQueue
     {
         $project->forceFill([
             'processing_status' => 'processing',
-            'processing_message' => 'MPP file is being extracted and trained by taros-core.',
+            'processing_message' => 'MPP file is being extracted by taros-core.',
             'processing_started_at' => now(),
             'processing_completed_at' => null,
         ])->save();
@@ -122,6 +123,7 @@ class ProcessMppProject implements ShouldQueue
     protected function importOutputs(Project $project, string $extractDir): void
     {
         $this->storeGeneratedHierarchy($project, $extractDir);
+        $this->storeUploadedScheduleVariant($project, $extractDir);
 
         $variants = [
             'non_rl' => 'Non-RL Baseline',
@@ -152,18 +154,13 @@ class ProcessMppProject implements ShouldQueue
                     'description' => $slug === 'non_rl'
                         ? 'Precedence-only baseline generated from the uploaded MPP.'
                         : 'RL-trained schedule generated from the uploaded MPP.',
-                    'is_default' => $slug === 'non_rl',
+                    'is_default' => false,
                     'is_hidden' => false,
                     'task_path' => $storedTaskPath,
                     'resource_path' => $storedResourcePath,
                 ],
             );
         }
-
-        ScheduleVariant::query()
-            ->where('project_id', $project->id)
-            ->where('slug', '!=', 'non_rl')
-            ->update(['is_default' => false]);
     }
 
     protected function storeGeneratedHierarchy(Project $project, string $extractDir): void
@@ -177,6 +174,39 @@ class ProcessMppProject implements ShouldQueue
         Storage::disk('local')->put('private/'.$relativePath, file_get_contents($source));
 
         $project->forceFill(['hierarchy_path' => $relativePath])->save();
+    }
+
+    protected function storeUploadedScheduleVariant(Project $project, string $extractDir): void
+    {
+        $variantDir = $extractDir.DIRECTORY_SEPARATOR.'input';
+        $taskPath = $variantDir.DIRECTORY_SEPARATOR.'task_schedule.csv';
+        $resourcePath = $variantDir.DIRECTORY_SEPARATOR.'resource_tracking.csv';
+
+        if (! is_file($taskPath) || ! is_file($resourcePath)) {
+            throw new RuntimeException('taros-core output does not include the uploaded MPP schedule.');
+        }
+
+        ScheduleVariant::query()
+            ->where('project_id', $project->id)
+            ->update(['is_default' => false]);
+
+        $storedTaskPath = $this->storeVariantFile($project, 'uploaded', $taskPath, 'task_schedule.csv');
+        $storedResourcePath = $this->storeVariantFile($project, 'uploaded', $resourcePath, 'resource_tracking.csv');
+
+        ScheduleVariant::query()->updateOrCreate(
+            [
+                'project_id' => $project->id,
+                'slug' => 'uploaded',
+            ],
+            [
+                'name' => 'Uploaded MPP Schedule',
+                'description' => 'Original schedule extracted from the uploaded MPP.',
+                'is_default' => true,
+                'is_hidden' => false,
+                'task_path' => $storedTaskPath,
+                'resource_path' => $storedResourcePath,
+            ],
+        );
     }
 
     protected function storeVariantFile(Project $project, string $slug, string $source, string $filename): string

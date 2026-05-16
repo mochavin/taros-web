@@ -8,6 +8,7 @@ use App\Http\Requests\Projects\UpdateProjectVisibilityRequest;
 use App\Jobs\ProcessMppProject;
 use App\Models\Project;
 use App\Models\ScheduleVariant;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -40,8 +41,9 @@ class ProjectController extends Controller
         $data = $request->validated();
         /** @var UploadedFile|null $hierarchyFile */
         $hierarchyFile = $request->file('hierarchy_file');
+        $processingOptions = $this->mppProcessingOptions($request);
 
-        unset($data['hierarchy_file']);
+        unset($data['hierarchy_file'], $data['train_non_rl'], $data['train_dqn'], $data['train_ppo']);
 
         $data['user_id'] = $request->user()->getKey();
 
@@ -53,12 +55,12 @@ class ProjectController extends Controller
                 $project->forceFill([
                     'source_mpp_path' => $path,
                     'processing_status' => 'queued',
-                    'processing_message' => 'MPP upload queued for extraction and training.',
+                    'processing_message' => $this->mppQueuedMessage($processingOptions),
                     'processing_started_at' => null,
                     'processing_completed_at' => null,
                 ])->save();
 
-                ProcessMppProject::dispatch($project->getKey());
+                ProcessMppProject::dispatch($project->getKey(), $processingOptions);
             } else {
                 $path = $this->storeHierarchyFile($project, $hierarchyFile);
                 $project->forceFill([
@@ -133,8 +135,9 @@ class ProjectController extends Controller
         $data = $request->validated();
         /** @var UploadedFile|null $hierarchyFile */
         $hierarchyFile = $request->file('hierarchy_file');
+        $processingOptions = $this->mppProcessingOptions($request);
 
-        unset($data['hierarchy_file']);
+        unset($data['hierarchy_file'], $data['train_non_rl'], $data['train_dqn'], $data['train_ppo']);
 
         $project->fill($data);
 
@@ -146,7 +149,7 @@ class ProjectController extends Controller
 
                 $project->source_mpp_path = $this->storeSourceMppFile($project, $hierarchyFile);
                 $project->processing_status = 'queued';
-                $project->processing_message = 'MPP upload queued for extraction and training.';
+                $project->processing_message = $this->mppQueuedMessage($processingOptions);
                 $project->processing_started_at = null;
                 $project->processing_completed_at = null;
             } else {
@@ -165,7 +168,7 @@ class ProjectController extends Controller
         $project->save();
 
         if ($hierarchyFile instanceof UploadedFile && $this->isMppFile($hierarchyFile)) {
-            ProcessMppProject::dispatch($project->getKey());
+            ProcessMppProject::dispatch($project->getKey(), $processingOptions);
         }
 
         return redirect()->route('projects.show', $project);
@@ -279,6 +282,46 @@ class ProjectController extends Controller
     protected function isMppFile(UploadedFile $file): bool
     {
         return strtolower($file->getClientOriginalExtension()) === 'mpp';
+    }
+
+    /**
+     * @return array{include_non_rl: bool, include_rl: bool, algorithms: array<int, string>}
+     */
+    protected function mppProcessingOptions(FormRequest $request): array
+    {
+        $algorithms = [];
+        if ($request->boolean('train_dqn')) {
+            $algorithms[] = 'dqn';
+        }
+        if ($request->boolean('train_ppo')) {
+            $algorithms[] = 'ppo';
+        }
+
+        return [
+            'include_non_rl' => $request->boolean('train_non_rl'),
+            'include_rl' => $algorithms !== [],
+            'algorithms' => $algorithms,
+        ];
+    }
+
+    /**
+     * @param  array{include_non_rl: bool, include_rl: bool, algorithms: array<int, string>}  $options
+     */
+    protected function mppQueuedMessage(array $options): string
+    {
+        $selected = [];
+        if ($options['include_non_rl']) {
+            $selected[] = 'Non-RL';
+        }
+        foreach ($options['algorithms'] as $algorithm) {
+            $selected[] = strtoupper($algorithm);
+        }
+
+        if ($selected === []) {
+            return 'MPP upload queued for extraction. Uploaded schedule will be used as the default variant.';
+        }
+
+        return 'MPP upload queued for extraction and selected training: '.implode(', ', $selected).'.';
     }
 
     protected function hierarchyDirectory(Project $project): string

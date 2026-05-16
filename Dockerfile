@@ -72,6 +72,7 @@ COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 
 COPY docker/entrypoint.sh /usr/local/bin/taros-entrypoint
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/taros-uploads.ini
 RUN php artisan package:discover --ansi \
     && chmod +x /usr/local/bin/taros-entrypoint \
     && chown -R www-data:www-data storage bootstrap/cache

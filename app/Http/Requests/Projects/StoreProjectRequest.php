@@ -26,6 +26,9 @@ class StoreProjectRequest extends FormRequest
                 'required',
                 File::types(['mpp', 'csv', 'txt'])->max(204_800),
             ],
+            'train_non_rl' => ['nullable', 'boolean'],
+            'train_dqn' => ['nullable', 'boolean'],
+            'train_ppo' => ['nullable', 'boolean'],
         ];
     }
 }
