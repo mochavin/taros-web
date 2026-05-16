@@ -7,12 +7,23 @@ RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-
 
 FROM node:20-bookworm-slim AS assets
 WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends php-cli php-mbstring php-xml php-sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 RUN pnpm install --frozen-lockfile
+COPY --from=vendor /app/vendor ./vendor
+COPY app/ app/
+COPY bootstrap/ bootstrap/
+COPY config/ config/
+COPY database/ database/
+COPY routes/ routes/
+COPY artisan composer.json composer.lock ./
 COPY resources/ resources/
 COPY public/ public/
 COPY vite.config.ts tsconfig.json components.json ./
+RUN php artisan package:discover --ansi
 RUN pnpm run build
 
 FROM php:8.3-apache AS runtime
@@ -45,7 +56,8 @@ COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 
 COPY docker/entrypoint.sh /usr/local/bin/taros-entrypoint
-RUN chmod +x /usr/local/bin/taros-entrypoint \
+RUN php artisan package:discover --ansi \
+    && chmod +x /usr/local/bin/taros-entrypoint \
     && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
