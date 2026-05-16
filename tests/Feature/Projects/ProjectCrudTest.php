@@ -9,7 +9,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
-use ZipArchive;
 
 it('redirects guests', function () {
     $this->get(route('projects.index'))->assertRedirect();
