@@ -48,6 +48,7 @@ RUN apt-get update \
         libzip-dev \
         libonig-dev \
         libxml2-dev \
+        libsqlite3-dev \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
         pdo_sqlite \
