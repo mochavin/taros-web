@@ -107,6 +107,33 @@ it('queues mpp processing when creating a project from an mpp file', function ()
     );
 });
 
+it('includes non-rl baseline when queuing rl training', function () {
+    $user = User::factory()->create();
+
+    Storage::fake('local');
+    Queue::fake();
+
+    $mpp = UploadedFile::fake()->create('barchart listrik P1A.mpp', 5, 'application/octet-stream');
+
+    $this->actingAs($user)
+        ->post(route('projects.store'), [
+            'name' => 'MPP RL Project',
+            'start_date' => now()->format('Y-m-d'),
+            'hierarchy_file' => $mpp,
+            'train_dqn' => '1',
+        ])
+        ->assertRedirect();
+
+    Queue::assertPushed(
+        ProcessMppProject::class,
+        fn (ProcessMppProject $job): bool => $job->options === [
+            'include_non_rl' => true,
+            'include_rl' => true,
+            'algorithms' => ['dqn'],
+        ],
+    );
+});
+
 it('imports taros-core outputs into project files and schedule variants', function () {
     $user = User::factory()->create();
     Storage::fake('local');
@@ -119,26 +146,43 @@ it('imports taros-core outputs into project files and schedule variants', functi
     $project->forceFill(['source_mpp_path' => sprintf('projects/%s/source/source.mpp', $project->id)])->save();
     Storage::disk('local')->put($project->source_mpp_path, 'mpp bytes');
 
-    $zipPath = tempnam(sys_get_temp_dir(), 'taros-core-zip');
+    $initialZipPath = tempnam(sys_get_temp_dir(), 'taros-core-initial-zip');
     $zip = new ZipArchive();
-    $zip->open($zipPath, ZipArchive::OVERWRITE);
+    $zip->open($initialZipPath, ZipArchive::OVERWRITE);
     $zip->addFromString('input/tasks_hierarchy.csv', "TaskID,TaskName\n1,Start\n");
     $zip->addFromString('input/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
     $zip->addFromString('input/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
     $zip->addFromString('non_rl/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
     $zip->addFromString('non_rl/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
+    $zip->close();
+
+    $rlZipPath = tempnam(sys_get_temp_dir(), 'taros-core-rl-zip');
+    $zip = new ZipArchive();
+    $zip->open($rlZipPath, ZipArchive::OVERWRITE);
+    $zip->addFromString('input/tasks_hierarchy.csv', "TaskID,TaskName\n1,Start\n");
+    $zip->addFromString('input/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
+    $zip->addFromString('input/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
     $zip->addFromString('dqn/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
     $zip->addFromString('dqn/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
     $zip->close();
 
-    Http::fake([
-        'taros-core:5000/process' => Http::response(file_get_contents($zipPath), 200, [
+    $callCount = 0;
+    Http::fake(function () use (&$callCount, $initialZipPath, $rlZipPath, $project) {
+        $callCount++;
+
+        if ($callCount === 2) {
+            expect(ScheduleVariant::where('project_id', $project->id)->where('slug', 'uploaded')->exists())->toBeTrue();
+            expect(ScheduleVariant::where('project_id', $project->id)->where('slug', 'non_rl')->exists())->toBeTrue();
+
+            return Http::response(file_get_contents($rlZipPath), 200, [
+                'Content-Type' => 'application/zip',
+            ]);
+        }
+
+        return Http::response(file_get_contents($initialZipPath), 200, [
             'Content-Type' => 'application/zip',
-        ]),
-        'http://taros-core:5000/process' => Http::response(file_get_contents($zipPath), 200, [
-            'Content-Type' => 'application/zip',
-        ]),
-    ]);
+        ]);
+    });
 
     (new ProcessMppProject($project->id, [
         'include_non_rl' => true,
@@ -162,6 +206,7 @@ it('imports taros-core outputs into project files and schedule variants', functi
     expect($dqn)->not->toBeNull();
     expect($dqn?->is_default)->toBeFalse();
     expect(Storage::disk('local')->exists($dqn?->task_path))->toBeTrue();
+    expect($callCount)->toBe(2);
 });
 
 it('allows uploaded mpp schedule variants on multiple projects', function () {

@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { type BreadcrumbItem } from '@/types';
@@ -7,6 +7,7 @@ import { ScheduleViewerComponent } from '@/components/schedule/schedule-viewer-c
 import type { ScheduleVariantOption } from '@/types/schedule';
 import { formatIndoDateTime } from '@/lib/schedule-utils';
 import { Calendar, Pencil } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface ProjectShowData {
     project: {
@@ -33,6 +34,20 @@ export default function ProjectShow({ project, scheduleVariants, defaultVariant,
         { title: project.name, href: `/projects/${project.id}` },
     ];
     const isProcessing = project.processing_status === 'queued' || project.processing_status === 'processing';
+
+    useEffect(() => {
+        if (!isProcessing) {
+            return;
+        }
+
+        const interval = window.setInterval(() => {
+            router.reload({
+                only: ['project', 'scheduleVariants', 'defaultVariant', 'hierarchyCandidates'],
+            });
+        }, 5000);
+
+        return () => window.clearInterval(interval);
+    }, [isProcessing]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

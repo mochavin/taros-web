@@ -294,7 +294,7 @@ class ProjectController extends Controller
         }
 
         return [
-            'include_non_rl' => $request->boolean('train_non_rl'),
+            'include_non_rl' => $request->boolean('train_non_rl') || $algorithms !== [],
             'include_rl' => $algorithms !== [],
             'algorithms' => $algorithms,
         ];

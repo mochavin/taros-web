@@ -26,6 +26,7 @@ class ProcessMppProject implements ShouldQueue
     public function handle(TarosCoreClient $client): void
     {
         $project = Project::query()->findOrFail($this->projectId);
+        $initialOutputsImported = false;
 
         try {
             $this->markProcessing($project);
@@ -40,32 +41,73 @@ class ProcessMppProject implements ShouldQueue
                 throw new RuntimeException('Uploaded MPP source file is missing from storage.');
             }
 
+            $initialOptions = array_merge($this->options, [
+                'include_non_rl' => (bool) ($this->options['include_non_rl'] ?? false) || $this->shouldRunRl(),
+                'include_rl' => false,
+                'algorithms' => [],
+            ]);
+
             $response = $client->processMpp(
                 $disk->path($sourcePath),
                 basename($project->source_mpp_path),
                 $this->projectStartDatetime($project),
-                $this->options,
+                $initialOptions,
             );
 
             if (! $response->successful()) {
                 throw new RuntimeException(
-                    'taros-core processing failed: '.Str::limit($response->body(), 1000),
+                    'taros-core initial processing failed: '.Str::limit($response->body(), 1000),
                 );
             }
 
-            $archivePath = $this->writeArchive($project, $response->body());
+            $archivePath = $this->writeArchive($project, $response->body(), 'taros_processing_initial_outputs.zip');
             $extractDir = $this->extractArchive($archivePath);
             $this->importOutputs($project->fresh(), $extractDir);
+            $initialOutputsImported = true;
+
+            if ($this->shouldRunRl()) {
+                $project->forceFill([
+                    'processing_status' => 'processing',
+                    'processing_message' => 'MPP extraction completed. RL training is still running: '.$this->algorithmLabel().'.',
+                    'processing_completed_at' => null,
+                ])->save();
+
+                $rlOptions = array_merge($this->options, [
+                    'include_non_rl' => false,
+                    'include_rl' => true,
+                ]);
+
+                $response = $client->processMpp(
+                    $disk->path($sourcePath),
+                    basename($project->source_mpp_path),
+                    $this->projectStartDatetime($project),
+                    $rlOptions,
+                );
+
+                if (! $response->successful()) {
+                    throw new RuntimeException(
+                        'taros-core RL training failed: '.Str::limit($response->body(), 1000),
+                    );
+                }
+
+                $archivePath = $this->writeArchive($project, $response->body(), 'taros_processing_rl_outputs.zip');
+                $extractDir = $this->extractArchive($archivePath);
+                $this->importOutputs($project->fresh(), $extractDir);
+            }
 
             $project->forceFill([
                 'processing_status' => 'completed',
-                'processing_message' => 'MPP extraction completed.',
+                'processing_message' => $this->shouldRunRl()
+                    ? 'MPP extraction and selected RL training completed.'
+                    : 'MPP extraction completed.',
                 'processing_completed_at' => now(),
             ])->save();
         } catch (Throwable $e) {
             $project->forceFill([
                 'processing_status' => 'failed',
-                'processing_message' => Str::limit($e->getMessage(), 2000),
+                'processing_message' => $initialOutputsImported && $this->shouldRunRl()
+                    ? 'Initial MPP extraction completed, but RL training failed: '.Str::limit($e->getMessage(), 1900)
+                    : Str::limit($e->getMessage(), 2000),
                 'processing_completed_at' => now(),
             ])->save();
 
@@ -83,6 +125,22 @@ class ProcessMppProject implements ShouldQueue
         ])->save();
     }
 
+    protected function shouldRunRl(): bool
+    {
+        return (bool) ($this->options['include_rl'] ?? false)
+            && ($this->options['algorithms'] ?? []) !== [];
+    }
+
+    protected function algorithmLabel(): string
+    {
+        $algorithms = array_map(
+            fn (string $algorithm): string => strtoupper($algorithm),
+            $this->options['algorithms'] ?? [],
+        );
+
+        return implode(', ', $algorithms);
+    }
+
     protected function projectStartDatetime(Project $project): string
     {
         if ($project->start_baseline) {
@@ -92,10 +150,10 @@ class ProcessMppProject implements ShouldQueue
         return $project->start_date->format('Y-m-d 00:00:00');
     }
 
-    protected function writeArchive(Project $project, string $body): string
+    protected function writeArchive(Project $project, string $body, string $filename): string
     {
         $disk = Storage::disk('local');
-        $archiveRelativePath = sprintf('projects/%s/processing/taros_processing_outputs.zip', $project->id);
+        $archiveRelativePath = sprintf('projects/%s/processing/%s', $project->id, $filename);
         $disk->put($archiveRelativePath, $body);
 
         return $disk->path($archiveRelativePath);
