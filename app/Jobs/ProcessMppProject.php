@@ -35,7 +35,7 @@ class ProcessMppProject implements ShouldQueue
             }
 
             $disk = Storage::disk('local');
-            $sourcePath = 'private/'.$project->source_mpp_path;
+            $sourcePath = $project->source_mpp_path;
             if (! $disk->exists($sourcePath)) {
                 throw new RuntimeException('Uploaded MPP source file is missing from storage.');
             }
@@ -95,7 +95,7 @@ class ProcessMppProject implements ShouldQueue
     protected function writeArchive(Project $project, string $body): string
     {
         $disk = Storage::disk('local');
-        $archiveRelativePath = sprintf('private/projects/%s/processing/taros_processing_outputs.zip', $project->id);
+        $archiveRelativePath = sprintf('projects/%s/processing/taros_processing_outputs.zip', $project->id);
         $disk->put($archiveRelativePath, $body);
 
         return $disk->path($archiveRelativePath);
@@ -171,7 +171,7 @@ class ProcessMppProject implements ShouldQueue
         }
 
         $relativePath = sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project->id);
-        Storage::disk('local')->put('private/'.$relativePath, file_get_contents($source));
+        Storage::disk('local')->put($relativePath, file_get_contents($source));
 
         $project->forceFill(['hierarchy_path' => $relativePath])->save();
     }
@@ -212,7 +212,7 @@ class ProcessMppProject implements ShouldQueue
     protected function storeVariantFile(Project $project, string $slug, string $source, string $filename): string
     {
         $relativePath = sprintf('projects/%s/schedule-variants/%s/%s', $project->id, $slug, $filename);
-        Storage::disk('local')->put('private/'.$relativePath, file_get_contents($source));
+        Storage::disk('local')->put($relativePath, file_get_contents($source));
 
         return $relativePath;
     }

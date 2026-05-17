@@ -35,7 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             abort(404);
         }
 
-        $path = 'private/'.$project->hierarchy_path;
+        $path = $project->hierarchy_path;
 
         if (! Storage::disk('local')->exists($path)) {
             abort(404);

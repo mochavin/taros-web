@@ -72,7 +72,7 @@ it('creates a project', function () {
     expect($project?->hierarchy_path)->toBe(
         sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project?->id),
     );
-    expect(Storage::disk('local')->exists('private/'.$project?->hierarchy_path))->toBeTrue();
+    expect(Storage::disk('local')->exists($project?->hierarchy_path))->toBeTrue();
 });
 
 it('queues mpp processing when creating a project from an mpp file', function () {
@@ -95,7 +95,7 @@ it('queues mpp processing when creating a project from an mpp file', function ()
 
     expect($project->processing_status)->toBe('queued');
     expect($project->source_mpp_path)->toBe(sprintf('projects/%s/source/source.mpp', $project->id));
-    expect(Storage::disk('local')->exists('private/'.$project->source_mpp_path))->toBeTrue();
+    expect(Storage::disk('local')->exists($project->source_mpp_path))->toBeTrue();
 
     Queue::assertPushed(
         ProcessMppProject::class,
@@ -117,7 +117,7 @@ it('imports taros-core outputs into project files and schedule variants', functi
         'processing_status' => 'queued',
     ]);
     $project->forceFill(['source_mpp_path' => sprintf('projects/%s/source/source.mpp', $project->id)])->save();
-    Storage::disk('local')->put('private/'.$project->source_mpp_path, 'mpp bytes');
+    Storage::disk('local')->put($project->source_mpp_path, 'mpp bytes');
 
     $zipPath = tempnam(sys_get_temp_dir(), 'taros-core-zip');
     $zip = new ZipArchive();
@@ -149,7 +149,7 @@ it('imports taros-core outputs into project files and schedule variants', functi
     $project->refresh();
     expect($project->processing_status)->toBe('completed');
     expect($project->hierarchy_path)->toBe(sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project->id));
-    expect(Storage::disk('local')->exists('private/'.$project->hierarchy_path))->toBeTrue();
+    expect(Storage::disk('local')->exists($project->hierarchy_path))->toBeTrue();
 
     $uploaded = ScheduleVariant::where('project_id', $project->id)->where('slug', 'uploaded')->first();
     $nonRl = ScheduleVariant::where('project_id', $project->id)->where('slug', 'non_rl')->first();
@@ -161,7 +161,7 @@ it('imports taros-core outputs into project files and schedule variants', functi
     expect($nonRl?->is_default)->toBeFalse();
     expect($dqn)->not->toBeNull();
     expect($dqn?->is_default)->toBeFalse();
-    expect(Storage::disk('local')->exists('private/'.$dqn?->task_path))->toBeTrue();
+    expect(Storage::disk('local')->exists($dqn?->task_path))->toBeTrue();
 });
 
 it('updates a project', function () {
@@ -189,7 +189,7 @@ it('replaces hierarchy file when updating a project', function () {
     $oldPath = sprintf('projects/%s/hierarchy/old_hierarchy.csv', $project->id);
 
     $project->forceFill(['hierarchy_path' => $oldPath])->save();
-    Storage::disk('local')->put('private/'.$oldPath, 'old hierarchy');
+    Storage::disk('local')->put($oldPath, 'old hierarchy');
 
     $newHierarchy = UploadedFile::fake()->create('new_tasks_hierarchy.csv', 8, 'text/csv');
 
@@ -207,8 +207,8 @@ it('replaces hierarchy file when updating a project', function () {
     $expectedPath = sprintf('projects/%s/hierarchy/tasks_hierarchy.csv', $project->id);
 
     expect($project->hierarchy_path)->toBe($expectedPath);
-    expect(Storage::disk('local')->exists('private/'.$oldPath))->toBeFalse();
-    expect(Storage::disk('local')->exists('private/'.$expectedPath))->toBeTrue();
+    expect(Storage::disk('local')->exists($oldPath))->toBeFalse();
+    expect(Storage::disk('local')->exists($expectedPath))->toBeTrue();
 });
 
 it('deletes a project', function () {

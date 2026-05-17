@@ -106,8 +106,8 @@ it('stores a schedule variant and resets previous default', function (): void {
     /** @var FilesystemAdapter $disk */
     $disk = Storage::disk('local');
 
-    $disk->assertExists('private/'.$created->task_path);
-    $disk->assertExists('private/'.$created->resource_path);
+    $disk->assertExists($created->task_path);
+    $disk->assertExists($created->resource_path);
 
     expect($existing->fresh()->is_default)->toBeFalse();
 });
@@ -135,8 +135,8 @@ it('updates a schedule variant, replaces files, and enforces single default', fu
     $originalTaskPath = $second->task_path;
     $originalResourcePath = $second->resource_path;
 
-    Storage::disk('local')->put('private/'.$originalTaskPath, 'old tasks');
-    Storage::disk('local')->put('private/'.$originalResourcePath, 'old resources');
+    Storage::disk('local')->put($originalTaskPath, 'old tasks');
+    Storage::disk('local')->put($originalResourcePath, 'old resources');
 
     $taskUpload = UploadedFile::fake()->create('task_schedule.csv', 15, 'text/csv');
     $resourceUpload = UploadedFile::fake()->create('resource_tracking.csv', 18, 'text/csv');
@@ -161,11 +161,11 @@ it('updates a schedule variant, replaces files, and enforces single default', fu
     /** @var FilesystemAdapter $disk */
     $disk = Storage::disk('local');
 
-    $disk->assertMissing('private/'.$originalTaskPath);
-    $disk->assertMissing('private/'.$originalResourcePath);
+    $disk->assertMissing($originalTaskPath);
+    $disk->assertMissing($originalResourcePath);
 
-    $disk->assertExists('private/'.$updated->task_path);
-    $disk->assertExists('private/'.$updated->resource_path);
+    $disk->assertExists($updated->task_path);
+    $disk->assertExists($updated->resource_path);
 });
 
 it('allows updating a schedule variant without changing its slug', function (): void {
@@ -181,8 +181,8 @@ it('allows updating a schedule variant without changing its slug', function (): 
             'is_default' => false,
         ]);
 
-    Storage::disk('local')->put('private/'.$variant->task_path, 'tasks content');
-    Storage::disk('local')->put('private/'.$variant->resource_path, 'resources content');
+    Storage::disk('local')->put($variant->task_path, 'tasks content');
+    Storage::disk('local')->put($variant->resource_path, 'resources content');
 
     $response = put(route('projects.schedule-variants.update', [$project, $variant]), [
         'name' => 'Updated Label',
@@ -220,8 +220,8 @@ it('deletes a schedule variant, cleans stored files, and assigns fallback defaul
             'is_default' => false,
         ]);
 
-    Storage::disk('local')->put('private/'.$primary->task_path, 'task');
-    Storage::disk('local')->put('private/'.$primary->resource_path, 'resource');
+    Storage::disk('local')->put($primary->task_path, 'task');
+    Storage::disk('local')->put($primary->resource_path, 'resource');
 
     $response = delete(route('projects.schedule-variants.destroy', [$project, $primary]));
 
@@ -233,8 +233,8 @@ it('deletes a schedule variant, cleans stored files, and assigns fallback defaul
     /** @var FilesystemAdapter $disk */
     $disk = Storage::disk('local');
 
-    $disk->assertMissing('private/'.$primary->task_path);
-    $disk->assertMissing('private/'.$primary->resource_path);
+    $disk->assertMissing($primary->task_path);
+    $disk->assertMissing($primary->resource_path);
 });
 
 it('updates schedule variant visibility through dedicated endpoint', function (): void {
@@ -319,7 +319,7 @@ it('serves task schedule csv through public endpoint', function (): void {
         'slug' => 'dqn_variant',
     ]);
 
-    Storage::disk('local')->put('private/'.$variant->task_path, 'TaskID,TaskName');
+    Storage::disk('local')->put($variant->task_path, 'TaskID,TaskName');
 
     $response = get(route('schedule-variants.tasks', ['scheduleVariant' => $variant->slug]));
 
@@ -349,7 +349,7 @@ it('shifts dates in task schedule csv based on project baseline', function (): v
     $variant = ScheduleVariant::factory()->for($project)->create();
 
     $csvContent = "TaskID,TaskName,Start,Finish\n1,Task 1,2024-01-01 08:00:00,2024-01-01 17:00:00";
-    Storage::disk('local')->put('private/'.$variant->task_path, $csvContent);
+    Storage::disk('local')->put($variant->task_path, $csvContent);
 
     $response = get(route('projects.schedule-variants.tasks', [$project, $variant]));
 
@@ -372,10 +372,10 @@ it('shifts dates in resource tracking csv based on project baseline', function (
 
     // We need task_schedule.csv to calculate the shift
     $taskCsvContent = "TaskID,TaskName,Start,Finish\n1,Task 1,2024-01-01 08:00:00,2024-01-01 17:00:00";
-    Storage::disk('local')->put('private/'.$variant->task_path, $taskCsvContent);
+    Storage::disk('local')->put($variant->task_path, $taskCsvContent);
 
     $resCsvContent = "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd\n1,Res 1,1,Task 1,2024-01-01 09:00:00,2024-01-01 12:00:00";
-    Storage::disk('local')->put('private/'.$variant->resource_path, $resCsvContent);
+    Storage::disk('local')->put($variant->resource_path, $resCsvContent);
 
     $response = get(route('projects.schedule-variants.resources', [$project, $variant]));
 

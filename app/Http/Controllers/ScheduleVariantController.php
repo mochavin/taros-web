@@ -143,7 +143,7 @@ class ScheduleVariantController extends Controller
         $this->assertOwnership($project, $scheduleVariant);
         abort_if(! $scheduleVariant->task_path, 404);
 
-        $path = 'private/'.$scheduleVariant->task_path;
+        $path = $scheduleVariant->task_path;
         abort_if(! Storage::disk('local')->exists($path), 404);
 
         $projectBaseline = $project->start_baseline;
@@ -184,7 +184,7 @@ class ScheduleVariantController extends Controller
         $this->assertOwnership($project, $scheduleVariant);
         abort_if(! $scheduleVariant->resource_path, 404);
 
-        $path = 'private/'.$scheduleVariant->resource_path;
+        $path = $scheduleVariant->resource_path;
         abort_if(! Storage::disk('local')->exists($path), 404);
 
         $projectBaseline = $project->start_baseline;
@@ -233,7 +233,7 @@ class ScheduleVariantController extends Controller
             return 0;
         }
 
-        $path = 'private/'.$variant->task_path;
+        $path = $variant->task_path;
         if (! Storage::disk('local')->exists($path)) {
             return 0;
         }
@@ -375,8 +375,8 @@ class ScheduleVariantController extends Controller
     {
         $relativeDirectory = $this->buildStorageDirectory($project, $slug);
         $disk = Storage::disk('local');
-        $disk->makeDirectory('private/'.$relativeDirectory);
-        $disk->putFileAs('private/'.$relativeDirectory, $file, $filename);
+        $disk->makeDirectory($relativeDirectory);
+        $disk->putFileAs($relativeDirectory, $file, $filename);
 
         return $relativeDirectory.'/'.$filename;
     }
@@ -391,9 +391,9 @@ class ScheduleVariantController extends Controller
 
         $disk = Storage::disk('local');
 
-        if ($disk->exists('private/'.$currentPath)) {
-            $disk->makeDirectory(dirname('private/'.$newPath));
-            $disk->move('private/'.$currentPath, 'private/'.$newPath);
+        if ($disk->exists($currentPath)) {
+            $disk->makeDirectory(dirname($newPath));
+            $disk->move($currentPath, $newPath);
         }
 
         return $newPath;
@@ -404,21 +404,21 @@ class ScheduleVariantController extends Controller
         $disk = Storage::disk('local');
 
         if ($variant->task_path) {
-            $disk->delete('private/'.$variant->task_path);
+            $disk->delete($variant->task_path);
         }
 
         if ($variant->resource_path) {
-            $disk->delete('private/'.$variant->resource_path);
+            $disk->delete($variant->resource_path);
         }
 
         if ($directory = $this->resolveVariantDirectory($variant)) {
-            $disk->deleteDirectory('private/'.$directory);
+            $disk->deleteDirectory($directory);
         }
     }
 
     protected function deleteStoredFile(string $path): void
     {
-        Storage::disk('local')->delete('private/'.$path);
+        Storage::disk('local')->delete($path);
     }
 
     protected function resolveVariantDirectory(ScheduleVariant $variant): ?string

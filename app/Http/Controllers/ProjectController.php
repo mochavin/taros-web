@@ -250,12 +250,8 @@ class ProjectController extends Controller
     protected function buildCandidateUrls(array $paths, string $primary): array
     {
         $filtered = array_values(array_filter($paths));
-        $prefixed = array_map(static fn (string $path) => '/storage/app/private/'.$path, $filtered);
-
         return array_values(array_unique(array_merge(
             [$primary],
-            $prefixed,
-            $filtered,
         )));
     }
 
@@ -263,8 +259,8 @@ class ProjectController extends Controller
     {
         $relativeDirectory = $this->hierarchyDirectory($project);
         $disk = Storage::disk('local');
-        $disk->makeDirectory('private/'.$relativeDirectory);
-        $disk->putFileAs('private/'.$relativeDirectory, $file, 'tasks_hierarchy.csv');
+        $disk->makeDirectory($relativeDirectory);
+        $disk->putFileAs($relativeDirectory, $file, 'tasks_hierarchy.csv');
 
         return $relativeDirectory.'/tasks_hierarchy.csv';
     }
@@ -273,8 +269,8 @@ class ProjectController extends Controller
     {
         $relativeDirectory = $this->sourceDirectory($project);
         $disk = Storage::disk('local');
-        $disk->makeDirectory('private/'.$relativeDirectory);
-        $disk->putFileAs('private/'.$relativeDirectory, $file, 'source.mpp');
+        $disk->makeDirectory($relativeDirectory);
+        $disk->putFileAs($relativeDirectory, $file, 'source.mpp');
 
         return $relativeDirectory.'/source.mpp';
     }
@@ -336,21 +332,21 @@ class ProjectController extends Controller
 
     protected function deleteHierarchyFile(string $path): void
     {
-        Storage::disk('local')->delete('private/'.$path);
+        Storage::disk('local')->delete($path);
     }
 
     protected function deleteSourceMppFile(string $path): void
     {
-        Storage::disk('local')->delete('private/'.$path);
+        Storage::disk('local')->delete($path);
     }
 
     protected function deleteHierarchyDirectory(Project $project): void
     {
-        Storage::disk('local')->deleteDirectory('private/'.$this->hierarchyDirectory($project));
+        Storage::disk('local')->deleteDirectory($this->hierarchyDirectory($project));
     }
 
     protected function deleteSourceDirectory(Project $project): void
     {
-        Storage::disk('local')->deleteDirectory('private/'.$this->sourceDirectory($project));
+        Storage::disk('local')->deleteDirectory($this->sourceDirectory($project));
     }
 }
