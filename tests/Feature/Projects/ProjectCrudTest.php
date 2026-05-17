@@ -164,6 +164,47 @@ it('imports taros-core outputs into project files and schedule variants', functi
     expect(Storage::disk('local')->exists($dqn?->task_path))->toBeTrue();
 });
 
+it('allows uploaded mpp schedule variants on multiple projects', function () {
+    $user = User::factory()->create();
+    Storage::fake('local');
+
+    $existingProject = Project::factory()->create(['user_id' => $user->id]);
+    ScheduleVariant::factory()->for($existingProject)->create([
+        'slug' => 'uploaded',
+        'task_path' => sprintf('projects/%s/schedule-variants/uploaded/task_schedule.csv', $existingProject->id),
+        'resource_path' => sprintf('projects/%s/schedule-variants/uploaded/resource_tracking.csv', $existingProject->id),
+    ]);
+
+    $project = Project::factory()->create([
+        'user_id' => $user->id,
+        'processing_status' => 'queued',
+    ]);
+    $project->forceFill(['source_mpp_path' => sprintf('projects/%s/source/source.mpp', $project->id)])->save();
+    Storage::disk('local')->put($project->source_mpp_path, 'mpp bytes');
+
+    $zipPath = tempnam(sys_get_temp_dir(), 'taros-core-zip');
+    $zip = new ZipArchive();
+    $zip->open($zipPath, ZipArchive::OVERWRITE);
+    $zip->addFromString('input/tasks_hierarchy.csv', "TaskID,TaskName\n1,Start\n");
+    $zip->addFromString('input/task_schedule.csv', "TaskID,TaskName,Start,Finish,DurationHours,IsElapsed,Assignments\n1,Start,2026-01-01 07:00:00,2026-01-01 08:00:00,1.000,N,\n");
+    $zip->addFromString('input/resource_tracking.csv', "ResourceID,ResourceName,TaskID,TaskName,SegmentStart,SegmentEnd,SegmentHours,Units\n");
+    $zip->close();
+
+    Http::fake([
+        'taros-core:5000/process' => Http::response(file_get_contents($zipPath), 200, [
+            'Content-Type' => 'application/zip',
+        ]),
+        'http://taros-core:5000/process' => Http::response(file_get_contents($zipPath), 200, [
+            'Content-Type' => 'application/zip',
+        ]),
+    ]);
+
+    (new ProcessMppProject($project->id))->handle(app(TarosCoreClient::class));
+
+    expect(ScheduleVariant::where('slug', 'uploaded')->count())->toBe(2);
+    expect(ScheduleVariant::where('project_id', $project->id)->where('slug', 'uploaded')->exists())->toBeTrue();
+});
+
 it('updates a project', function () {
     $user = User::factory()->create();
     $project = Project::factory()->create(['user_id' => $user->id]);
