@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Projects;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\File;
 
 /**
  * @method \App\Models\User user()
@@ -24,7 +23,15 @@ class StoreProjectRequest extends FormRequest
             'start_baseline' => ['nullable', 'date'],
             'hierarchy_file' => [
                 'required',
-                File::types(['mpp', 'csv', 'txt'])->max(204_800),
+                'file',
+                'max:204800',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $extension = strtolower((string) $value?->getClientOriginalExtension());
+
+                    if (! in_array($extension, ['mpp', 'csv', 'txt'], true)) {
+                        $fail('The hierarchy file field must be a file of type: mpp, csv, txt.');
+                    }
+                },
             ],
             'train_non_rl' => ['nullable', 'boolean'],
             'train_dqn' => ['nullable', 'boolean'],

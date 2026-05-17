@@ -81,7 +81,7 @@ it('queues mpp processing when creating a project from an mpp file', function ()
     Storage::fake('local');
     Queue::fake();
 
-    $mpp = UploadedFile::fake()->create('uploaded-plan.mpp', 5, 'application/vnd.ms-project');
+    $mpp = UploadedFile::fake()->create('barchart listrik P1A.mpp', 5, 'application/octet-stream');
 
     $this->actingAs($user)
         ->post(route('projects.store'), [
