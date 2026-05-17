@@ -15,7 +15,33 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        $projects = Project::query()
+            ->where('user_id', Auth::id());
+
+        $recentProjects = (clone $projects)
+            ->withCount('scheduleVariants')
+            ->latest('updated_at')
+            ->limit(5)
+            ->get()
+            ->map(fn (Project $project): array => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'startDate' => $project->start_date?->format('Y-m-d'),
+                'endDate' => $project->end_date?->format('Y-m-d'),
+                'scheduleVariantsCount' => $project->schedule_variants_count,
+                'pendingRlVariantsCount' => 0,
+                'updatedAt' => $project->updated_at->toDateTimeString(),
+            ]);
+
+        return Inertia::render('dashboard', [
+            'stats' => [
+                'totalProjects' => (clone $projects)->count(),
+                'totalVariants' => ScheduleVariant::query()
+                    ->whereHas('project', fn ($query) => $query->where('user_id', Auth::id()))
+                    ->count(),
+            ],
+            'recentProjects' => $recentProjects,
+        ]);
     })->name('dashboard');
 
     Route::get('projects/{project}/schedule-variants/{scheduleVariant}/task_schedule.csv', [
