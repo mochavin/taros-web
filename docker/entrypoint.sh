@@ -18,4 +18,8 @@ chown -R www-data:www-data storage bootstrap/cache
 
 php artisan migrate --force
 
+if [ "$1" = "php" ] && [ "$2" = "artisan" ]; then
+    exec runuser -u www-data -- "$@"
+fi
+
 exec "$@"
